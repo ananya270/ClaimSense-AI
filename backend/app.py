@@ -10,6 +10,7 @@ from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from backend.config import Config
 from backend.routes.health import health_bp
+from backend.routes.claims import claims_bp
 from backend.utils.logger import setup_logger
 
 logger = setup_logger("claimsense")
@@ -32,6 +33,7 @@ def create_app(config_class=Config) -> Flask:
 
     # Register blueprints
     app.register_blueprint(health_bp, url_prefix="/api")
+    app.register_blueprint(claims_bp, url_prefix="/api")
 
     # Serve Frontend UI
     @app.route("/", methods=["GET"])

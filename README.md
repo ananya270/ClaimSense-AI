@@ -160,13 +160,67 @@ Checks backend operational status and environment diagnostics.
 }
 ```
 
+### `POST /api/claims`
+Accepts `multipart/form-data` claim submissions including claimant details and multi-source evidence files.
+
+**Request Form Fields:**
+- `claimant_name` (string, required)
+- `policy_number` (string, required)
+- `vehicle_number` (string, required)
+- `accident_date` (string `YYYY-MM-DD`, required)
+- `claim_description` (string narrative, required)
+
+**Request Files:**
+- `policy_document` (file: `.pdf`, `.docx`, `.png`, `.jpg`, `.jpeg`, required)
+- `claim_form` (file: `.pdf`, `.docx`, `.png`, `.jpg`, `.jpeg`, required)
+- `invoice_document` (file: `.pdf`, `.docx`, `.png`, `.jpg`, `.jpeg`, required)
+- `vehicle_image` (file: `.png`, `.jpg`, `.jpeg`, required)
+
+**Sample Response (`201 Created`):**
+```json
+{
+  "success": true,
+  "claim_id": "CLM-20261008-A9Z1",
+  "message": "Claim submitted successfully",
+  "data": {
+    "claim_id": "CLM-20261008-A9Z1",
+    "claimant_name": "Rajesh Sharma",
+    "policy_number": "POL-2024-88391",
+    "vehicle_number": "MH-12-DE-4052",
+    "accident_date": "2026-09-28",
+    "claim_description": "Rear bumper and tail light damaged...",
+    "files_count": 4,
+    "created_at": "2026-10-08T08:58:12.102941+00:00"
+  }
+}
+```
+
+### `GET /api/claims/<claim_id>`
+Fetches registered claim metadata and stored file manifest for a specific Claim ID.
+
+---
+
+## 🗄️ File Storage Architecture
+
+```text
+uploads/
+└── <claim_id>/
+    ├── metadata.json
+    ├── documents/
+    │   ├── policy_document_<clean_filename>
+    │   ├── claim_form_<clean_filename>
+    │   └── invoice_document_<clean_filename>
+    └── images/
+        └── vehicle_image_<clean_filename>
+```
+
 ---
 
 ## 📋 Implementation Roadmap
 
 - [x] **Phase 0:** Project Repository & Technology Audit
 - [x] **Phase 1:** Project Foundation, Scaffolding, Flask API, UI Shell & Health Diagnostics
-- [ ] **Phase 2:** Claim Submission Module (File uploads, validation, Claim ID generation)
+- [x] **Phase 2:** Claim Submission Module (File uploads, validation, Claim ID generation, safe storage)
 - [ ] **Phase 3:** Database Architecture (SQLite models for claims, evidence & assessments)
 - [ ] **Phase 4:** OCR & Multi-Format Document Processing
 - [ ] **Phase 5:** Computer Vision Analysis (Vehicle damage inspection)

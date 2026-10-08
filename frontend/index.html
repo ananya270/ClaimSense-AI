@@ -34,6 +34,168 @@
     </div>
 
     <main class="container main-content">
+        <!-- Claim Submission Module (Phase 2) -->
+        <section class="card submission-card" id="submission-card">
+            <div class="card-header">
+                <div>
+                    <h2>Submit Insurance Claim Evidence</h2>
+                    <p class="section-desc">Submit claimant metadata, narrative description, and multi-source documentation for preliminary verification.</p>
+                </div>
+                <button type="button" id="btn-fill-sample" class="btn btn-secondary btn-sm" title="Populate form with sample test claim for quick demo">
+                    ✨ Fill Demo Sample
+                </button>
+            </div>
+            <div class="card-body">
+                <form id="claim-form" enctype="multipart/form-data">
+                    <div id="form-error-alert" class="alert alert-error" style="display: none;"></div>
+
+                    <div class="form-grid">
+                        <!-- Left Column: Claim Details -->
+                        <div class="form-column">
+                            <h3 class="column-title">1. Claim & Claimant Information</h3>
+
+                            <div class="form-group">
+                                <label for="claimant_name">Claimant Full Name <span class="req">*</span></label>
+                                <input type="text" id="claimant_name" name="claimant_name" placeholder="e.g. Johnathan Doe" required>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="policy_number">Policy Number <span class="req">*</span></label>
+                                    <input type="text" id="policy_number" name="policy_number" placeholder="e.g. POL-984210" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="vehicle_number">Vehicle Registration # <span class="req">*</span></label>
+                                    <input type="text" id="vehicle_number" name="vehicle_number" placeholder="e.g. DL-01-AB-1234" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="accident_date">Accident / Incident Date <span class="req">*</span></label>
+                                <input type="date" id="accident_date" name="accident_date" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="claim_description">Accident Narrative / Claim Description <span class="req">*</span></label>
+                                <textarea id="claim_description" name="claim_description" rows="5" placeholder="Describe how the accident occurred, stated damage locations (e.g. front bumper, left headlight), and driving conditions..." required></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Evidence Files -->
+                        <div class="form-column">
+                            <h3 class="column-title">2. Multi-Source Evidence Uploads</h3>
+
+                            <div class="form-group upload-group">
+                                <label for="policy_document">
+                                    Policy Document
+                                    <span class="file-badges">PDF, PNG, JPG, DOCX</span>
+                                    <span class="req">*</span>
+                                </label>
+                                <input type="file" id="policy_document" name="policy_document" accept=".pdf,.docx,.png,.jpg,.jpeg" required>
+                                <small class="help-text">Official insurance policy document or certificate.</small>
+                            </div>
+
+                            <div class="form-group upload-group">
+                                <label for="claim_form_file">
+                                    Claim Application Form
+                                    <span class="file-badges">PDF, PNG, JPG, DOCX</span>
+                                    <span class="req">*</span>
+                                </label>
+                                <input type="file" id="claim_form_file" name="claim_form" accept=".pdf,.docx,.png,.jpg,.jpeg" required>
+                                <small class="help-text">Signed claim registration form submitted by insured.</small>
+                            </div>
+
+                            <div class="form-group upload-group">
+                                <label for="invoice_document">
+                                    Repair Invoice / Garage Estimate
+                                    <span class="file-badges">PDF, PNG, JPG, DOCX</span>
+                                    <span class="req">*</span>
+                                </label>
+                                <input type="file" id="invoice_document" name="invoice_document" accept=".pdf,.docx,.png,.jpg,.jpeg" required>
+                                <small class="help-text">Itemized repair bill, parts invoice, or estimation sheet.</small>
+                            </div>
+
+                            <div class="form-group upload-group">
+                                <label for="vehicle_image">
+                                    Accident / Vehicle Photograph
+                                    <span class="file-badges image-badge">PNG, JPG, JPEG</span>
+                                    <span class="req">*</span>
+                                </label>
+                                <input type="file" id="vehicle_image" name="vehicle_image" accept=".png,.jpg,.jpeg" required>
+                                <small class="help-text">Clear photograph showing damaged vehicle panels/components.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="btn-submit-claim" class="btn btn-primary">
+                            <span class="btn-text">Submit Claim for Verification</span>
+                            <span class="btn-spinner" style="display: none;">Submitting...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Submission Success Card (Initially Hidden) -->
+        <section class="card success-card" id="submission-success-card" style="display: none;">
+            <div class="success-banner-box">
+                <div class="success-icon">✓</div>
+                <div>
+                    <h2>Claim Successfully Registered</h2>
+                    <p>Your claim has been assigned a unique tracking identifier and evidence files are secured.</p>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="claim-id-banner">
+                    <span class="claim-id-label">Generated Claim Identifier:</span>
+                    <span class="claim-id-val" id="res-claim-id">CLM-XXXXXXXX-XXXX</span>
+                    <button type="button" id="btn-copy-claim-id" class="btn btn-secondary btn-sm">Copy ID</button>
+                </div>
+
+                <div class="summary-section">
+                    <h3 class="summary-title">Submission Summary</h3>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <span class="summary-label">Claimant Name</span>
+                            <span class="summary-value" id="res-claimant-name">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Policy Number</span>
+                            <span class="summary-value" id="res-policy-number">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Vehicle Registration #</span>
+                            <span class="summary-value" id="res-vehicle-number">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Incident Date</span>
+                            <span class="summary-value" id="res-accident-date">-</span>
+                        </div>
+                        <div class="summary-item wide">
+                            <span class="summary-label">Description / Stated Chronology</span>
+                            <span class="summary-value desc-value" id="res-claim-description">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Stored File Packages</span>
+                            <span class="summary-value" id="res-file-count">4 evidence files safely saved</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Submission Timestamp</span>
+                            <span class="summary-value" id="res-timestamp">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="success-actions">
+                    <button type="button" id="btn-new-claim" class="btn btn-primary">
+                        + Submit Another Claim
+                    </button>
+                </div>
+            </div>
+        </section>
+
         <!-- System Health Card -->
         <section class="card health-card">
             <div class="card-header">
@@ -148,9 +310,9 @@
                             </tr>
                             <tr>
                                 <td>Claim Submission & Storage</td>
-                                <td><code>uploads/</code></td>
-                                <td><span class="status-pill status-pending">Phase 2</span></td>
-                                <td>File validations and ID generation</td>
+                                <td><code>uploads/</code> & <code>backend/routes/claims.py</code></td>
+                                <td><span class="status-pill status-ready">Active</span></td>
+                                <td>File validations, safe storage & CLM-YYYYMMDD-XXXX ID generation</td>
                             </tr>
                             <tr>
                                 <td>Database Architecture</td>
