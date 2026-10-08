@@ -1,0 +1,43 @@
+# Python Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment Variables
+.env
+
+# Data & Uploads (preserve directories via .gitkeep)
+uploads/*
+!uploads/.gitkeep
+reports/*
+!reports/.gitkeep
+models/*
+!models/.gitkeep
+data/sample_claims/*
+!data/sample_claims/.gitkeep
+
+# SQLite database
+*.sqlite3
+*.db
+backend/database/*.db
+backend/database/*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# IDE / Editor artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

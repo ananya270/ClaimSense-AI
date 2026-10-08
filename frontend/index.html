@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClaimSense AI - Claim Verification Decision-Support System</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="app-header">
+        <div class="container header-container">
+            <div class="logo-area">
+                <div class="logo-badge">CS</div>
+                <div>
+                    <h1>ClaimSense AI</h1>
+                    <p class="subtitle">AI-Powered Insurance Claim Verification Using Image/Document Analysis</p>
+                </div>
+            </div>
+            <div class="header-status">
+                <span class="status-indicator" id="status-indicator"></span>
+                <span class="status-text" id="status-badge">Checking backend...</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="disclaimer-banner">
+        <div class="container">
+            <strong>Academic Decision-Support Prototype:</strong>
+            This system identifies inconsistencies and suspicious patterns across multi-source evidence (documents, images, descriptions) to assist human claim assessors. It does not render autonomous legal or insurance decisions.
+        </div>
+    </div>
+
+    <main class="container main-content">
+        <!-- System Health Card -->
+        <section class="card health-card">
+            <div class="card-header">
+                <h2>Backend System Status</h2>
+                <button id="btn-refresh-health" class="btn btn-secondary">Check Connection</button>
+            </div>
+            <div class="card-body">
+                <div class="health-grid">
+                    <div class="health-item">
+                        <span class="label">API Status</span>
+                        <span class="value" id="health-status">Connecting...</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="label">Project Phase</span>
+                        <span class="value" id="health-phase">-</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="label">Version</span>
+                        <span class="value" id="health-version">-</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="label">Environment</span>
+                        <span class="value" id="health-env">-</span>
+                    </div>
+                    <div class="health-item wide">
+                        <span class="label">Server Timestamp</span>
+                        <span class="value" id="health-timestamp">-</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pipeline Overview -->
+        <section class="card pipeline-card">
+            <div class="card-header">
+                <h2>Verification Pipeline Architecture</h2>
+                <span class="badge badge-info">10 Stages</span>
+            </div>
+            <div class="card-body">
+                <div class="pipeline-steps">
+                    <div class="step-card active">
+                        <span class="step-num">01</span>
+                        <h4>Claim Submission</h4>
+                        <p>Upload policy, claim form, bills, vehicle photos & description</p>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-num">02</span>
+                        <h4>Document OCR</h4>
+                        <p>Text extraction from multi-format files (PDF, images, DOCX)</p>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-num">03</span>
+                        <h4>Information Extraction</h4>
+                        <p>Regex & structured parsing of policy, amounts, dates & vehicle #</p>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-num">04</span>
+                        <h4>Computer Vision</h4>
+                        <p>Pretrained vehicle damage & component location detection</p>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-num">05</span>
+                        <h4>NLP Analysis</h4>
+                        <p>Extraction of accident chronology and stated damage locations</p>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-num">06</span>
+                        <h4>Cross-Verification</h4>
+                        <p>Rule-based consistency engine comparing doc vs. image vs. statement</p>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-num">07</span>
+                        <h4>Risk Assessment</h4>
+                        <p>Weighted scoring producing Low / Medium / High risk levels</p>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-num">08</span>
+                        <h4>LLM Explanation</h4>
+                        <p>Transparent summary explaining risk triggers for human review</p>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-num">09</span>
+                        <h4>Verification Report</h4>
+                        <p>Structured assessor report with evidence breakdowns</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module Status Overview -->
+        <section class="card modules-card">
+            <div class="card-header">
+                <h2>Module Foundation Status</h2>
+            </div>
+            <div class="card-body">
+                <div class="module-table-wrapper">
+                    <table class="module-table">
+                        <thead>
+                            <tr>
+                                <th>Module / Layer</th>
+                                <th>Directory</th>
+                                <th>Status</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Core Backend & Health API</td>
+                                <td><code>backend/routes/health.py</code></td>
+                                <td><span class="status-pill status-ready">Active</span></td>
+                                <td>Flask 3.x, CORS, logging, error handlers</td>
+                            </tr>
+                            <tr>
+                                <td>Claim Submission & Storage</td>
+                                <td><code>uploads/</code></td>
+                                <td><span class="status-pill status-pending">Phase 2</span></td>
+                                <td>File validations and ID generation</td>
+                            </tr>
+                            <tr>
+                                <td>Database Architecture</td>
+                                <td><code>backend/database/</code></td>
+                                <td><span class="status-pill status-pending">Phase 3</span></td>
+                                <td>SQLite claim & verification tables</td>
+                            </tr>
+                            <tr>
+                                <td>OCR & Text Extraction</td>
+                                <td><code>backend/services/ocr/</code></td>
+                                <td><span class="status-pill status-pending">Phase 4</span></td>
+                                <td>Tesseract / PDF parsing pipeline</td>
+                            </tr>
+                            <tr>
+                                <td>Computer Vision Analysis</td>
+                                <td><code>backend/services/vision/</code></td>
+                                <td><span class="status-pill status-pending">Phase 5</span></td>
+                                <td>Pretrained vehicle damage inspection</td>
+                            </tr>
+                            <tr>
+                                <td>NLP Claim Description</td>
+                                <td><code>backend/services/nlp/</code></td>
+                                <td><span class="status-pill status-pending">Phase 6</span></td>
+                                <td>Statement parsing & chronological extraction</td>
+                            </tr>
+                            <tr>
+                                <td>Cross-Source Verification</td>
+                                <td><code>backend/services/verification/</code></td>
+                                <td><span class="status-pill status-pending">Phase 7</span></td>
+                                <td>Transparent consistency rule engine</td>
+                            </tr>
+                            <tr>
+                                <td>Fraud-Risk Assessment</td>
+                                <td><code>backend/services/risk/</code></td>
+                                <td><span class="status-pill status-pending">Phase 8</span></td>
+                                <td>Explainable Low/Med/High score calculator</td>
+                            </tr>
+                            <tr>
+                                <td>LLM Assessor Summary</td>
+                                <td><code>backend/services/llm/</code></td>
+                                <td><span class="status-pill status-pending">Phase 9</span></td>
+                                <td>Evidence-bounded narrative synthesis</td>
+                            </tr>
+                            <tr>
+                                <td>Assessor Report Engine</td>
+                                <td><code>reports/</code></td>
+                                <td><span class="status-pill status-pending">Phase 10</span></td>
+                                <td>Downloadable audit report</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <div class="container footer-content">
+            <p>ClaimSense AI &copy; 2026 &mdash; Academic Major Project Decision-Support System</p>
+            <p class="muted">Architecture: Python 3.13 + Flask + HTML5/CSS3/Vanilla JS</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
