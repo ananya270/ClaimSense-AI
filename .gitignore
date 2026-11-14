@@ -1,3 +1,4 @@
+
 # Python Virtual Environment
 .venv/
 venv/
@@ -41,6 +42,8 @@ logs/
 # OS files
 .DS_Store
 Thumbs.db
-# Research Datasets (download separately)
+
+# Research Datasets
+# CarDD and FUNSD are excluded due to redistribution restrictions
 datasets/
-datasets/
+
