@@ -1,4 +1,4 @@
-"""Claim submission, retrieval, search, and receipt routes for ClaimSense AI (Phase 3)."""
+"""Claim submission, retrieval, search, and receipt routes for ClaimSense AI (Phase 3 Hardened)."""
 import io
 import json
 import os
@@ -10,9 +10,13 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import desc
 
 from backend.database.db import get_db_session
-from backend.database.models import Claim, Document, ClaimImage
+from backend.database.models import User, Claim, Document, ClaimImage
 from backend.services.receipt import generate_claim_receipt_pdf
-from backend.utils.auth import get_current_user_id, can_user_access_claim
+from backend.utils.auth import (
+    get_current_user_id,
+    can_user_access_claim,
+    can_user_access_claim_dict,
+)
 from backend.utils.logger import setup_logger
 from backend.utils.validators import (
     generate_claim_id,
@@ -29,16 +33,36 @@ claims_bp = Blueprint("claims", __name__)
 
 @claims_bp.route("/claims", methods=["POST"])
 def submit_claim():
-    """Handles multipart claim submission.
+    """Handles authenticated multipart claim submission.
 
-    Validates required text fields and files, safely writes uploads to disk,
-    stores metadata.json (backward compatibility), and persists structured
-    claim and evidence records in SQLite database.
+    Validates required text fields, file extensions, and file signatures,
+    safely writes uploads to isolated disk directories, and persists
+    structured claim and evidence records in SQLite database linked
+    strictly to the authenticated session user.
     """
+    # 1. Enforce active user session authentication
+    current_user_id = session.get("user_id")
+    if not current_user_id:
+        return jsonify({
+            "success": False,
+            "error": "Unauthorized",
+            "message": "Authentication required. Please sign in before submitting an insurance claim.",
+        }), 401
+
+    with get_db_session() as db:
+        user = db.query(User).filter_by(id=current_user_id).first()
+        if not user or not user.is_active:
+            session.clear()
+            return jsonify({
+                "success": False,
+                "error": "Unauthorized",
+                "message": "An active user account is required to submit a claim.",
+            }), 401
+
     form_data = request.form.to_dict()
     files_dict = request.files
 
-    # 1. Validate text fields
+    # 2. Validate text fields
     fields_valid, field_errors = validate_claim_form_fields(form_data)
     if not fields_valid:
         logger.warning(f"Claim submission rejected due to form errors: {field_errors}")
@@ -49,7 +73,7 @@ def submit_claim():
             "details": field_errors,
         }), 400
 
-    # 2. Validate uploaded files
+    # 3. Validate uploaded files (presence, extensions, 0-byte checks, signatures)
     files_valid, file_errors = validate_claim_files(files_dict)
     if not files_valid:
         logger.warning(f"Claim submission rejected due to file errors: {file_errors}")
@@ -60,12 +84,9 @@ def submit_claim():
             "details": file_errors,
         }), 400
 
-    # Retrieve current user if authenticated
-    current_user_id = session.get("user_id")
-
     claim_dir = None
     try:
-        # 3. Generate unique claim ID
+        # 4. Generate unique claim ID and isolated directories
         claim_id = generate_claim_id()
         upload_base = Path(current_app.config["UPLOAD_FOLDER"])
         claim_dir = upload_base / claim_id
@@ -77,7 +98,7 @@ def submit_claim():
 
         saved_files = {}
 
-        # 4. Save documents safely
+        # 5. Save evidentiary documents safely
         doc_fields = ["policy_document", "claim_form", "invoice_document"]
         doc_type_mapping = {
             "policy_document": "POLICY_DOCUMENT",
@@ -113,7 +134,7 @@ def submit_claim():
                 "file_size": size_bytes,
             })
 
-        # 5. Save vehicle image safely
+        # 6. Save vehicle image safely
         img_file = files_dict["vehicle_image"]
         clean_img_name = secure_filename(img_file.filename)
         dest_img_name = f"vehicle_image_{clean_img_name}" if clean_img_name else "vehicle_image.jpg"
@@ -131,7 +152,7 @@ def submit_claim():
             "size_bytes": img_size_bytes,
         }
 
-        # 6. Save claim metadata JSON (Backward compatibility)
+        # 7. Persist claim metadata JSON (Backward compatibility)
         submission_time = datetime.now(timezone.utc)
         metadata = {
             "claim_id": claim_id,
@@ -150,7 +171,7 @@ def submit_claim():
         with open(metadata_path, "w", encoding="utf-8") as f:
             json.dump(metadata, f, indent=2)
 
-        # 7. Persist to SQLite Database
+        # 8. Persist to SQLite Database linked to authenticated user
         with get_db_session() as db:
             claim_record = Claim(
                 claim_id=claim_id,
@@ -167,7 +188,6 @@ def submit_claim():
             db.add(claim_record)
             db.flush()
 
-            # Add documents
             for doc_meta in saved_docs_metadata:
                 doc_record = Document(
                     claim_id=claim_id,
@@ -181,7 +201,6 @@ def submit_claim():
                 )
                 db.add(doc_record)
 
-            # Add image
             img_record = ClaimImage(
                 claim_id=claim_id,
                 image_type="VEHICLE_ACCIDENT",
@@ -194,7 +213,7 @@ def submit_claim():
             )
             db.add(img_record)
 
-        logger.info(f"Successfully processed and stored claim in disk and SQLite: {claim_id}")
+        logger.info(f"User {current_user_id} successfully submitted claim {claim_id}")
 
         return jsonify({
             "success": True,
@@ -216,23 +235,22 @@ def submit_claim():
 
     except Exception as e:
         logger.error(f"Error while processing claim submission: {str(e)}", exc_info=True)
-        # Attempt safe cleanup if directory was partially written
+        # Clean up partially written directory on failure
         if claim_dir and claim_dir.exists():
             try:
-                shutil.rmtree(claim_dir)
+                shutil.rmtree(claim_dir, ignore_errors=True)
             except Exception:
                 pass
         return jsonify({
             "success": False,
             "error": "Server Error",
             "message": "Failed to store claim submission files or database record.",
-            "details": str(e),
         }), 500
 
 
 @claims_bp.route("/claims/<claim_id>", methods=["GET"])
 def get_claim(claim_id: str):
-    """Retrieves submitted claim metadata by Claim ID with access control."""
+    """Retrieves submitted claim metadata by Claim ID with strict access control."""
     if not is_valid_claim_id_format(claim_id):
         return jsonify({
             "success": False,
@@ -257,16 +275,38 @@ def get_claim(claim_id: str):
                     "message": f"Claim with ID '{claim_id}' was not found.",
                 }), 404
 
-            # Ingest on the fly
-            with open(metadata_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
+            try:
+                with open(metadata_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+            except Exception as e:
+                logger.error(f"Failed to read disk metadata for claim {claim_id}: {e}")
+                return jsonify({
+                    "success": False,
+                    "error": "Server Error",
+                    "message": "Failed to parse claim records.",
+                }), 500
+
+            # Enforce strict ownership authorization on disk fallback path
+            if not can_user_access_claim_dict(data, user_id, user_role):
+                if not user_id:
+                    return jsonify({
+                        "success": False,
+                        "error": "Unauthorized",
+                        "message": "Authentication required to view this claim.",
+                    }), 401
+                return jsonify({
+                    "success": False,
+                    "error": "Forbidden",
+                    "message": "You do not have permission to access this claim record.",
+                }), 403
+
             return jsonify({
                 "success": True,
                 "claim_id": claim_id,
                 "data": data,
             }), 200
 
-        # Enforce access authorization
+        # Enforce database access authorization
         if not can_user_access_claim(claim, user_id, user_role):
             if not user_id:
                 return jsonify({
@@ -304,18 +344,27 @@ def get_claims_by_policy(policy_number: str):
             "message": "Authentication required to search claims by policy number.",
         }), 401
 
-    clean_policy = policy_number.strip()
-    if not clean_policy:
-        return jsonify({
-            "success": False,
-            "error": "Validation Error",
-            "message": "Policy number must not be empty.",
-        }), 400
-
     with get_db_session() as db:
+        user = db.query(User).filter_by(id=user_id).first()
+        if not user or not user.is_active:
+            session.clear()
+            return jsonify({
+                "success": False,
+                "error": "Unauthorized",
+                "message": "Active user account required.",
+            }), 401
+
+        clean_policy = policy_number.strip()
+        if not clean_policy:
+            return jsonify({
+                "success": False,
+                "error": "Validation Error",
+                "message": "Policy number must not be empty.",
+            }), 400
+
         query = db.query(Claim).filter(Claim.policy_number.ilike(clean_policy))
 
-        # Accessors and admins can view any claim under the policy
+        # Assessors and admins can view any claim under the policy
         if user_role not in ("assessor", "admin"):
             query = query.filter_by(user_id=user_id)
 
@@ -348,6 +397,15 @@ def get_my_claims():
         }), 401
 
     with get_db_session() as db:
+        user = db.query(User).filter_by(id=user_id).first()
+        if not user or not user.is_active:
+            session.clear()
+            return jsonify({
+                "success": False,
+                "error": "Unauthorized",
+                "message": "Active user account required.",
+            }), 401
+
         claims = (
             db.query(Claim)
             .filter_by(user_id=user_id)
@@ -363,7 +421,7 @@ def get_my_claims():
 
 @claims_bp.route("/claims/<claim_id>/receipt", methods=["GET"])
 def get_claim_receipt(claim_id: str):
-    """Generates and serves official claim submission receipt in PDF or JSON format."""
+    """Generates and serves official claim submission receipt in PDF or JSON format with authorization."""
     if not is_valid_claim_id_format(claim_id):
         return jsonify({
             "success": False,
@@ -402,8 +460,31 @@ def get_claim_receipt(claim_id: str):
                     "error": "Not Found",
                     "message": f"Claim with ID '{claim_id}' was not found.",
                 }), 404
-            with open(metadata_path, "r", encoding="utf-8") as f:
-                claim_dict = json.load(f)
+
+            try:
+                with open(metadata_path, "r", encoding="utf-8") as f:
+                    claim_dict = json.load(f)
+            except Exception as e:
+                logger.error(f"Failed to read disk metadata for claim receipt {claim_id}: {e}")
+                return jsonify({
+                    "success": False,
+                    "error": "Server Error",
+                    "message": "Failed to parse claim records.",
+                }), 500
+
+            # Enforce authorization on disk fallback receipt generation
+            if not can_user_access_claim_dict(claim_dict, user_id, user_role):
+                if not user_id:
+                    return jsonify({
+                        "success": False,
+                        "error": "Unauthorized",
+                        "message": "Authentication required to access this claim receipt.",
+                    }), 401
+                return jsonify({
+                    "success": False,
+                    "error": "Forbidden",
+                    "message": "You are not authorized to download this claim receipt.",
+                }), 403
 
     # Format check: format=pdf (default) vs format=json
     requested_format = request.args.get("format", "pdf").lower()
@@ -443,5 +524,4 @@ def get_claim_receipt(claim_id: str):
             "success": False,
             "error": "Receipt Generation Error",
             "message": "Failed to generate receipt PDF.",
-            "details": str(e),
         }), 500

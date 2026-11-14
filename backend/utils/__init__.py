@@ -1,4 +1,4 @@
-"""Utilities package."""
+"""Utilities package for ClaimSense AI."""
 from .logger import setup_logger
 from .validators import (
     generate_claim_id,

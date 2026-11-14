@@ -1,10 +1,12 @@
-"""Authentication endpoints for ClaimSense AI (Phase 3)."""
+"""Authentication endpoints for ClaimSense AI (Phase 3 Hardened)."""
 import re
 from flask import Blueprint, jsonify, request, session
+from flask_wtf.csrf import generate_csrf
 from sqlalchemy import or_
 
 from backend.database.db import get_db_session
 from backend.database.models import User
+from backend.extensions import limiter
 from backend.utils.logger import setup_logger
 
 logger = setup_logger("claimsense.auth")
@@ -22,9 +24,20 @@ def _get_request_data() -> dict:
     return request.form.to_dict() or {}
 
 
+@auth_bp.route("/auth/csrf-token", methods=["GET"])
+def get_csrf_token():
+    """Generates and returns a fresh CSRF token for state-changing requests."""
+    token = generate_csrf()
+    return jsonify({
+        "success": True,
+        "csrf_token": token,
+    }), 200
+
+
 @auth_bp.route("/auth/signup", methods=["POST"])
+@limiter.limit("10 per minute")
 def signup():
-    """Registers a new user account with hashed password and validation."""
+    """Registers a new user account with hashed password, complexity verification, and rate limiting."""
     data = _get_request_data()
 
     full_name = data.get("full_name", "").strip()
@@ -57,12 +70,12 @@ def signup():
             "message": "Username must be 3-30 characters long and contain only letters, numbers, or underscores.",
         }), 400
 
-    # 4. Password validation
-    if len(password) < 6:
+    # 4. Password validation (minimum 8 characters, letters and numbers)
+    if len(password) < 8 or not re.search(r"[a-zA-Z]", password) or not re.search(r"\d", password):
         return jsonify({
             "success": False,
             "error": "Validation Error",
-            "message": "Password must be at least 6 characters long.",
+            "message": "Password must be at least 8 characters long and contain both letters and numbers.",
         }), 400
 
     if password != confirm_password:
@@ -90,12 +103,13 @@ def signup():
                 "message": f"Email '{email}' is already registered.",
             }), 409
 
-        # Create user record
+        # Create user record with default 'user' role
         new_user = User(
             full_name=full_name,
             username=username,
             email=email,
             role="user",
+            is_active=True,
         )
         new_user.set_password(password)
         db.add(new_user)
@@ -109,8 +123,9 @@ def signup():
 
 
 @auth_bp.route("/auth/login", methods=["POST"])
+@limiter.limit("10 per minute")
 def login():
-    """Authenticates user credentials and establishes a session."""
+    """Authenticates user credentials, rotates session to prevent fixation, and establishes session."""
     data = _get_request_data()
 
     identifier = (
@@ -133,6 +148,7 @@ def login():
             or_(User.username == identifier, User.email == identifier.lower())
         ).first()
 
+        # Generic authentication failure message to prevent username enumeration
         if not user or not user.check_password(password):
             logger.warning(f"Failed login attempt for identifier: '{identifier}'")
             return jsonify({
@@ -148,7 +164,7 @@ def login():
                 "message": "This account is currently inactive. Please contact an administrator.",
             }), 403
 
-        # Set session data
+        # Rotate and establish secure session (mitigate session fixation)
         session.clear()
         session["user_id"] = user.id
         session["username"] = user.username
@@ -166,7 +182,7 @@ def login():
 
 @auth_bp.route("/auth/logout", methods=["POST"])
 def logout():
-    """Logs out current authenticated user and clears session."""
+    """Logs out current authenticated user and clears session state completely."""
     username = session.get("username", "anonymous")
     session.clear()
     logger.info(f"User '{username}' logged out successfully.")
@@ -178,7 +194,7 @@ def logout():
 
 @auth_bp.route("/auth/me", methods=["GET"])
 def get_me():
-    """Returns currently authenticated user profile."""
+    """Returns currently authenticated user profile if session and account are active."""
     user_id = session.get("user_id")
     if not user_id:
         return jsonify({
