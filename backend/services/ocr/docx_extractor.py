@@ -1,17 +1,37 @@
-"""DOCX paragraph, table, header, and footer text extraction."""
+"""DOCX paragraph, table, header, and footer text extraction (Phase 4 Placeholder).
 
+This module is prepared for Phase 4 OCR and multi-format document processing.
+It is isolated to prevent broken imports during Phase 3 operations.
+"""
 from pathlib import Path
 from typing import List
 from zipfile import BadZipFile, ZipFile
 
-from docx import Document as WordDocument
-from docx.opc.exceptions import PackageNotFoundError
 
-from backend.services.ocr.pdf_extractor import DocumentExtractionError
+class DocumentExtractionError(Exception):
+    """Raised when an evidentiary document cannot be parsed or exceeds limits."""
+    pass
+
+
+# Guarded import for python-docx
+try:
+    from docx import Document as WordDocument
+    from docx.opc.exceptions import PackageNotFoundError
+    HAS_DOCX = True
+except ImportError:
+    HAS_DOCX = False
+    WordDocument = None
+    PackageNotFoundError = Exception
 
 
 def extract_docx(path: Path) -> str:
-    """Extract text from paragraphs, tables, and section headers/footers."""
+    """Extract text from paragraphs, tables, and section headers/footers (Phase 4)."""
+    if not HAS_DOCX:
+        raise DocumentExtractionError(
+            "python-docx is not installed in the environment. "
+            "Full DOCX extraction is scheduled for implementation in Phase 4."
+        )
+
     try:
         with ZipFile(path) as archive:
             members = archive.infolist()

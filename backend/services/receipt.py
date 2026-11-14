@@ -1,11 +1,12 @@
-"""Claim Submission Receipt generation service for ClaimSense AI (Phase 3)."""
+"""Claim Submission Receipt generation service for ClaimSense AI (Phase 3 Hardened)."""
 import io
+import textwrap
 from datetime import datetime, timezone
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+from xml.sax.saxutils import escape as xml_escape
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
-from reportlab.lib.units import inch
 from reportlab.platypus import (
     SimpleDocTemplate,
     Paragraph,
@@ -17,8 +18,36 @@ from reportlab.platypus import (
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
 
+def safe_xml(value: Any, max_len: Optional[int] = None) -> str:
+    """Escapes user text for safe ReportLab Paragraph XML rendering.
+
+    Converts XML special characters (<, >, &, ", ') to their respective entities,
+    breaks overly long unbroken tokens, and maps newlines to <br/> tags.
+    """
+    if value is None:
+        return ""
+    text = str(value)
+    if max_len and len(text) > max_len:
+        text = text[:max_len] + "..."
+
+    # Break unbroken strings longer than 40 chars to ensure table wrapping
+    tokens = text.split(" ")
+    wrapped_tokens = []
+    for token in tokens:
+        if len(token) > 40:
+            token = "<br/>".join(textwrap.wrap(token, 35))
+        wrapped_tokens.append(token)
+    text = " ".join(wrapped_tokens)
+
+    escaped = xml_escape(text, entities={'"': "&quot;", "'": "&apos;"})
+    return escaped.replace("\n", "<br/>")
+
+
 def generate_claim_receipt_pdf(claim_dict: Dict[str, Any]) -> bytes:
     """Generates a professional, print-ready PDF submission receipt using ReportLab."""
+    if not isinstance(claim_dict, dict):
+        claim_dict = {}
+
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -138,13 +167,13 @@ def generate_claim_receipt_pdf(claim_dict: Dict[str, Any]) -> bytes:
     story.append(Paragraph("1. Claim Identification & Policy Information", section_heading))
     story.append(Spacer(1, 6))
 
-    claim_id = claim_dict.get("claim_id", "N/A")
-    policy_num = claim_dict.get("policy_number", "N/A")
-    claimant = claim_dict.get("claimant_name", "N/A")
-    vehicle_num = claim_dict.get("vehicle_number", "N/A")
-    accident_date = claim_dict.get("accident_date", "N/A")
-    status = claim_dict.get("status", "SUBMITTED")
-    created_at = claim_dict.get("created_at", datetime.now(timezone.utc).isoformat())
+    claim_id = safe_xml(claim_dict.get("claim_id", "N/A"), max_len=50)
+    policy_num = safe_xml(claim_dict.get("policy_number", "N/A"), max_len=60)
+    claimant = safe_xml(claim_dict.get("claimant_name", "N/A"), max_len=100)
+    vehicle_num = safe_xml(claim_dict.get("vehicle_number", "N/A"), max_len=50)
+    accident_date = safe_xml(claim_dict.get("accident_date", "N/A"), max_len=30)
+    status = safe_xml(claim_dict.get("status", "SUBMITTED"), max_len=30)
+    created_at = safe_xml(claim_dict.get("created_at", datetime.now(timezone.utc).isoformat()), max_len=50)
 
     details_data = [
         [Paragraph("Claim Reference ID:", meta_label), Paragraph(f"<b>{claim_id}</b>", meta_val),
@@ -153,7 +182,7 @@ def generate_claim_receipt_pdf(claim_dict: Dict[str, Any]) -> bytes:
          Paragraph("Vehicle Registration:", meta_label), Paragraph(vehicle_num, meta_val)],
         [Paragraph("Claimant Name:", meta_label), Paragraph(claimant, meta_val),
          Paragraph("Accident Date:", meta_label), Paragraph(accident_date, meta_val)],
-        [Paragraph("Submission Timestamp:", meta_label), Paragraph(str(created_at), meta_val),
+        [Paragraph("Submission Timestamp:", meta_label), Paragraph(created_at, meta_val),
          Paragraph("Assigned Queue:", meta_label), Paragraph("Preliminary Intake / Verification", meta_val)],
     ]
     details_table = Table(details_data, colWidths=[130, 140, 130, 140])
@@ -173,8 +202,9 @@ def generate_claim_receipt_pdf(claim_dict: Dict[str, Any]) -> bytes:
     # 3. Incident Description
     story.append(Paragraph("2. Claimant Incident Narrative", section_heading))
     story.append(Spacer(1, 6))
-    desc_text = claim_dict.get("claim_description", "No narrative statement provided.")
-    desc_p = Paragraph(desc_text, meta_val)
+    raw_desc = claim_dict.get("claim_description") or "No narrative statement provided."
+    desc_escaped = safe_xml(raw_desc, max_len=3000)
+    desc_p = Paragraph(desc_escaped, meta_val)
     desc_table = Table([[desc_p]], colWidths=[540])
     desc_table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f1f5f9")),
@@ -206,31 +236,40 @@ def generate_claim_receipt_pdf(claim_dict: Dict[str, Any]) -> bytes:
 
     if documents or images:
         for doc_entry in documents:
+            if not isinstance(doc_entry, dict):
+                continue
             size_kb = f"{round(doc_entry.get('file_size', 0) / 1024, 1)} KB"
+            raw_type = doc_entry.get("document_type", "Document").replace("_", " ").title()
+            raw_orig = doc_entry.get("original_filename", "N/A")
             evidence_rows.append([
-                Paragraph(doc_entry.get("document_type", "Document").replace("_", " ").title(), meta_val),
-                Paragraph(doc_entry.get("original_filename", "N/A"), meta_val),
-                Paragraph(size_kb, meta_val),
-                Paragraph("<b>&check; Secured</b>", ParagraphStyle("G", fontName="Helvetica-Bold", fontSize=8, textColor=colors.HexColor("#16a34a"))),
+                Paragraph(safe_xml(raw_type, 40), meta_val),
+                Paragraph(safe_xml(raw_orig, 80), meta_val),
+                Paragraph(safe_xml(size_kb), meta_val),
+                Paragraph("<b>&check; Secured</b>", ParagraphStyle("G1", fontName="Helvetica-Bold", fontSize=8, textColor=colors.HexColor("#16a34a"))),
             ])
         for img in images:
+            if not isinstance(img, dict):
+                continue
             size_kb = f"{round(img.get('file_size', 0) / 1024, 1)} KB"
+            raw_type = img.get("image_type", "Vehicle Photo").replace("_", " ").title()
+            raw_orig = img.get("original_filename", "N/A")
             evidence_rows.append([
-                Paragraph(img.get("image_type", "Vehicle Photo").replace("_", " ").title(), meta_val),
-                Paragraph(img.get("original_filename", "N/A"), meta_val),
-                Paragraph(size_kb, meta_val),
-                Paragraph("<b>&check; Secured</b>", ParagraphStyle("G", fontName="Helvetica-Bold", fontSize=8, textColor=colors.HexColor("#16a34a"))),
+                Paragraph(safe_xml(raw_type, 40), meta_val),
+                Paragraph(safe_xml(raw_orig, 80), meta_val),
+                Paragraph(safe_xml(size_kb), meta_val),
+                Paragraph("<b>&check; Secured</b>", ParagraphStyle("G2", fontName="Helvetica-Bold", fontSize=8, textColor=colors.HexColor("#16a34a"))),
             ])
-    elif files_dict:
-        # Backward compatibility for dictionary
+    elif files_dict and isinstance(files_dict, dict):
         for f_key, f_info in files_dict.items():
             if isinstance(f_info, dict):
                 size_kb = f"{round(f_info.get('size_bytes', 0) / 1024, 1)} KB"
+                raw_type = f_key.replace("_", " ").title()
+                raw_orig = f_info.get("original_name", "N/A")
                 evidence_rows.append([
-                    Paragraph(f_key.replace("_", " ").title(), meta_val),
-                    Paragraph(f_info.get("original_name", "N/A"), meta_val),
-                    Paragraph(size_kb, meta_val),
-                    Paragraph("<b>&check; Secured</b>", ParagraphStyle("G", fontName="Helvetica-Bold", fontSize=8, textColor=colors.HexColor("#16a34a"))),
+                    Paragraph(safe_xml(raw_type, 40), meta_val),
+                    Paragraph(safe_xml(raw_orig, 80), meta_val),
+                    Paragraph(safe_xml(size_kb), meta_val),
+                    Paragraph("<b>&check; Secured</b>", ParagraphStyle("G3", fontName="Helvetica-Bold", fontSize=8, textColor=colors.HexColor("#16a34a"))),
                 ])
 
     if len(evidence_rows) == 1:
