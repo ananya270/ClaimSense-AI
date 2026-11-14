@@ -110,6 +110,56 @@ class ClaimOwnershipAndReceiptTestCase(unittest.TestCase):
         get_res_anon = client_anon.get(f"/api/claims/{claim_id}")
         self.assertEqual(get_res_anon.status_code, 401)
 
+        # 4. Assessor can access user A's claim -> 200 OK
+        self._create_user("assessor_boundary", "assessor_b@example.com", role="assessor")
+        client_assessor = self.app.test_client()
+        self._login(client_assessor, "assessor_boundary")
+        get_res_assessor = client_assessor.get(f"/api/claims/{claim_id}")
+        self.assertEqual(get_res_assessor.status_code, 200)
+
+        # 5. Admin can access user A's claim -> 200 OK
+        self._create_user("admin_boundary", "admin_b@example.com", role="admin")
+        client_admin = self.app.test_client()
+        self._login(client_admin, "admin_boundary")
+        get_res_admin = client_admin.get(f"/api/claims/{claim_id}")
+        self.assertEqual(get_res_admin.status_code, 200)
+
+    def test_legacy_unowned_claim_protection(self):
+        """Ensures legacy unowned claims are hidden from regular users but visible to assessors/admins."""
+        with get_db_session() as db:
+            legacy_claim = Claim(
+                claim_id="CLM-20260101-LG01",
+                user_id=None,
+                claimant_name="Legacy Claimant",
+                policy_number="POL-LEGACY-001",
+                vehicle_number="DL-01-XX-0001",
+                accident_date="2026-01-01",
+                claim_description="Legacy claim without user_id",
+                status="SUBMITTED",
+            )
+            db.add(legacy_claim)
+
+        # Regular user gets 403 Forbidden
+        self._create_user("regular_user", "regular@example.com", role="user")
+        client_reg = self.app.test_client()
+        self._login(client_reg, "regular_user")
+        res_reg = client_reg.get("/api/claims/CLM-20260101-LG01")
+        self.assertEqual(res_reg.status_code, 403)
+
+        # Assessor gets 200 OK
+        self._create_user("assessor_legacy", "assessor_leg@example.com", role="assessor")
+        client_assessor = self.app.test_client()
+        self._login(client_assessor, "assessor_legacy")
+        res_assessor = client_assessor.get("/api/claims/CLM-20260101-LG01")
+        self.assertEqual(res_assessor.status_code, 200)
+
+        # Admin gets 200 OK
+        self._create_user("admin_legacy", "admin_leg@example.com", role="admin")
+        client_admin = self.app.test_client()
+        self._login(client_admin, "admin_legacy")
+        res_admin = client_admin.get("/api/claims/CLM-20260101-LG01")
+        self.assertEqual(res_admin.status_code, 200)
+
     def test_policy_number_search(self):
         """Ensures searching by policy number returns authorized claims and requires authentication."""
         self._create_user("policy_holder", "ph@example.com")
@@ -202,6 +252,17 @@ class ClaimOwnershipAndReceiptTestCase(unittest.TestCase):
         self._login(client_intruder, "intruder")
         unauth_res = client_intruder.get(f"/api/claims/{claim_id}/receipt")
         self.assertEqual(unauth_res.status_code, 403)
+
+        # 5. Assessor can download receipt
+        self._create_user("assessor_receipt", "assessor_rec@example.com", role="assessor")
+        client_assessor = self.app.test_client()
+        self._login(client_assessor, "assessor_receipt")
+        assessor_receipt_res = client_assessor.get(f"/api/claims/{claim_id}/receipt")
+        self.assertEqual(assessor_receipt_res.status_code, 200)
+
+        # 6. Unauthenticated receipt download rejected with 401
+        anon_receipt_res = self.app.test_client().get(f"/api/claims/{claim_id}/receipt")
+        self.assertEqual(anon_receipt_res.status_code, 401)
 
 
 if __name__ == "__main__":

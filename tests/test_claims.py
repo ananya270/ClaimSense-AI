@@ -9,6 +9,8 @@ from pathlib import Path
 
 from backend.app import create_app
 from backend.config import Config
+from backend.database.db import get_db_session
+from backend.database.models import User
 from backend.utils.validators import generate_claim_id, is_valid_claim_id_format
 
 
@@ -27,6 +29,24 @@ class ClaimSubmissionTestCase(unittest.TestCase):
 
         self.app = create_app(TestConfig)
         self.client = self.app.test_client()
+
+        # Seed authenticated user for claim submissions
+        with get_db_session() as db:
+            user = User(
+                username="claimant_user",
+                email="claimant@example.com",
+                full_name="John Doe",
+                role="user",
+            )
+            user.set_password("SecurePass123")
+            db.add(user)
+            db.flush()
+            self.user_id = user.id
+
+        self.client.post(
+            "/api/auth/login",
+            json={"identifier": "claimant_user", "password": "SecurePass123"},
+        )
 
     def tearDown(self):
         from backend.database.db import close_engine
@@ -193,6 +213,49 @@ class ClaimSubmissionTestCase(unittest.TestCase):
         res_json = get_res.get_json()
         self.assertTrue(res_json["success"])
         self.assertEqual(res_json["data"]["claim_id"], claim_id)
+
+    def test_unauthenticated_submission_rejected(self):
+        """Ensure unauthenticated submission is rejected with 401 Unauthorized."""
+        unauth_client = self.app.test_client()
+        data = self._get_valid_claim_data()
+        response = unauth_client.post(
+            "/api/claims",
+            data=data,
+            content_type="multipart/form-data",
+        )
+        self.assertEqual(response.status_code, 401)
+        res_json = response.get_json()
+        self.assertFalse(res_json["success"])
+        self.assertIn("Authentication required", res_json["message"])
+
+    def test_zero_byte_file_rejected(self):
+        """Ensure empty 0-byte file uploads are rejected with 400 Bad Request."""
+        data = self._get_valid_claim_data()
+        data["policy_document"] = (io.BytesIO(b""), "policy.pdf")
+        response = self.client.post(
+            "/api/claims",
+            data=data,
+            content_type="multipart/form-data",
+        )
+        self.assertEqual(response.status_code, 400)
+        res_json = response.get_json()
+        self.assertFalse(res_json["success"])
+        self.assertIn("empty (0 bytes)", str(res_json["details"]))
+
+    def test_invalid_magic_bytes_rejected(self):
+        """Ensure file extension with mismatching magic bytes signature is rejected."""
+        data = self._get_valid_claim_data()
+        # Pretend to be a PDF but file content contains executable binary header
+        data["policy_document"] = (io.BytesIO(b"MZ\x90\x00not a valid pdf file"), "policy.pdf")
+        response = self.client.post(
+            "/api/claims",
+            data=data,
+            content_type="multipart/form-data",
+        )
+        self.assertEqual(response.status_code, 400)
+        res_json = response.get_json()
+        self.assertFalse(res_json["success"])
+        self.assertIn("signature", str(res_json["details"]))
 
     def test_get_nonexistent_claim(self):
         """Ensure GET /api/claims/<id> for non-existent claim returns 404."""

@@ -99,21 +99,21 @@ class AuthenticationTestCase(unittest.TestCase):
         self.assertIn("do not match", data["message"])
 
     def test_short_password_rejected(self):
-        """Ensures password shorter than 6 characters returns 400."""
+        """Ensures password shorter than 8 characters returns 400."""
         res = self._signup_user(password="123", confirm="123")
         self.assertEqual(res.status_code, 400)
         data = res.get_json()
         self.assertFalse(data["success"])
-        self.assertIn("at least 6 characters", data["message"])
+        self.assertIn("at least 8 characters", data["message"])
 
     def test_successful_login_with_username_and_email(self):
         """Ensures user can log in with both username and email, receiving safe user payload."""
-        self._signup_user(username="john_doe", email="john@example.com", password="SecretPassword")
+        self._signup_user(username="john_doe", email="john@example.com", password="SecretPassword123")
 
         # 1. Login with username
         res1 = self.client.post(
             "/api/auth/login",
-            json={"identifier": "john_doe", "password": "SecretPassword"},
+            json={"identifier": "john_doe", "password": "SecretPassword123"},
         )
         self.assertEqual(res1.status_code, 200)
         data1 = res1.get_json()
@@ -125,7 +125,7 @@ class AuthenticationTestCase(unittest.TestCase):
         # 2. Login with email
         res2 = self.client.post(
             "/api/auth/login",
-            json={"identifier": "john@example.com", "password": "SecretPassword"},
+            json={"identifier": "john@example.com", "password": "SecretPassword123"},
         )
         self.assertEqual(res2.status_code, 200)
         data2 = res2.get_json()
@@ -134,12 +134,12 @@ class AuthenticationTestCase(unittest.TestCase):
 
     def test_invalid_login_rejected(self):
         """Ensures invalid password or nonexistent user returns 401."""
-        self._signup_user(username="valid_user", password="CorrectPassword")
+        self._signup_user(username="valid_user", password="CorrectPassword123")
 
         # Wrong password
         res1 = self.client.post(
             "/api/auth/login",
-            json={"identifier": "valid_user", "password": "WrongPassword"},
+            json={"identifier": "valid_user", "password": "WrongPassword123"},
         )
         self.assertEqual(res1.status_code, 401)
         self.assertFalse(res1.get_json()["success"])
@@ -178,6 +178,36 @@ class AuthenticationTestCase(unittest.TestCase):
         # /me after logout should now fail
         res_post_logout = self.client.get("/api/auth/me")
         self.assertEqual(res_post_logout.status_code, 401)
+
+    def test_inactive_user_enforcement(self):
+        """Ensures inactive / disabled users cannot log in or perform authenticated actions."""
+        self._signup_user(username="disabled_user", password="Password123")
+
+        # Manually deactivate user in DB
+        with get_db_session() as db:
+            user = db.query(User).filter_by(username="disabled_user").first()
+            user.is_active = False
+            db.flush()
+
+        # Login attempt fails with 403
+        login_res = self.client.post(
+            "/api/auth/login",
+            json={"identifier": "disabled_user", "password": "Password123"},
+        )
+        self.assertEqual(login_res.status_code, 403)
+        self.assertIn("inactive", login_res.get_json()["message"].lower())
+
+    def test_password_complexity_rules(self):
+        """Ensures passwords require letters, numbers, and minimum 8 characters."""
+        # Only numbers
+        res_num = self._signup_user(username="u_num", password="12345678", confirm="12345678")
+        self.assertEqual(res_num.status_code, 400)
+        self.assertIn("both letters and numbers", res_num.get_json()["message"])
+
+        # Only letters
+        res_alpha = self._signup_user(username="u_alpha", password="abcdefghij", confirm="abcdefghij")
+        self.assertEqual(res_alpha.status_code, 400)
+        self.assertIn("both letters and numbers", res_alpha.get_json()["message"])
 
 
 if __name__ == "__main__":
