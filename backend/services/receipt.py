@@ -161,64 +161,81 @@ def generate_claim_receipt_pdf(claim_dict: Dict[str, Any]) -> bytes:
     ]))
     story.append(header_table)
     story.append(Spacer(1, 10))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2563eb"), spaceAfter=15))
+    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2563eb"), spaceAfter=14))
 
-    # 2. Key Claim Details
-    story.append(Paragraph("1. Claim Identification & Policy Information", section_heading))
+    # 2. Status Badge Callout
+    status_text = "STATUS: EVIDENCE REGISTERED &bull; INTAKE CONFIRMED"
+    badge_data = [[Paragraph(status_text, badge_style)]]
+    badge_table = Table(badge_data, colWidths=[540])
+    badge_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#dcfce7")),
+        ("BOX", (0, 0), (-1, -1), 1, colors.HexColor("#86efac")),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]))
+    story.append(badge_table)
+    story.append(Spacer(1, 14))
+
+    # 3. Claim Details Section
+    story.append(Paragraph("1. Primary Claim Details", section_heading))
     story.append(Spacer(1, 6))
 
-    claim_id = safe_xml(claim_dict.get("claim_id", "N/A"), max_len=50)
-    policy_num = safe_xml(claim_dict.get("policy_number", "N/A"), max_len=60)
-    claimant = safe_xml(claim_dict.get("claimant_name", "N/A"), max_len=100)
-    vehicle_num = safe_xml(claim_dict.get("vehicle_number", "N/A"), max_len=50)
-    accident_date = safe_xml(claim_dict.get("accident_date", "N/A"), max_len=30)
-    status = safe_xml(claim_dict.get("status", "SUBMITTED"), max_len=30)
-    created_at = safe_xml(claim_dict.get("created_at", datetime.now(timezone.utc).isoformat()), max_len=50)
+    submitted_at = claim_dict.get("created_at", "N/A")
+    if submitted_at != "N/A":
+        try:
+            dt = datetime.fromisoformat(submitted_at.replace("Z", "+00:00"))
+            submitted_at = dt.strftime("%Y-%m-%d %H:%M UTC")
+        except Exception:
+            pass
 
-    details_data = [
-        [Paragraph("Claim Reference ID:", meta_label), Paragraph(f"<b>{claim_id}</b>", meta_val),
-         Paragraph("Registration Status:", meta_label), Paragraph(f"<b>{status}</b>", badge_style)],
-        [Paragraph("Policy Number:", meta_label), Paragraph(policy_num, meta_val),
-         Paragraph("Vehicle Registration:", meta_label), Paragraph(vehicle_num, meta_val)],
-        [Paragraph("Claimant Name:", meta_label), Paragraph(claimant, meta_val),
-         Paragraph("Accident Date:", meta_label), Paragraph(accident_date, meta_val)],
-        [Paragraph("Submission Timestamp:", meta_label), Paragraph(created_at, meta_val),
-         Paragraph("Assigned Queue:", meta_label), Paragraph("Preliminary Intake / Verification", meta_val)],
+    meta_data = [
+        [Paragraph("Claim ID", meta_label), Paragraph(safe_xml(claim_dict.get("claim_id")), meta_val)],
+        [Paragraph("Policy Number", meta_label), Paragraph(safe_xml(claim_dict.get("policy_number")), meta_val)],
+        [Paragraph("Claimant Name", meta_label), Paragraph(safe_xml(claim_dict.get("claimant_name")), meta_val)],
+        [Paragraph("Vehicle Number", meta_label), Paragraph(safe_xml(claim_dict.get("vehicle_number")), meta_val)],
+        [Paragraph("Date of Accident", meta_label), Paragraph(safe_xml(claim_dict.get("accident_date")), meta_val)],
+        [Paragraph("Date Submitted", meta_label), Paragraph(safe_xml(submitted_at), meta_val)],
     ]
-    details_table = Table(details_data, colWidths=[130, 140, 130, 140])
-    details_table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f8fafc")),
+    meta_table = Table(meta_data, colWidths=[150, 390])
+    meta_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#f8fafc")),
         ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
         ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e2e8f0")),
-        ("TOPPADDING", (0, 0), (-1, -1), 5),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
         ("LEFTPADDING", (0, 0), (-1, -1), 8),
         ("RIGHTPADDING", (0, 0), (-1, -1), 8),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
     ]))
-    story.append(details_table)
-    story.append(Spacer(1, 14))
+    story.append(meta_table)
+    story.append(Spacer(1, 12))
 
-    # 3. Incident Description
-    story.append(Paragraph("2. Claimant Incident Narrative", section_heading))
-    story.append(Spacer(1, 6))
-    raw_desc = claim_dict.get("claim_description") or "No narrative statement provided."
-    desc_escaped = safe_xml(raw_desc, max_len=3000)
-    desc_p = Paragraph(desc_escaped, meta_val)
-    desc_table = Table([[desc_p]], colWidths=[540])
+    # Narrative statement block
+    story.append(Paragraph("Claimant Incident Statement:", meta_label))
+    story.append(Spacer(1, 4))
+    desc_style = ParagraphStyle(
+        "NarrativeText",
+        parent=styles["Normal"],
+        fontName="Helvetica-Oblique",
+        fontSize=8.5,
+        leading=12,
+        textColor=colors.HexColor("#334155"),
+    )
+    desc_text = safe_xml(claim_dict.get("claim_description", "No narrative statement provided."))
+    desc_table = Table([[Paragraph(desc_text, desc_style)]], colWidths=[540])
     desc_table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f1f5f9")),
         ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
-        ("TOPPADDING", (0, 0), (-1, -1), 8),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
-        ("LEFTPADDING", (0, 0), (-1, -1), 10),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
     ]))
     story.append(desc_table)
     story.append(Spacer(1, 14))
 
-    # 4. Registered Evidence Files
-    story.append(Paragraph("3. Registered Evidentiary Documents & Photos", section_heading))
+    # 4. Evidentiary Documents & Media Registry
+    story.append(Paragraph("2. Registered Multimodal Evidence Files", section_heading))
     story.append(Spacer(1, 6))
 
     evidence_rows = [

@@ -98,6 +98,8 @@ ClaimSense-AI/
 ├── tests/                         # Automated unit & integration test suites
 │   ├── __init__.py
 │   ├── test_health.py             # Health check test suite (4 tests)
+│   ├── test_health.py             # Health check test suite (4 tests)
+│   ├── test_database.py           # Database schema & legacy migration tests (4 tests)
 │   ├── test_claims.py             # Claim submission & file validation test suite (12 tests)
 │   ├── test_auth.py               # Authentication, password complexity & lifecycle tests (11 tests)
 │   ├── test_ownership_and_receipt.py # Access boundaries, search & PDF receipt tests (6 tests)
@@ -232,7 +234,7 @@ Upon registering a claim, the system generates an official **Claim Submission Re
 ## 🚀 Setup & Execution Guide
 
 ### Prerequisites
-- Python 3.10+ (Tested on **Python 3.13.2** on Windows)
+- Python 3.10+ (Tested on **Python 3.13.2** / **Python 3.14** on Windows)
 - Git
 
 ### 1. Clone & Activate Virtual Environment
@@ -275,6 +277,7 @@ python -m unittest discover tests -v
 ```
 **Results:** **45 / 45 tests passing (100%)** across:
 - `test_health.py` (4 tests) &mdash; Health check, database diagnostic, 404 handler, index route
+- `test_database.py` (4 tests) &mdash; SQLite schema, entity relationships, constraints & legacy migration
 - `test_claims.py` (12 tests) &mdash; Authenticated submission, file validation, magic bytes, 0-byte rejection, storage
 - `test_auth.py` (11 tests) &mdash; Signup, login, password complexity, unique constraints, session lifecycle, inactive user enforcement
 - `test_ownership_and_receipt.py` (6 tests) &mdash; Owner boundaries, assessor/admin access, legacy claim protection, policy search, PDF/JSON receipt
@@ -287,7 +290,7 @@ python -m unittest discover tests -v
 - [x] **Phase 0:** Project Repository & Technology Audit
 - [x] **Phase 1:** Project Foundation, Scaffolding, Flask API, UI Shell & Health Diagnostics
 - [x] **Phase 2:** Claim Submission Module (File uploads, validation, Claim ID generation, safe storage)
-- [x] **Phase 3:** Database Architecture, Authentication & Claim Receipt (Stabilized, Hardened & Tested)
+- [x] **Phase 3:** Database Architecture, Authentication & Claim Receipt (SQLite, SQLAlchemy, Werkzeug Auth, PDF Receipt Engine &mdash; Stabilized, Hardened & Tested)
 - [ ] **Phase 4:** OCR & Multi-Format Document Processing *(Ready for Implementation)*
 - [ ] **Phase 5:** Computer Vision Analysis (Vehicle damage inspection) *(Planned)*
 - [ ] **Phase 6:** NLP Narrative & Chronology Extraction *(Planned)*

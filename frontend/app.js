@@ -111,19 +111,15 @@ document.addEventListener("DOMContentLoaded", () => {
     function updateThemeToggleUI(theme) {
         if (!themeToggleBtn) return;
         const icon = themeToggleBtn.querySelector(".theme-icon");
-        const label = themeToggleBtn.querySelector(".theme-label");
+        const text = themeToggleBtn.querySelector(".theme-text");
         if (theme === "dark") {
-            if (icon) {
-                icon.innerHTML = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
-            }
-            if (label) label.textContent = "Light";
-            themeToggleBtn.setAttribute("title", "Switch to Light Mode");
+            if (icon) icon.textContent = "☀️";
+            if (text) text.textContent = "Light";
+            themeToggleBtn.setAttribute("aria-label", "Switch to Light Mode");
         } else {
-            if (icon) {
-                icon.innerHTML = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
-            }
-            if (label) label.textContent = "Dark";
-            themeToggleBtn.setAttribute("title", "Switch to Dark Mode");
+            if (icon) icon.textContent = "🌙";
+            if (text) text.textContent = "Dark";
+            themeToggleBtn.setAttribute("aria-label", "Switch to Dark Mode");
         }
     }
 
@@ -138,401 +134,439 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // -------------------------------------------------------------
-    // 2. Authentication & Session Management (Phase 3)
+    // 2. Authentication & User Session Management (Phase 3)
     // -------------------------------------------------------------
-    const headerAuth = document.getElementById("header-auth");
+    const authLoggedOut = document.getElementById("auth-logged-out");
+    const authLoggedIn = document.getElementById("auth-logged-in");
+    const authUsernameSpan = document.getElementById("auth-username");
+    const authRoleBadge = document.getElementById("auth-role-badge");
+    const btnOpenLogin = document.getElementById("btn-open-login");
+    const btnOpenSignup = document.getElementById("btn-open-signup");
+    const btnLogout = document.getElementById("btn-logout");
+    const btnNavMyClaims = document.getElementById("btn-nav-my-claims");
+    const authNotice = document.getElementById("auth-required-notice");
+
+    // Modal elements
     const authModal = document.getElementById("auth-modal");
-    const btnCloseAuthModal = document.getElementById("btn-close-auth-modal");
-    const tabBtnLogin = document.getElementById("tab-btn-login");
-    const tabBtnSignup = document.getElementById("tab-btn-signup");
-    const loginForm = document.getElementById("login-form");
-    const signupForm = document.getElementById("signup-form");
-    const authAlert = document.getElementById("auth-alert");
-    const linkSwitchToSignup = document.getElementById("link-switch-to-signup");
-    const linkSwitchToLogin = document.getElementById("link-switch-to-login");
-    const authRequiredNotice = document.getElementById("auth-required-notice");
-    const linkSubmissionLogin = document.getElementById("link-submission-login");
-    const linkSubmissionSignup = document.getElementById("link-submission-signup");
+    const authModalTitle = document.getElementById("auth-modal-title");
+    const authModalClose = document.getElementById("auth-modal-close");
+    const tabLogin = document.getElementById("tab-login");
+    const tabSignup = document.getElementById("tab-signup");
+    const formLogin = document.getElementById("form-login");
+    const formSignup = document.getElementById("form-signup");
+    const authModalError = document.getElementById("auth-modal-error");
+    const btnModalSwitchSignup = document.getElementById("btn-modal-switch-signup");
+    const btnModalSwitchLogin = document.getElementById("btn-modal-switch-login");
 
-    function showAuthAlert(msg, isSuccess = false) {
-        if (!authAlert) return;
-        authAlert.textContent = msg;
-        authAlert.className = isSuccess ? "alert alert-success" : "alert alert-error";
-        authAlert.style.display = "block";
+    function renderHeaderAuth(user) {
+        currentUser = user;
+        if (user) {
+            if (authLoggedOut) authLoggedOut.style.display = "none";
+            if (authLoggedIn) authLoggedIn.style.display = "flex";
+            if (authUsernameSpan) authUsernameSpan.textContent = escapeHTML(user.username);
+            if (authRoleBadge) {
+                authRoleBadge.textContent = escapeHTML(user.role.toUpperCase());
+                authRoleBadge.className = `role-badge ${user.role === "assessor" ? "role-assessor" : user.role === "admin" ? "role-admin" : "role-user"}`;
+            }
+            if (btnNavMyClaims) btnNavMyClaims.style.display = "inline-flex";
+            if (authNotice) authNotice.style.display = "none";
+        } else {
+            if (authLoggedOut) authLoggedOut.style.display = "flex";
+            if (authLoggedIn) authLoggedIn.style.display = "none";
+            if (btnNavMyClaims) btnNavMyClaims.style.display = "none";
+            if (authNotice) authNotice.style.display = "block";
+        }
     }
 
-    function clearAuthAlert() {
-        if (!authAlert) return;
-        authAlert.textContent = "";
-        authAlert.style.display = "none";
+    async function checkCurrentUserSession() {
+        try {
+            const res = await fetch("/api/auth/me");
+            if (res.ok) {
+                const data = await res.json();
+                renderHeaderAuth(data.user);
+            } else {
+                renderHeaderAuth(null);
+            }
+        } catch {
+            renderHeaderAuth(null);
+        }
     }
+    checkCurrentUserSession();
 
-    function openAuthModal(tab = "login") {
+    function showAuthModal(mode = "login") {
         if (!authModal) return;
-        clearAuthAlert();
         authModal.style.display = "flex";
-        switchAuthTab(tab);
+        if (authModalError) {
+            authModalError.style.display = "none";
+            authModalError.textContent = "";
+        }
+        if (mode === "login") {
+            if (tabLogin) tabLogin.classList.add("active");
+            if (tabSignup) tabSignup.classList.remove("active");
+            if (formLogin) formLogin.style.display = "block";
+            if (formSignup) formSignup.style.display = "none";
+            if (authModalTitle) authModalTitle.textContent = "Sign In to ClaimSense";
+        } else {
+            if (tabSignup) tabSignup.classList.add("active");
+            if (tabLogin) tabLogin.classList.remove("active");
+            if (formSignup) formSignup.style.display = "block";
+            if (formLogin) formLogin.style.display = "none";
+            if (authModalTitle) authModalTitle.textContent = "Create an Account";
+        }
     }
 
     function closeAuthModal() {
         if (!authModal) return;
         authModal.style.display = "none";
-        clearAuthAlert();
-    }
-
-    function switchAuthTab(tab) {
-        clearAuthAlert();
-        if (tab === "login") {
-            tabBtnLogin.classList.add("active");
-            tabBtnSignup.classList.remove("active");
-            loginForm.style.display = "block";
-            signupForm.style.display = "none";
-            document.getElementById("modal-title").textContent = "Account Sign In";
-        } else {
-            tabBtnSignup.classList.add("active");
-            tabBtnLogin.classList.remove("active");
-            loginForm.style.display = "none";
-            signupForm.style.display = "block";
-            document.getElementById("modal-title").textContent = "Create New Account";
+        if (formLogin) formLogin.reset();
+        if (formSignup) formSignup.reset();
+        if (authModalError) {
+            authModalError.style.display = "none";
+            authModalError.textContent = "";
         }
     }
 
-    if (tabBtnLogin) tabBtnLogin.addEventListener("click", () => switchAuthTab("login"));
-    if (tabBtnSignup) tabBtnSignup.addEventListener("click", () => switchAuthTab("signup"));
-    if (linkSwitchToSignup) linkSwitchToSignup.addEventListener("click", (e) => { e.preventDefault(); switchAuthTab("signup"); });
-    if (linkSwitchToLogin) linkSwitchToLogin.addEventListener("click", (e) => { e.preventDefault(); switchAuthTab("login"); });
-    if (btnCloseAuthModal) btnCloseAuthModal.addEventListener("click", closeAuthModal);
+    if (btnOpenLogin) btnOpenLogin.addEventListener("click", () => showAuthModal("login"));
+    if (btnOpenSignup) btnOpenSignup.addEventListener("click", () => showAuthModal("signup"));
+    if (authModalClose) authModalClose.addEventListener("click", closeAuthModal);
+    if (btnModalSwitchSignup) btnModalSwitchSignup.addEventListener("click", () => showAuthModal("signup"));
+    if (btnModalSwitchLogin) btnModalSwitchLogin.addEventListener("click", () => showAuthModal("login"));
 
-    if (linkSubmissionLogin) linkSubmissionLogin.addEventListener("click", (e) => { e.preventDefault(); openAuthModal("login"); });
-    if (linkSubmissionSignup) linkSubmissionSignup.addEventListener("click", (e) => { e.preventDefault(); openAuthModal("signup"); });
+    if (tabLogin) tabLogin.addEventListener("click", () => showAuthModal("login"));
+    if (tabSignup) tabSignup.addEventListener("click", () => showAuthModal("signup"));
 
-    window.addEventListener("click", (e) => {
-        if (e.target === authModal) closeAuthModal();
-    });
-
-    function renderHeaderAuth() {
-        if (!headerAuth) return;
-        if (currentUser) {
-            const safeName = escapeHTML(currentUser.full_name || currentUser.username);
-            const safeRole = escapeHTML(currentUser.role || "user");
-            headerAuth.innerHTML = `
-                <div class="user-badge" id="user-badge">
-                    <span class="user-role-pill">${safeRole}</span>
-                    <span>${safeName}</span>
-                </div>
-                <button type="button" id="btn-header-logout" class="btn btn-outline btn-sm">Sign Out</button>
-            `;
-            const btnLogout = document.getElementById("btn-header-logout");
-            if (btnLogout) {
-                btnLogout.addEventListener("click", handleLogout);
-            }
-            if (authRequiredNotice) authRequiredNotice.style.display = "none";
-        } else {
-            headerAuth.innerHTML = `
-                <button type="button" id="btn-open-login" class="btn btn-secondary btn-sm">Sign In</button>
-                <button type="button" id="btn-open-signup" class="btn btn-primary btn-sm">Sign Up</button>
-            `;
-            const btnLogin = document.getElementById("btn-open-login");
-            const btnSignup = document.getElementById("btn-open-signup");
-            if (btnLogin) btnLogin.addEventListener("click", () => openAuthModal("login"));
-            if (btnSignup) btnSignup.addEventListener("click", () => openAuthModal("signup"));
-            if (authRequiredNotice) authRequiredNotice.style.display = "block";
-        }
+    if (authModal) {
+        authModal.addEventListener("click", (e) => {
+            if (e.target === authModal) closeAuthModal();
+        });
     }
-
-    async function checkCurrentSession() {
-        try {
-            const res = await fetch("/api/auth/me");
-            if (res.ok) {
-                const data = await res.json();
-                currentUser = data.user;
-            } else {
-                currentUser = null;
-            }
-        } catch {
-            currentUser = null;
-        }
-        renderHeaderAuth();
-    }
-    checkCurrentSession();
 
     // Login Form Submit
-    if (loginForm) {
-        loginForm.addEventListener("submit", async (e) => {
+    if (formLogin) {
+        formLogin.addEventListener("submit", async (e) => {
             e.preventDefault();
-            clearAuthAlert();
             const identifier = document.getElementById("login-identifier").value.trim();
             const password = document.getElementById("login-password").value;
 
-            try {
-                const headers = { "Content-Type": "application/json" };
-                if (csrfToken) headers["X-CSRFToken"] = csrfToken;
+            if (!csrfToken) await fetchCsrfToken();
 
+            try {
                 const res = await fetch("/api/auth/login", {
                     method: "POST",
-                    headers: headers,
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(csrfToken ? { "X-CSRFToken": csrfToken } : {}),
+                    },
                     body: JSON.stringify({ identifier, password }),
                 });
+
                 const data = await res.json();
-                if (!res.ok || !data.success) {
-                    throw new Error(data.message || "Invalid credentials.");
+                if (!res.ok) {
+                    throw new Error(data.message || "Failed to log in.");
                 }
 
-                currentUser = data.user;
-                renderHeaderAuth();
+                renderHeaderAuth(data.user);
                 closeAuthModal();
-                loginForm.reset();
-                await fetchCsrfToken(); // Refresh CSRF token for new session
-
-                if (activeView === "myclaims") {
-                    loadMyClaims();
-                }
+                fetchCsrfToken(); // refresh token after session rotation
             } catch (err) {
-                showAuthAlert(err.message);
+                if (authModalError) {
+                    authModalError.textContent = err.message;
+                    authModalError.style.display = "block";
+                }
             }
         });
     }
 
     // Signup Form Submit
-    if (signupForm) {
-        signupForm.addEventListener("submit", async (e) => {
+    if (formSignup) {
+        formSignup.addEventListener("submit", async (e) => {
             e.preventDefault();
-            clearAuthAlert();
-            const fullName = document.getElementById("signup-fullname").value.trim();
+            const full_name = document.getElementById("signup-fullname").value.trim();
             const username = document.getElementById("signup-username").value.trim();
             const email = document.getElementById("signup-email").value.trim();
             const password = document.getElementById("signup-password").value;
-            const confirm = document.getElementById("signup-confirm").value;
+            const confirm_password = document.getElementById("signup-confirm").value;
+
+            if (password !== confirm_password) {
+                if (authModalError) {
+                    authModalError.textContent = "Passwords do not match.";
+                    authModalError.style.display = "block";
+                }
+                return;
+            }
+
+            if (!csrfToken) await fetchCsrfToken();
 
             try {
-                const headers = { "Content-Type": "application/json" };
-                if (csrfToken) headers["X-CSRFToken"] = csrfToken;
-
                 const res = await fetch("/api/auth/signup", {
                     method: "POST",
-                    headers: headers,
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(csrfToken ? { "X-CSRFToken": csrfToken } : {}),
+                    },
                     body: JSON.stringify({
-                        full_name: fullName,
-                        username: username,
-                        email: email,
-                        password: password,
-                        confirm_password: confirm,
+                        full_name,
+                        username,
+                        email,
+                        password,
+                        confirm_password,
                     }),
                 });
+
                 const data = await res.json();
-                if (!res.ok || !data.success) {
+                if (!res.ok) {
                     throw new Error(data.message || "Registration failed.");
                 }
 
-                signupForm.reset();
-                switchAuthTab("login");
-                showAuthAlert("Registration successful! Please sign in with your credentials.", true);
+                // Automatically log in
+                const loginRes = await fetch("/api/auth/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(csrfToken ? { "X-CSRFToken": csrfToken } : {}),
+                    },
+                    body: JSON.stringify({ identifier: username, password }),
+                });
+                const loginData = await loginRes.json();
+                if (loginRes.ok) {
+                    renderHeaderAuth(loginData.user);
+                }
+                closeAuthModal();
+                fetchCsrfToken();
             } catch (err) {
-                showAuthAlert(err.message);
+                if (authModalError) {
+                    authModalError.textContent = err.message;
+                    authModalError.style.display = "block";
+                }
             }
         });
     }
 
-    async function handleLogout() {
-        try {
-            const headers = {};
-            if (csrfToken) headers["X-CSRFToken"] = csrfToken;
-            await fetch("/api/auth/logout", { method: "POST", headers: headers });
-        } catch {
-            // ignore network err
-        }
-        currentUser = null;
-        renderHeaderAuth();
-        await fetchCsrfToken(); // Refresh CSRF token for anonymous session
-        if (activeView === "myclaims") {
-            switchView("submit");
-        }
-    }
-
-    // -------------------------------------------------------------
-    // 3. Navigation View Switching (Phase 3)
-    // -------------------------------------------------------------
-    let activeView = "submit";
-    const pillSubmit = document.getElementById("pill-nav-submit");
-    const pillSearch = document.getElementById("pill-nav-search");
-    const pillMyClaims = document.getElementById("pill-nav-myclaims");
-
-    const submissionCard = document.getElementById("submission-card");
-    const policyLookupCard = document.getElementById("policy-lookup-card");
-    const myClaimsCard = document.getElementById("my-claims-card");
-    const successCard = document.getElementById("submission-success-card");
-
-    function switchView(viewName) {
-        activeView = viewName;
-        [pillSubmit, pillSearch, pillMyClaims].forEach((p) => p && p.classList.remove("active"));
-        if (submissionCard) submissionCard.style.display = "none";
-        if (policyLookupCard) policyLookupCard.style.display = "none";
-        if (myClaimsCard) myClaimsCard.style.display = "none";
-        if (successCard) successCard.style.display = "none";
-
-        if (viewName === "submit") {
-            if (pillSubmit) pillSubmit.classList.add("active");
-            if (submissionCard) submissionCard.style.display = "block";
-        } else if (viewName === "search") {
-            if (pillSearch) pillSearch.classList.add("active");
-            if (policyLookupCard) policyLookupCard.style.display = "block";
-        } else if (viewName === "myclaims") {
-            if (pillMyClaims) pillMyClaims.classList.add("active");
-            if (myClaimsCard) myClaimsCard.style.display = "block";
-            loadMyClaims();
-        }
-    }
-
-    if (pillSubmit) pillSubmit.addEventListener("click", () => switchView("submit"));
-    if (pillSearch) pillSearch.addEventListener("click", () => switchView("search"));
-    if (pillMyClaims) pillMyClaims.addEventListener("click", () => {
-        if (!currentUser) {
-            openAuthModal("login");
-            showAuthAlert("Please sign in to view your submitted claims.");
-            return;
-        }
-        switchView("myclaims");
-    });
-
-    // -------------------------------------------------------------
-    // 4. Policy Number Claim Lookup (Phase 3)
-    // -------------------------------------------------------------
-    const policySearchForm = document.getElementById("policy-search-form");
-    const searchPolicyInput = document.getElementById("search-policy-input");
-    const policySearchAlert = document.getElementById("policy-search-alert");
-    const policySearchResults = document.getElementById("policy-search-results");
-    const policyResultsList = document.getElementById("policy-results-list");
-    const resultsCount = document.getElementById("results-count");
-
-    if (policySearchForm) {
-        policySearchForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            if (!searchPolicyInput) return;
-            const policyNum = searchPolicyInput.value.trim();
-            if (!policyNum) return;
-
-            policySearchAlert.style.display = "none";
-            policySearchResults.style.display = "none";
-            policyResultsList.innerHTML = "";
-
-            if (!currentUser) {
-                openAuthModal("login");
-                showAuthAlert("Authentication required to search claims by policy number.");
-                return;
+    // Logout
+    if (btnLogout) {
+        btnLogout.addEventListener("click", async () => {
+            try {
+                if (!csrfToken) await fetchCsrfToken();
+                await fetch("/api/auth/logout", {
+                    method: "POST",
+                    headers: {
+                        ...(csrfToken ? { "X-CSRFToken": csrfToken } : {}),
+                    },
+                });
+            } finally {
+                renderHeaderAuth(null);
+                fetchCsrfToken();
             }
+        });
+    }
+
+    // -------------------------------------------------------------
+    // 3. Policy Number Claim Lookup (Phase 3)
+    // -------------------------------------------------------------
+    const formPolicySearch = document.getElementById("form-policy-search");
+    const inputPolicySearch = document.getElementById("input-policy-search");
+    const policyResultsContainer = document.getElementById("policy-search-results");
+    const policyResultsList = document.getElementById("policy-results-list");
+
+    if (formPolicySearch) {
+        formPolicySearch.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const policyNo = inputPolicySearch.value.trim();
+            if (!policyNo) return;
+
+            if (policyResultsContainer) policyResultsContainer.style.display = "block";
+            if (policyResultsList) policyResultsList.innerHTML = `<div class="loading-spinner">Searching claims for policy '${escapeHTML(policyNo)}'...</div>`;
 
             try {
-                const res = await fetch(`/api/claims/policy/${encodeURIComponent(policyNum)}`);
+                const res = await fetch(`/api/claims/policy/${encodeURIComponent(policyNo)}`);
                 const data = await res.json();
 
-                if (!res.ok || !data.success) {
-                    policySearchAlert.textContent = data.message || `No claims found for policy '${policyNum}'.`;
-                    policySearchAlert.style.display = "block";
-                    return;
+                if (!res.ok) {
+                    throw new Error(data.message || `No claims found for policy '${policyNo}'`);
                 }
 
-                resultsCount.textContent = data.count || data.claims.length;
-                policyResultsList.innerHTML = data.claims
-                    .map((claim) => renderClaimCard(claim))
-                    .join("");
-                policySearchResults.style.display = "block";
+                renderClaimResults(data.claims, policyResultsList, `Policy: ${policyNo}`);
             } catch (err) {
-                policySearchAlert.textContent = `Search failed: ${err.message}`;
-                policySearchAlert.style.display = "block";
+                if (policyResultsList) {
+                    policyResultsList.innerHTML = `
+                        <div class="search-empty-state">
+                            <span class="empty-icon">🔍</span>
+                            <p>${escapeHTML(err.message)}</p>
+                        </div>
+                    `;
+                }
             }
         });
     }
 
-    function renderClaimCard(claim) {
-        const safeClaimId = escapeHTML(claim.claim_id);
-        const safeStatus = escapeHTML(claim.status || "SUBMITTED");
-        const safePolicy = escapeHTML(claim.policy_number);
-        const safeClaimant = escapeHTML(claim.claimant_name);
-        const safeVehicle = escapeHTML(claim.vehicle_number);
-        const safeAccidentDate = escapeHTML(claim.accident_date);
-        const dateStr = claim.created_at ? escapeHTML(new Date(claim.created_at).toLocaleDateString()) : "-";
-        const filesCount = claim.files_count || (claim.documents ? claim.documents.length + (claim.images ? claim.images.length : 0) : 4);
+    // -------------------------------------------------------------
+    // 4. "My Claims" Dashboard View (Phase 3)
+    // -------------------------------------------------------------
+    const myClaimsModal = document.getElementById("my-claims-modal");
+    const myClaimsClose = document.getElementById("my-claims-close");
+    const myClaimsList = document.getElementById("my-claims-list");
 
-        return `
-            <div class="claim-result-card">
-                <div class="result-info">
-                    <div class="result-title-line">
-                        <span class="result-claim-id">${safeClaimId}</span>
-                        <span class="status-pill status-ready">${safeStatus}</span>
-                    </div>
-                    <div class="result-meta-line">
-                        <span><strong>Policy:</strong> ${safePolicy}</span>
-                        <span><strong>Claimant:</strong> ${safeClaimant}</span>
-                        <span><strong>Vehicle:</strong> ${safeVehicle}</span>
-                        <span><strong>Accident Date:</strong> ${safeAccidentDate}</span>
-                        <span><strong>Submitted:</strong> ${dateStr}</span>
-                        <span><strong>Evidence:</strong> ${filesCount} files</span>
-                    </div>
-                </div>
-                <div class="result-actions">
-                    <a href="/api/claims/${safeClaimId}/receipt" target="_blank" class="btn btn-secondary btn-sm" title="Download Official Submission Receipt (PDF)">
-                        📄 Download Receipt (PDF)
-                    </a>
-                </div>
-            </div>
-        `;
+    if (btnNavMyClaims) {
+        btnNavMyClaims.addEventListener("click", async (e) => {
+            e.preventDefault();
+            if (!myClaimsModal) return;
+            myClaimsModal.style.display = "flex";
+            if (myClaimsList) myClaimsList.innerHTML = `<div class="loading-spinner">Loading your submitted claims...</div>`;
+
+            try {
+                const res = await fetch("/api/my-claims");
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.message || "Failed to fetch claim history.");
+                }
+
+                renderClaimResults(data.claims, myClaimsList, "Your Claim History");
+            } catch (err) {
+                if (myClaimsList) {
+                    myClaimsList.innerHTML = `
+                        <div class="search-empty-state">
+                            <span class="empty-icon">⚠️</span>
+                            <p>${escapeHTML(err.message)}</p>
+                        </div>
+                    `;
+                }
+            }
+        });
     }
 
-    // -------------------------------------------------------------
-    // 5. My Registered Claims (Phase 3)
-    // -------------------------------------------------------------
-    const myClaimsList = document.getElementById("my-claims-list");
-    const myClaimsAlert = document.getElementById("my-claims-alert");
-    const btnRefreshMyClaims = document.getElementById("btn-refresh-my-claims");
+    if (myClaimsClose) {
+        myClaimsClose.addEventListener("click", () => {
+            if (myClaimsModal) myClaimsModal.style.display = "none";
+        });
+    }
 
-    async function loadMyClaims() {
-        if (!myClaimsList) return;
-        if (!currentUser) {
-            myClaimsList.innerHTML = `<p class="empty-state">Please <a href="#" id="link-login-now">sign in</a> to view your registered claims.</p>`;
-            const linkLoginNow = document.getElementById("link-login-now");
-            if (linkLoginNow) linkLoginNow.addEventListener("click", (e) => { e.preventDefault(); openAuthModal("login"); });
+    if (myClaimsModal) {
+        myClaimsModal.addEventListener("click", (e) => {
+            if (e.target === myClaimsModal) myClaimsModal.style.display = "none";
+        });
+    }
+
+    function renderClaimResults(claims, container, headingText = "") {
+        if (!container) return;
+        if (!claims || claims.length === 0) {
+            container.innerHTML = `
+                <div class="search-empty-state">
+                    <span class="empty-icon">📂</span>
+                    <p>No claims found under this record.</p>
+                </div>
+            `;
             return;
         }
 
-        myClaimsList.innerHTML = `<p class="empty-state">Loading your registered claims...</p>`;
-        if (myClaimsAlert) myClaimsAlert.style.display = "none";
+        let html = "";
+        claims.forEach((claim) => {
+            const dateStr = claim.created_at ? new Date(claim.created_at).toLocaleDateString() : "N/A";
+            const docCount = claim.documents ? claim.documents.length : (claim.files ? Object.keys(claim.files).length : 0);
+            html += `
+                <div class="claim-result-card">
+                    <div class="claim-card-header">
+                        <span class="claim-card-id">${escapeHTML(claim.claim_id)}</span>
+                        <span class="claim-card-status">${escapeHTML(claim.status || "SUBMITTED")}</span>
+                    </div>
+                    <div class="claim-card-body">
+                        <div class="claim-card-row">
+                            <span class="card-label">Claimant:</span>
+                            <span class="card-val">${escapeHTML(claim.claimant_name)}</span>
+                        </div>
+                        <div class="claim-card-row">
+                            <span class="card-label">Policy Number:</span>
+                            <span class="card-val">${escapeHTML(claim.policy_number)}</span>
+                        </div>
+                        <div class="claim-card-row">
+                            <span class="card-label">Vehicle:</span>
+                            <span class="card-val">${escapeHTML(claim.vehicle_number)}</span>
+                        </div>
+                        <div class="claim-card-row">
+                            <span class="card-label">Accident Date:</span>
+                            <span class="card-val">${escapeHTML(claim.accident_date)}</span>
+                        </div>
+                        <div class="claim-card-desc">
+                            ${escapeHTML(claim.claim_description)}
+                        </div>
+                    </div>
+                    <div class="claim-card-footer">
+                        <span class="card-footer-meta">Submitted: ${escapeHTML(dateStr)} &bull; ${docCount} files</span>
+                        <div class="card-actions">
+                            <a href="/api/claims/${encodeURIComponent(claim.claim_id)}/receipt" target="_blank" class="btn btn-sm btn-outline">
+                                📄 Receipt (PDF)
+                            </a>
+                            <a href="/api/claims/${encodeURIComponent(claim.claim_id)}/receipt?format=json" target="_blank" class="btn btn-sm btn-ghost">
+                                { JSON }
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
 
-        try {
-            const res = await fetch("/api/my-claims");
-            const data = await res.json();
-            if (!res.ok || !data.success) {
-                throw new Error(data.message || "Failed to load claim history.");
-            }
-
-            if (!data.claims || data.claims.length === 0) {
-                myClaimsList.innerHTML = `<p class="empty-state">No claims registered under this account yet. Click "Submit Claim Evidence" to create one.</p>`;
-                return;
-            }
-
-            myClaimsList.innerHTML = data.claims
-                .map((claim) => renderClaimCard(claim))
-                .join("");
-        } catch (err) {
-            if (myClaimsAlert) {
-                myClaimsAlert.textContent = `Error loading claims: ${err.message}`;
-                myClaimsAlert.style.display = "block";
-            }
-            myClaimsList.innerHTML = `<p class="empty-state">Could not fetch claims.</p>`;
-        }
-    }
-
-    if (btnRefreshMyClaims) {
-        btnRefreshMyClaims.addEventListener("click", loadMyClaims);
+        container.innerHTML = html;
     }
 
     // -------------------------------------------------------------
-    // 6. Claim Submission Handling (Phase 2 & 3)
+    // 5. File Upload Previews & Drag-and-Drop
+    // -------------------------------------------------------------
+    const fileDropZones = document.querySelectorAll(".file-drop-zone");
+
+    fileDropZones.forEach((zone) => {
+        const input = zone.querySelector("input[type='file']");
+        const preview = zone.querySelector(".file-preview");
+
+        if (!input || !preview) return;
+
+        zone.addEventListener("click", (e) => {
+            if (e.target !== input) input.click();
+        });
+
+        zone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            zone.classList.add("drag-over");
+        });
+
+        zone.addEventListener("dragleave", () => {
+            zone.classList.remove("drag-over");
+        });
+
+        zone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            zone.classList.remove("drag-over");
+            if (e.dataTransfer.files.length > 0) {
+                input.files = e.dataTransfer.files;
+                updateFilePreview(input, preview);
+            }
+        });
+
+        input.addEventListener("change", () => {
+            updateFilePreview(input, preview);
+        });
+    });
+
+    function updateFilePreview(input, previewElement) {
+        if (!input.files || input.files.length === 0) {
+            previewElement.textContent = "";
+            previewElement.style.display = "none";
+            return;
+        }
+
+        const file = input.files[0];
+        const sizeKb = (file.size / 1024).toFixed(1);
+        previewElement.textContent = `✓ Selected: ${file.name} (${sizeKb} KB)`;
+        previewElement.style.display = "block";
+    }
+
+    // -------------------------------------------------------------
+    // 6. Claim Submission Form (Phase 2 & 3)
     // -------------------------------------------------------------
     const claimForm = document.getElementById("claim-form");
-    const formErrorAlert = document.getElementById("form-error-alert");
-    const btnSubmitClaim = document.getElementById("btn-submit-claim");
-    const btnText = btnSubmitClaim ? btnSubmitClaim.querySelector(".btn-text") : null;
-    const btnSpinner = btnSubmitClaim ? btnSubmitClaim.querySelector(".btn-spinner") : null;
+    const btnSubmit = document.getElementById("btn-submit-claim");
+    const errorAlert = document.getElementById("error-alert");
+    const errorMessage = document.getElementById("error-message");
+    const submissionCard = document.getElementById("submission-card");
+    const successCard = document.getElementById("success-card");
 
     const resClaimId = document.getElementById("res-claim-id");
     const resClaimantName = document.getElementById("res-claimant-name");
@@ -548,26 +582,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnCopyClaimId = document.getElementById("btn-copy-claim-id");
     const btnFillSample = document.getElementById("btn-fill-sample");
 
-    function showError(message) {
-        if (!formErrorAlert) return;
-        formErrorAlert.textContent = message;
-        formErrorAlert.style.display = "block";
-        formErrorAlert.scrollIntoView({ behavior: "smooth", block: "center" });
+    function showError(msg) {
+        if (!errorAlert || !errorMessage) return;
+        errorMessage.textContent = msg;
+        errorAlert.style.display = "flex";
+        errorAlert.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
     function clearError() {
-        if (!formErrorAlert) return;
-        formErrorAlert.textContent = "";
-        formErrorAlert.style.display = "none";
+        if (!errorAlert || !errorMessage) return;
+        errorMessage.textContent = "";
+        errorAlert.style.display = "none";
     }
 
     function setSubmittingState(isSubmitting) {
-        if (!btnSubmitClaim) return;
-        btnSubmitClaim.disabled = isSubmitting;
-        if (btnText && btnSpinner) {
-            btnText.style.display = isSubmitting ? "none" : "inline";
-            btnSpinner.style.display = isSubmitting ? "inline" : "none";
-        }
+        if (!btnSubmit) return;
+        btnSubmit.disabled = isSubmitting;
+        const btnText = btnSubmit.querySelector(".btn-text");
+        const btnSpinner = btnSubmit.querySelector(".btn-spinner");
+        if (btnText) btnText.textContent = isSubmitting ? "Validating & Submitting..." : "Submit Claim for Verification";
+        if (btnSpinner) btnSpinner.style.display = isSubmitting ? "inline-block" : "none";
     }
 
     if (claimForm) {
@@ -575,52 +609,76 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             clearError();
 
-            // Authentication verification check before submission
+            // Client-side authentication check
             if (!currentUser) {
-                showError("Authentication Required: You must be signed in with an active account to submit an insurance claim.");
-                openAuthModal("login");
-                showAuthAlert("Please sign in or create an account to proceed with claim submission.");
+                showError("Authentication required: Please sign in or create an account before submitting a claim.");
+                showAuthModal("login");
                 return;
             }
 
-            const formData = new FormData(claimForm);
-
-            // Basic client-side check
-            const claimantName = formData.get("claimant_name");
-            const policyNumber = formData.get("policy_number");
-            const vehicleNumber = formData.get("vehicle_number");
-            const accidentDate = formData.get("accident_date");
-            const claimDesc = formData.get("claim_description");
+            // Client-side validation
+            const claimantName = document.getElementById("claimant_name")?.value.trim();
+            const policyNumber = document.getElementById("policy_number")?.value.trim();
+            const vehicleNumber = document.getElementById("vehicle_number")?.value.trim();
+            const accidentDate = document.getElementById("accident_date")?.value.trim();
+            const claimDesc = document.getElementById("claim_description")?.value.trim();
 
             if (!claimantName || !policyNumber || !vehicleNumber || !accidentDate || !claimDesc) {
-                showError("Please fill in all required text fields before submitting.");
+                showError("Please fill out all required text fields.");
                 return;
+            }
+
+            const requiredFiles = [
+                { id: "policy_document", label: "Policy Document" },
+                { id: "claim_form_file", label: "Claim Form" },
+                { id: "invoice_document", label: "Invoice / Repair Estimate" },
+                { id: "vehicle_image", label: "Accident / Vehicle Image" },
+            ];
+
+            for (const rf of requiredFiles) {
+                const el = document.getElementById(rf.id);
+                if (!el || !el.files || el.files.length === 0) {
+                    showError(`Missing required file: ${rf.label}`);
+                    return;
+                }
             }
 
             setSubmittingState(true);
 
-            try {
-                const headers = {};
-                if (csrfToken) headers["X-CSRFToken"] = csrfToken;
+            const formData = new FormData();
+            formData.append("claimant_name", claimantName);
+            formData.append("policy_number", policyNumber);
+            formData.append("vehicle_number", vehicleNumber);
+            formData.append("accident_date", accidentDate);
+            formData.append("claim_description", claimDesc);
 
+            formData.append("policy_document", document.getElementById("policy_document").files[0]);
+            formData.append("claim_form", document.getElementById("claim_form_file").files[0]);
+            formData.append("invoice_document", document.getElementById("invoice_document").files[0]);
+            formData.append("vehicle_image", document.getElementById("vehicle_image").files[0]);
+
+            if (!csrfToken) await fetchCsrfToken();
+
+            try {
                 const response = await fetch("/api/claims", {
                     method: "POST",
-                    headers: headers,
+                    headers: {
+                        ...(csrfToken ? { "X-CSRFToken": csrfToken } : {}),
+                    },
                     body: formData,
                 });
 
                 const result = await response.json();
 
-                if (!response.ok || !result.success) {
-                    const errorDetail = result.details
-                        ? Array.isArray(result.details)
-                            ? result.details.join("; ")
-                            : JSON.stringify(result.details)
-                        : result.message || "Failed to submit claim.";
-                    throw new Error(errorDetail);
+                if (!response.ok) {
+                    let errMsg = result.message || "Failed to submit claim.";
+                    if (result.details && Array.isArray(result.details)) {
+                        errMsg += ` (${result.details.join("; ")})`;
+                    }
+                    throw new Error(errMsg);
                 }
 
-                // Populate success card
+                // Render success details
                 resClaimId.textContent = result.claim_id;
                 resClaimantName.textContent = result.data.claimant_name;
                 resPolicyNumber.textContent = result.data.policy_number;

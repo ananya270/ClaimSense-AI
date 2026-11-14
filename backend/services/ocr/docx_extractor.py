@@ -1,4 +1,4 @@
-"""DOCX paragraph, table, header, and footer text extraction (Phase 4 Placeholder).
+"""DOCX paragraph, table, header, and footer text extraction.
 
 This module is prepared for Phase 4 OCR and multi-format document processing.
 It is isolated to prevent broken imports during Phase 3 operations.
@@ -25,7 +25,7 @@ except ImportError:
 
 
 def extract_docx(path: Path) -> str:
-    """Extract text from paragraphs, tables, and section headers/footers (Phase 4)."""
+    """Extract text from paragraphs, tables, and section headers/footers."""
     if not HAS_DOCX:
         raise DocumentExtractionError(
             "python-docx is not installed in the environment. "

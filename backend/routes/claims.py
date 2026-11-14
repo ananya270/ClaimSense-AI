@@ -228,6 +228,7 @@ def submit_claim():
                 "vehicle_number": metadata["vehicle_number"],
                 "accident_date": metadata["accident_date"],
                 "claim_description": metadata["claim_description"],
+                "status": "SUBMITTED",
                 "files_count": len(saved_files),
                 "created_at": metadata["created_at"],
             },
@@ -264,76 +265,79 @@ def get_claim(claim_id: str):
     with get_db_session() as db:
         claim = db.query(Claim).filter_by(claim_id=claim_id).first()
 
-        if not claim:
-            # Fallback check on disk (in case legacy un-migrated)
-            upload_base = Path(current_app.config["UPLOAD_FOLDER"])
-            metadata_path = upload_base / claim_id / "metadata.json"
-            if not metadata_path.exists():
-                return jsonify({
-                    "success": False,
-                    "error": "Not Found",
-                    "message": f"Claim with ID '{claim_id}' was not found.",
-                }), 404
-
-            try:
-                with open(metadata_path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-            except Exception as e:
-                logger.error(f"Failed to read disk metadata for claim {claim_id}: {e}")
-                return jsonify({
-                    "success": False,
-                    "error": "Server Error",
-                    "message": "Failed to parse claim records.",
-                }), 500
-
-            # Enforce strict ownership authorization on disk fallback path
-            if not can_user_access_claim_dict(data, user_id, user_role):
+        if claim:
+            # Enforce access authorization
+            if not can_user_access_claim(claim, user_id, user_role):
                 if not user_id:
                     return jsonify({
                         "success": False,
                         "error": "Unauthorized",
-                        "message": "Authentication required to view this claim.",
+                        "message": "Authentication required to access this claim record.",
                     }), 401
                 return jsonify({
                     "success": False,
                     "error": "Forbidden",
-                    "message": "You do not have permission to access this claim record.",
+                    "message": "You do not have permission to view this claim.",
                 }), 403
 
             return jsonify({
                 "success": True,
-                "claim_id": claim_id,
-                "data": data,
+                "data": claim.to_dict(include_evidence=True),
             }), 200
 
-        # Enforce database access authorization
-        if not can_user_access_claim(claim, user_id, user_role):
+    # Fallback to metadata.json on disk if database record is missing
+    upload_base = Path(current_app.config["UPLOAD_FOLDER"])
+    metadata_path = upload_base / claim_id / "metadata.json"
+
+    if not metadata_path.exists():
+        return jsonify({
+            "success": False,
+            "error": "Not Found",
+            "message": f"Claim with ID '{claim_id}' was not found.",
+        }), 404
+
+    try:
+        with open(metadata_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        # Enforce authorization on disk fallback read
+        if not can_user_access_claim_dict(data, user_id, user_role):
             if not user_id:
                 return jsonify({
                     "success": False,
                     "error": "Unauthorized",
-                    "message": "Authentication required to view this claim.",
+                    "message": "Authentication required to access this claim record.",
                 }), 401
             return jsonify({
                 "success": False,
                 "error": "Forbidden",
-                "message": "You do not have permission to access this claim record.",
+                "message": "You do not have permission to view this claim.",
             }), 403
 
-        claim_data = claim.to_dict(include_evidence=True)
         return jsonify({
             "success": True,
-            "claim_id": claim_id,
-            "data": claim_data,
+            "data": data,
         }), 200
+    except Exception as e:
+        logger.error(f"Failed to read metadata for claim {claim_id}: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "Server Error",
+            "message": "Failed to read claim records.",
+        }), 500
 
 
 @claims_bp.route("/claims/policy/<policy_number>", methods=["GET"])
-def get_claims_by_policy(policy_number: str):
-    """Search claims associated with a policy number.
+def search_claims_by_policy(policy_number: str):
+    """Searches and retrieves all claims associated with a specific Policy Number."""
+    clean_policy = (policy_number or "").strip()
+    if not clean_policy:
+        return jsonify({
+            "success": False,
+            "error": "Validation Error",
+            "message": "Policy number parameter cannot be empty.",
+        }), 400
 
-    Requires authentication to protect policyholders' personal evidence.
-    """
     user_id = session.get("user_id")
     user_role = session.get("role")
 
@@ -345,26 +349,9 @@ def get_claims_by_policy(policy_number: str):
         }), 401
 
     with get_db_session() as db:
-        user = db.query(User).filter_by(id=user_id).first()
-        if not user or not user.is_active:
-            session.clear()
-            return jsonify({
-                "success": False,
-                "error": "Unauthorized",
-                "message": "Active user account required.",
-            }), 401
-
-        clean_policy = policy_number.strip()
-        if not clean_policy:
-            return jsonify({
-                "success": False,
-                "error": "Validation Error",
-                "message": "Policy number must not be empty.",
-            }), 400
-
         query = db.query(Claim).filter(Claim.policy_number.ilike(clean_policy))
 
-        # Assessors and admins can view any claim under the policy
+        # Restrict standard users to their own claims; assessors and admins can search globally
         if user_role not in ("assessor", "admin"):
             query = query.filter_by(user_id=user_id)
 
@@ -374,7 +361,9 @@ def get_claims_by_policy(policy_number: str):
             return jsonify({
                 "success": False,
                 "error": "Not Found",
-                "message": f"No claims found for policy '{clean_policy}' under your account.",
+                "message": f"No claims found matching policy number '{clean_policy}'.",
+                "count": 0,
+                "claims": [],
             }), 404
 
         return jsonify({
@@ -397,15 +386,6 @@ def get_my_claims():
         }), 401
 
     with get_db_session() as db:
-        user = db.query(User).filter_by(id=user_id).first()
-        if not user or not user.is_active:
-            session.clear()
-            return jsonify({
-                "success": False,
-                "error": "Unauthorized",
-                "message": "Active user account required.",
-            }), 401
-
         claims = (
             db.query(Claim)
             .filter_by(user_id=user_id)
