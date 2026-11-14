@@ -129,7 +129,7 @@ ClaimSense-AI/
 | **API Middleware** | Flask-CORS | 4.0.2 | Cross-Origin Resource Sharing | Active |
 | **Configuration** | python-dotenv | 1.2.4 | `.env` environment variable management | Active |
 | **Frontend UI** | HTML5 / CSS3 / ES6 | &mdash; | Responsive, lightweight assessor UI | Active |
-| **Testing** | Python `unittest` | &mdash; | Continuous module verification (31 automated tests) | Active |
+| **Testing** | Python `unittest` | &mdash; | Continuous module verification (45 automated tests passing) | Active |
 
 ---
 
@@ -228,6 +228,73 @@ Upon registering a claim, the system generates an official **Claim Submission Re
 | `GET` | `/api/claims/policy/<policy_number>` | Search claims by Policy Number (scoped to user/assessor) | **Yes** | None |
 | `GET` | `/api/my-claims` | List all claims submitted by current user | **Yes** | None |
 | `GET` | `/api/claims/<claim_id>/receipt` | Download official submission receipt (`?format=pdf` or `?format=json`) | **Yes** (Owner or Assessor) | None |
+
+---
+
+## Research Datasets
+
+ClaimSense AI uses publicly available research datasets for experimentation and development of its document-processing and vehicle-damage analysis modules.
+
+**Important:** Dataset files are not stored in this GitHub repository. Each team member must obtain the datasets from their respective official sources and follow the applicable license and terms of use.
+
+### 1. CarDD — Vehicle Damage Detection
+
+- **Purpose:** Vehicle damage detection and classification.
+- **Categories:** Crack, dent, glass shatter, lamp broken, scratch and tire flat.
+- **Local subset:** 300 images (210 training, 45 validation, 45 testing).
+- **Annotations:** COCO JSON and YOLO format.
+- **Official source:** https://cardd-ustc.github.io/
+
+**Access and usage:** Complete the official licensing form and follow the dataset providers' instructions. The dataset is intended for research and educational use. Do not redistribute the images or annotations without the required permission.
+
+### 2. FUNSD — Form Understanding
+
+- **Purpose:** OCR, text detection, document layout analysis and entity extraction.
+- **Dataset:** 199 annotated scanned forms.
+- **Annotations:** JSON files containing text, bounding boxes and entity relationships.
+- **Official source and terms:** https://guillaumejaume.github.io/FUNSD/work/
+
+**Access and usage:** Intended for non-commercial research and educational purposes. Review the official terms, including the restrictions concerning redistribution and image copyrights, before using or sharing the dataset.
+
+### 3. SROIE — Receipt OCR and Information Extraction
+
+- **Purpose:** OCR and extraction of structured information from receipts.
+- **Information fields:** Company, date, address and total.
+- **Format:** Hugging Face dataset (Parquet).
+- **Download:** https://huggingface.co/datasets/jsdnrs/ICDAR2019-SROIE
+- **License:** CC BY 4.0. Follow attribution and license requirements.
+
+SROIE is used for document-processing experimentation. It is not an insurance-specific dataset.
+
+### Local Directory Structure
+
+After obtaining the datasets, arrange them as follows:
+
+```text
+ClaimSense-AI/
+└── datasets/
+    ├── CarDD_300/
+    │   ├── train/
+    │   ├── val/
+    │   ├── test/
+    │   ├── annotations/
+    │   ├── metadata/
+    │   └── reports/
+    ├── FUNSD/
+    │   └── dataset/
+    │       ├── training_data/
+    │       └── testing_data/
+    └── SROIE/
+        └── train-00000-of-00001.parquet
+```
+
+### Important Notes
+
+- The `datasets/` directory is excluded through `.gitignore` to prevent accidental uploads of third-party dataset files.
+- Team members must download or obtain each dataset independently.
+- Do not upload restricted dataset files to GitHub, Google Drive or other public locations without appropriate authorization.
+- Preserve the original dataset citations and licensing information when using these datasets in academic work.
+- These datasets support experimentation and do not independently establish the accuracy of the complete ClaimSense AI verification pipeline.
 
 ---
 
