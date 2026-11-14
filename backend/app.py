@@ -11,6 +11,8 @@ from flask_cors import CORS
 from backend.config import Config
 from backend.routes.health import health_bp
 from backend.routes.claims import claims_bp
+from backend.routes.auth import auth_bp
+from backend.database.db import init_database, migrate_existing_claims_from_disk
 from backend.utils.logger import setup_logger
 
 logger = setup_logger("claimsense")
@@ -26,14 +28,27 @@ def create_app(config_class=Config) -> Flask:
     app.config.from_object(config_class)
 
     # Initialize CORS
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
     # Ensure required runtime directories exist
     config_class.ensure_directories()
 
+    # Initialize Database & Migrate legacy data if needed
+    db_uri = getattr(config_class, "SQLALCHEMY_DATABASE_URI", None)
+    if not db_uri:
+        db_path = getattr(config_class, "DATABASE_PATH", config_class.BASE_DIR / "data" / "claimsense.db")
+        db_uri = f"sqlite:///{Path(db_path).as_posix()}"
+    init_database(db_uri)
+
+    try:
+        migrate_existing_claims_from_disk(Path(config_class.UPLOAD_FOLDER))
+    except Exception as e:
+        logger.warning(f"Legacy claim migration skipped or encountered error: {e}")
+
     # Register blueprints
     app.register_blueprint(health_bp, url_prefix="/api")
     app.register_blueprint(claims_bp, url_prefix="/api")
+    app.register_blueprint(auth_bp, url_prefix="/api")
 
     # Serve Frontend UI
     @app.route("/", methods=["GET"])

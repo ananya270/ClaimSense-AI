@@ -1,14 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClaimSense AI - Claim Verification Decision-Support System</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=3">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        (function() {
+            const saved = localStorage.getItem("claimsense-theme") || 
+                (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+            document.documentElement.setAttribute("data-theme", saved);
+        })();
+    </script>
 </head>
+
 <body>
     <header class="app-header">
         <div class="container header-container">
@@ -19,9 +28,17 @@
                     <p class="subtitle">AI-Powered Insurance Claim Verification Using Image/Document Analysis</p>
                 </div>
             </div>
-            <div class="header-status">
-                <span class="status-indicator" id="status-indicator"></span>
-                <span class="status-text" id="status-badge">Checking backend...</span>
+            <div class="header-right">
+                <button type="button" id="theme-toggle" class="btn-theme-toggle" aria-label="Toggle theme" title="Toggle dark/light theme">
+                    <span class="theme-icon">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </span>
+                    <span class="theme-label">Theme</span>
+                </button>
+                <div class="header-auth" id="header-auth">
+                    <button type="button" id="btn-nav-login" class="btn btn-secondary btn-sm">Sign In</button>
+                    <button type="button" id="btn-nav-signup" class="btn btn-primary btn-sm">Register</button>
+                </div>
             </div>
         </div>
     </header>
@@ -29,19 +46,150 @@
     <div class="disclaimer-banner">
         <div class="container">
             <strong>Academic Decision-Support Prototype:</strong>
-            This system identifies inconsistencies and suspicious patterns across multi-source evidence (documents, images, descriptions) to assist human claim assessors. It does not render autonomous legal or insurance decisions.
+            This system identifies inconsistencies and suspicious patterns across multi-source evidence (documents,
+            images, descriptions) to assist human claim assessors. It does not render autonomous legal or insurance
+            decisions.
+        </div>
+    </div>
+
+    <!-- Auth Modal (Phase 3) -->
+    <div id="auth-modal" class="modal-backdrop" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-title">Account Portal</h3>
+                <button type="button" class="btn-close-modal" id="btn-close-auth-modal"
+                    aria-label="Close modal">&times;</button>
+            </div>
+            <div class="auth-tabs">
+                <button type="button" id="tab-btn-login" class="auth-tab active">Log In</button>
+                <button type="button" id="tab-btn-signup" class="auth-tab">Sign Up</button>
+            </div>
+            <div class="modal-body">
+                <div id="auth-alert" class="alert alert-error" style="display: none;"></div>
+
+                <!-- Login Form -->
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-identifier">Username or Email <span class="req">*</span></label>
+                        <input type="text" id="login-identifier" placeholder="e.g. ansh_g or ansh@abes.ac.in" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password <span class="req">*</span></label>
+                        <input type="password" id="login-password" placeholder="Enter your password" required>
+                    </div>
+                    <div class="form-actions mt-3">
+                        <button type="submit" id="btn-submit-login" class="btn btn-primary full-width">Sign In</button>
+                    </div>
+                    <p class="auth-switch-text">
+                        Don't have an account? <a href="#" id="link-switch-to-signup">Create one here</a>
+                    </p>
+                </form>
+
+                <!-- Signup Form -->
+                <form id="signup-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="signup-fullname">Full Name <span class="req">*</span></label>
+                        <input type="text" id="signup-fullname" placeholder="e.g. Ansh Gupta" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-username">Username <span class="req">*</span></label>
+                        <input type="text" id="signup-username" placeholder="e.g. ansh_g" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">Email Address <span class="req">*</span></label>
+                        <input type="email" id="signup-email" placeholder="e.g. ansh@abes.ac.in" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="signup-password">Password <span class="req">*</span></label>
+                            <input type="password" id="signup-password" placeholder="Min 6 chars" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup-confirm">Confirm Password <span class="req">*</span></label>
+                            <input type="password" id="signup-confirm" placeholder="Repeat password" required>
+                        </div>
+                    </div>
+                    <div class="form-actions mt-3">
+                        <button type="submit" id="btn-submit-signup" class="btn btn-primary full-width">Create
+                            Account</button>
+                    </div>
+                    <p class="auth-switch-text">
+                        Already have an account? <a href="#" id="link-switch-to-login">Log in here</a>
+                    </p>
+                </form>
+            </div>
         </div>
     </div>
 
     <main class="container main-content">
+        <!-- Navigation & View Selector (Phase 3) -->
+        <div class="quick-nav-bar">
+            <div class="nav-pills">
+                <button type="button" id="pill-nav-submit" class="nav-pill active">📝 Submit Claim Evidence</button>
+                <button type="button" id="pill-nav-search" class="nav-pill">🔍 Policy Claim Lookup</button>
+                <button type="button" id="pill-nav-myclaims" class="nav-pill">📂 My Submissions</button>
+            </div>
+        </div>
+
+        <!-- Policy Number Search Module (Phase 3) -->
+        <section class="card lookup-card" id="policy-lookup-card" style="display: none;">
+            <div class="card-header">
+                <div>
+                    <h2>Search Claims by Policy Number</h2>
+                    <p class="section-desc">Look up registered claim records and download official submission receipts
+                        using the Insurance Policy Number.</p>
+                </div>
+            </div>
+            <div class="card-body">
+                <form id="policy-search-form" class="search-form-row">
+                    <div class="form-group search-input-group">
+                        <label for="search-policy-input">Enter Policy Number <span class="req">*</span></label>
+                        <input type="text" id="search-policy-input" placeholder="e.g. POL-2024-88391 or POL-98765432"
+                            required>
+                    </div>
+                    <button type="submit" id="btn-search-policy" class="btn btn-primary btn-search">
+                        🔍 Search Policy
+                    </button>
+                </form>
+
+                <div id="policy-search-alert" class="alert alert-error mt-3" style="display: none;"></div>
+
+                <div id="policy-search-results" class="search-results-area mt-4" style="display: none;">
+                    <div class="results-header-bar">
+                        <h3 class="results-heading">Matching Registered Claims (<span id="results-count">0</span>)</h3>
+                    </div>
+                    <div id="policy-results-list" class="results-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- My Submissions Module (Phase 3) -->
+        <section class="card myclaims-card" id="my-claims-card" style="display: none;">
+            <div class="card-header">
+                <div>
+                    <h2>My Registered Claims</h2>
+                    <p class="section-desc">Overview of evidence claims submitted under your authenticated profile.</p>
+                </div>
+                <button type="button" id="btn-refresh-my-claims" class="btn btn-secondary btn-sm">↻ Refresh</button>
+            </div>
+            <div class="card-body">
+                <div id="my-claims-alert" class="alert alert-error" style="display: none;"></div>
+                <div id="my-claims-list" class="results-list">
+                    <p class="empty-state">Loading personal claims...</p>
+                </div>
+            </div>
+        </section>
+
         <!-- Claim Submission Module (Phase 2) -->
         <section class="card submission-card" id="submission-card">
             <div class="card-header">
                 <div>
                     <h2>Submit Insurance Claim Evidence</h2>
-                    <p class="section-desc">Submit claimant metadata, narrative description, and multi-source documentation for preliminary verification.</p>
+                    <p class="section-desc">Submit claimant metadata, narrative description, and multi-source
+                        documentation for preliminary verification.</p>
                 </div>
-                <button type="button" id="btn-fill-sample" class="btn btn-secondary btn-sm" title="Populate form with sample test claim for quick demo">
+                <button type="button" id="btn-fill-sample" class="btn btn-secondary btn-sm"
+                    title="Populate form with sample test claim for quick demo">
                     ✨ Fill Demo Sample
                 </button>
             </div>
@@ -56,17 +204,21 @@
 
                             <div class="form-group">
                                 <label for="claimant_name">Claimant Full Name <span class="req">*</span></label>
-                                <input type="text" id="claimant_name" name="claimant_name" placeholder="e.g. Johnathan Doe" required>
+                                <input type="text" id="claimant_name" name="claimant_name"
+                                    placeholder="e.g. Johnathan Doe" required>
                             </div>
 
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="policy_number">Policy Number <span class="req">*</span></label>
-                                    <input type="text" id="policy_number" name="policy_number" placeholder="e.g. POL-984210" required>
+                                    <input type="text" id="policy_number" name="policy_number"
+                                        placeholder="e.g. POL-984210" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="vehicle_number">Vehicle Registration # <span class="req">*</span></label>
-                                    <input type="text" id="vehicle_number" name="vehicle_number" placeholder="e.g. DL-01-AB-1234" required>
+                                    <label for="vehicle_number">Vehicle Registration # <span
+                                            class="req">*</span></label>
+                                    <input type="text" id="vehicle_number" name="vehicle_number"
+                                        placeholder="e.g. DL-01-AB-1234" required>
                                 </div>
                             </div>
 
@@ -76,8 +228,11 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="claim_description">Accident Narrative / Claim Description <span class="req">*</span></label>
-                                <textarea id="claim_description" name="claim_description" rows="5" placeholder="Describe how the accident occurred, stated damage locations (e.g. front bumper, left headlight), and driving conditions..." required></textarea>
+                                <label for="claim_description">Accident Narrative / Claim Description <span
+                                        class="req">*</span></label>
+                                <textarea id="claim_description" name="claim_description" rows="5"
+                                    placeholder="Describe how the accident occurred, stated damage locations (e.g. front bumper, left headlight), and driving conditions..."
+                                    required></textarea>
                             </div>
                         </div>
 
@@ -91,7 +246,8 @@
                                     <span class="file-badges">PDF, PNG, JPG, DOCX</span>
                                     <span class="req">*</span>
                                 </label>
-                                <input type="file" id="policy_document" name="policy_document" accept=".pdf,.docx,.png,.jpg,.jpeg" required>
+                                <input type="file" id="policy_document" name="policy_document"
+                                    accept=".pdf,.docx,.png,.jpg,.jpeg" required>
                                 <small class="help-text">Official insurance policy document or certificate.</small>
                             </div>
 
@@ -101,7 +257,8 @@
                                     <span class="file-badges">PDF, PNG, JPG, DOCX</span>
                                     <span class="req">*</span>
                                 </label>
-                                <input type="file" id="claim_form_file" name="claim_form" accept=".pdf,.docx,.png,.jpg,.jpeg" required>
+                                <input type="file" id="claim_form_file" name="claim_form"
+                                    accept=".pdf,.docx,.png,.jpg,.jpeg" required>
                                 <small class="help-text">Signed claim registration form submitted by insured.</small>
                             </div>
 
@@ -111,8 +268,10 @@
                                     <span class="file-badges">PDF, PNG, JPG, DOCX</span>
                                     <span class="req">*</span>
                                 </label>
-                                <input type="file" id="invoice_document" name="invoice_document" accept=".pdf,.docx,.png,.jpg,.jpeg" required>
-                                <small class="help-text">Itemized repair bill, parts invoice, or estimation sheet.</small>
+                                <input type="file" id="invoice_document" name="invoice_document"
+                                    accept=".pdf,.docx,.png,.jpg,.jpeg" required>
+                                <small class="help-text">Itemized repair bill, parts invoice, or estimation
+                                    sheet.</small>
                             </div>
 
                             <div class="form-group upload-group">
@@ -121,8 +280,10 @@
                                     <span class="file-badges image-badge">PNG, JPG, JPEG</span>
                                     <span class="req">*</span>
                                 </label>
-                                <input type="file" id="vehicle_image" name="vehicle_image" accept=".png,.jpg,.jpeg" required>
-                                <small class="help-text">Clear photograph showing damaged vehicle panels/components.</small>
+                                <input type="file" id="vehicle_image" name="vehicle_image" accept=".png,.jpg,.jpeg"
+                                    required>
+                                <small class="help-text">Clear photograph showing damaged vehicle
+                                    panels/components.</small>
                             </div>
                         </div>
                     </div>
@@ -188,7 +349,10 @@
                     </div>
                 </div>
 
-                <div class="success-actions">
+                <div class="success-actions" style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <a id="btn-download-receipt" href="#" target="_blank" class="btn btn-secondary">
+                        📄 Download PDF Receipt
+                    </a>
                     <button type="button" id="btn-new-claim" class="btn btn-primary">
                         + Submit Another Claim
                     </button>
@@ -315,10 +479,10 @@
                                 <td>File validations, safe storage & CLM-YYYYMMDD-XXXX ID generation</td>
                             </tr>
                             <tr>
-                                <td>Database Architecture</td>
+                                <td>Database Architecture & Auth</td>
                                 <td><code>backend/database/</code></td>
-                                <td><span class="status-pill status-pending">Phase 3</span></td>
-                                <td>SQLite claim & verification tables</td>
+                                <td><span class="status-pill status-ready">Active</span></td>
+                                <td>SQLite persistence, User Authentication, Ownership & PDF Receipt Engine</td>
                             </tr>
                             <tr>
                                 <td>OCR & Text Extraction</td>
@@ -376,6 +540,7 @@
         </div>
     </footer>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=3"></script>
 </body>
+
 </html>

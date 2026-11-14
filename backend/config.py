@@ -32,8 +32,13 @@ class Config:
     MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", 16 * 1024 * 1024))  # 16 MB default
     ALLOWED_EXTENSIONS = {"pdf", "png", "jpg", "jpeg", "docx"}
 
-    # Database
-    DATABASE_PATH = BASE_DIR / os.getenv("DATABASE_PATH", "backend/database/claimsense.db")
+    # Database Configuration
+    DATABASE_PATH = BASE_DIR / os.getenv("DATABASE_PATH", "data/claimsense.db")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{DATABASE_PATH.as_posix()}")
+
+    # Session & Authentication Settings
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
 
     # Risk thresholds
     RISK_THRESHOLD_LOW = int(os.getenv("RISK_THRESHOLD_LOW", 30))
@@ -48,4 +53,5 @@ class Config:
         """Ensure necessary runtime directories exist."""
         cls.UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
         cls.REPORTS_FOLDER.mkdir(parents=True, exist_ok=True)
+        cls.DATA_FOLDER.mkdir(parents=True, exist_ok=True)
         cls.DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
