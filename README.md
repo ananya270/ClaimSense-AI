@@ -98,14 +98,17 @@ ClaimSense-AI/
 ├── tests/                         # Automated unit & integration test suites
 │   ├── __init__.py
 │   ├── test_health.py             # Health check test suite (4 tests)
-│   ├── test_claims.py             # Claim submission test suite (9 tests)
-│   ├── test_database.py           # Phase 3: Database schema & migration tests (4 tests)
-│   ├── test_auth.py               # Phase 3: Authentication & password security tests (9 tests)
-│   └── test_ownership_and_receipt.py # Phase 3: Access boundaries & PDF receipt tests (5 tests)
+│   ├── test_claims.py             # Claim submission & file validation test suite (12 tests)
+│   ├── test_auth.py               # Authentication, password complexity & lifecycle tests (11 tests)
+│   ├── test_ownership_and_receipt.py # Access boundaries, search & PDF receipt tests (6 tests)
+│   └── test_security.py           # CSRF, CORS, rate limits, secrets & rollback tests (8 tests)
 ├── .env.example                   # Environment template
 ├── .gitignore                     # Git ignore rules
 ├── requirements.txt               # Python package dependencies
 ├── DEVELOPMENT_LOG.md             # Phase-wise development tracking
+├── docs/                          # Audit & stabilization documentation
+│   ├── PHASE_3_STABILIZATION_AUDIT.md  # Comprehensive pre-Phase 4 security audit
+│   └── PHASE_3_STABILIZATION_REPORT.md # Hardening record & Phase 4 readiness assessment
 └── README.md                      # Project documentation
 ```
 
@@ -206,29 +209,30 @@ Upon registering a claim, the system generates an official **Claim Submission Re
 |---|---|---|---|
 | `GET` | `/api/health` | Backend health, environment and version diagnostics | No |
 
-### Authentication (Phase 3)
-| Method | Endpoint | Description | Auth Required |
-|---|---|---|---|
-| `POST` | `/api/auth/signup` | Register new user (`full_name`, `username`, `email`, `password`, `confirm_password`) | No |
-| `POST` | `/api/auth/login` | Authenticate with username/email and password | No |
-| `POST` | `/api/auth/logout` | Terminate session and clear cookie | Yes |
-| `GET` | `/api/auth/me` | Fetch authenticated user profile | Yes |
+### Authentication & Security (Phase 3 Hardened)
+| Method | Endpoint | Description | Auth Required | Rate Limit |
+|---|---|---|---|---|
+| `GET` | `/api/auth/csrf-token` | Retrieve CSRF protection token for state-changing requests | No | None |
+| `POST` | `/api/auth/signup` | Register new user account with password complexity checks | No | 10 / min |
+| `POST` | `/api/auth/login` | Authenticate with username/email and password | No | 10 / min |
+| `POST` | `/api/auth/logout` | Terminate session and clear cookie | Yes | None |
+| `GET` | `/api/auth/me` | Fetch authenticated user profile | Yes | None |
 
-### Claims & Evidence
-| Method | Endpoint | Description | Auth Required |
-|---|---|---|---|
-| `POST` | `/api/claims` | Submit multipart claim metadata and 4 evidentiary files | Optional (Links to account if logged in) |
-| `GET` | `/api/claims/<claim_id>` | Retrieve structured claim details and evidence manifest | Yes (Owner or Assessor) |
-| `GET` | `/api/claims/policy/<policy_number>` | Search claims by Policy Number | Yes |
-| `GET` | `/api/my-claims` | List all claims submitted by current user | Yes |
-| `GET` | `/api/claims/<claim_id>/receipt` | Download official submission receipt (`?format=pdf` or `?format=json`) | Yes (Owner or Assessor) |
+### Claims & Evidence (Authenticated & Hardened)
+| Method | Endpoint | Description | Auth Required | Rate Limit |
+|---|---|---|---|---|
+| `POST` | `/api/claims` | Submit claim metadata and 4 files (validates magic bytes & size) | **Yes** (Strictly bound to session) | None |
+| `GET` | `/api/claims/<claim_id>` | Retrieve structured claim details (scoped to owner/assessor/admin) | **Yes** (Owner or Assessor) | None |
+| `GET` | `/api/claims/policy/<policy_number>` | Search claims by Policy Number (scoped to user/assessor) | **Yes** | None |
+| `GET` | `/api/my-claims` | List all claims submitted by current user | **Yes** | None |
+| `GET` | `/api/claims/<claim_id>/receipt` | Download official submission receipt (`?format=pdf` or `?format=json`) | **Yes** (Owner or Assessor) | None |
 
 ---
 
 ## 🚀 Setup & Execution Guide
 
 ### Prerequisites
-- Python 3.10+ (Tested on **Python 3.13.2** / **Python 3.14** on Windows)
+- Python 3.10+ (Tested on **Python 3.13.2** on Windows)
 - Git
 
 ### 1. Clone & Activate Virtual Environment
@@ -267,14 +271,14 @@ http://127.0.0.1:5001/
 
 ### 5. Run Automated Test Suite
 ```powershell
-python -m unittest discover tests
+python -m unittest discover tests -v
 ```
-**Results:** **31 / 31 tests passing (100%)** across:
-- `test_health.py` (4 tests)
-- `test_claims.py` (9 tests)
-- `test_database.py` (4 tests)
-- `test_auth.py` (9 tests)
-- `test_ownership_and_receipt.py` (5 tests)
+**Results:** **45 / 45 tests passing (100%)** across:
+- `test_health.py` (4 tests) &mdash; Health check, database diagnostic, 404 handler, index route
+- `test_claims.py` (12 tests) &mdash; Authenticated submission, file validation, magic bytes, 0-byte rejection, storage
+- `test_auth.py` (11 tests) &mdash; Signup, login, password complexity, unique constraints, session lifecycle, inactive user enforcement
+- `test_ownership_and_receipt.py` (6 tests) &mdash; Owner boundaries, assessor/admin access, legacy claim protection, policy search, PDF/JSON receipt
+- `test_security.py` (8 tests) &mdash; Production secret enforcement, CORS origin rejection, CSRF protection, rate limiting, PDF XML escaping, DB rollback cleanup, path traversal detection, magic bytes validator
 
 ---
 
@@ -283,8 +287,8 @@ python -m unittest discover tests
 - [x] **Phase 0:** Project Repository & Technology Audit
 - [x] **Phase 1:** Project Foundation, Scaffolding, Flask API, UI Shell & Health Diagnostics
 - [x] **Phase 2:** Claim Submission Module (File uploads, validation, Claim ID generation, safe storage)
-- [x] **Phase 3:** Database Architecture, Authentication & Claim Receipt (SQLite, SQLAlchemy, Werkzeug Auth, PDF Receipt Engine)
-- [ ] **Phase 4:** OCR & Multi-Format Document Processing *(Planned)*
+- [x] **Phase 3:** Database Architecture, Authentication & Claim Receipt (Stabilized, Hardened & Tested)
+- [ ] **Phase 4:** OCR & Multi-Format Document Processing *(Ready for Implementation)*
 - [ ] **Phase 5:** Computer Vision Analysis (Vehicle damage inspection) *(Planned)*
 - [ ] **Phase 6:** NLP Narrative & Chronology Extraction *(Planned)*
 - [ ] **Phase 7:** Cross-Source Verification Engine *(Planned)*
