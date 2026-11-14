@@ -1,3 +1,4 @@
+"""Application factory and main entry point for ClaimSense AI backend (Hardened)."""
 import sys
 from pathlib import Path
 
@@ -8,7 +9,10 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
+from flask_wtf.csrf import CSRFError
+
 from backend.config import Config
+from backend.extensions import csrf, limiter
 from backend.routes.health import health_bp
 from backend.routes.claims import claims_bp
 from backend.routes.auth import auth_bp
@@ -27,8 +31,32 @@ def create_app(config_class=Config) -> Flask:
     )
     app.config.from_object(config_class)
 
-    # Initialize CORS
-    CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+    # Initialize CORS with explicit origin whitelist (no wildcard with credentials)
+    allowed_origins = [
+        origin.strip()
+        for origin in getattr(config_class, "CORS_ALLOWED_ORIGINS", "").split(",")
+        if origin.strip()
+    ]
+    if not allowed_origins:
+        allowed_origins = ["http://127.0.0.1:5000", "http://localhost:5000"]
+
+    CORS(
+        app,
+        resources={r"/api/*": {"origins": allowed_origins}},
+        supports_credentials=True,
+    )
+
+    # In test mode, disable CSRF and rate limiting unless explicitly enabled for security tests
+    if app.config.get("TESTING"):
+        if not getattr(config_class, "ENABLE_CSRF_FOR_TESTS", False):
+            app.config["WTF_CSRF_ENABLED"] = False
+            app.config["WTF_CSRF_CHECK_DEFAULT"] = False
+        if not getattr(config_class, "ENABLE_RATELIMIT_FOR_TESTS", False):
+            app.config["RATELIMIT_ENABLED"] = False
+
+    # Initialize Security Extensions (CSRF & Limiter)
+    csrf.init_app(app)
+    limiter.init_app(app)
 
     # Ensure required runtime directories exist
     config_class.ensure_directories()
@@ -55,35 +83,93 @@ def create_app(config_class=Config) -> Flask:
     def index():
         return send_from_directory(app.static_folder, "index.html")
 
-    # Error Handlers
+    # Global Error Handlers with Consistent JSON output
     @app.errorhandler(400)
     def bad_request(error):
         return jsonify({
+            "success": False,
             "error": "Bad Request",
             "message": str(error.description if hasattr(error, "description") else error),
             "status_code": 400,
         }), 400
 
+    @app.errorhandler(401)
+    def unauthorized(error):
+        return jsonify({
+            "success": False,
+            "error": "Unauthorized",
+            "message": str(error.description if hasattr(error, "description") else "Authentication required."),
+            "status_code": 401,
+        }), 401
+
+    @app.errorhandler(403)
+    def forbidden(error):
+        return jsonify({
+            "success": False,
+            "error": "Forbidden",
+            "message": str(error.description if hasattr(error, "description") else "Access forbidden."),
+            "status_code": 403,
+        }), 403
+
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({
+            "success": False,
             "error": "Resource Not Found",
             "message": "The requested endpoint or resource was not found on this server.",
             "status_code": 404,
         }), 404
 
+    @app.errorhandler(405)
+    def method_not_allowed(error):
+        return jsonify({
+            "success": False,
+            "error": "Method Not Allowed",
+            "message": "The requested HTTP method is not allowed for this endpoint.",
+            "status_code": 405,
+        }), 405
+
     @app.errorhandler(413)
     def request_entity_too_large(error):
         return jsonify({
+            "success": False,
             "error": "File Too Large",
             "message": "The uploaded file exceeds the maximum allowed payload size (16MB).",
             "status_code": 413,
         }), 413
 
+    @app.errorhandler(415)
+    def unsupported_media_type(error):
+        return jsonify({
+            "success": False,
+            "error": "Unsupported Media Type",
+            "message": "The request payload media type is not supported.",
+            "status_code": 415,
+        }), 415
+
+    @app.errorhandler(429)
+    def ratelimit_handler(error):
+        return jsonify({
+            "success": False,
+            "error": "Too Many Requests",
+            "message": "Rate limit exceeded. Please wait a moment before trying again.",
+            "status_code": 429,
+        }), 429
+
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(error):
+        return jsonify({
+            "success": False,
+            "error": "CSRF Validation Failed",
+            "message": error.description or "The CSRF token is missing or invalid.",
+            "status_code": 400,
+        }), 400
+
     @app.errorhandler(500)
     def internal_server_error(error):
         logger.error(f"Internal server error encountered: {error}")
         return jsonify({
+            "success": False,
             "error": "Internal Server Error",
             "message": "An unexpected error occurred on the server.",
             "status_code": 500,
