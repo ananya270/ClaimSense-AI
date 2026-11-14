@@ -36,8 +36,17 @@
                     <span class="theme-label">Theme</span>
                 </button>
                 <div class="header-auth" id="header-auth">
-                    <button type="button" id="btn-nav-login" class="btn btn-secondary btn-sm">Sign In</button>
-                    <button type="button" id="btn-nav-signup" class="btn btn-primary btn-sm">Register</button>
+                    <div id="auth-logged-out" class="auth-logged-out" style="display: flex; align-items: center; gap: 8px;">
+                        <button type="button" id="btn-open-login" class="btn btn-secondary btn-sm">Sign In</button>
+                        <button type="button" id="btn-open-signup" class="btn btn-primary btn-sm">Register</button>
+                    </div>
+                    <div id="auth-logged-in" class="auth-logged-in" style="display: none; align-items: center; gap: 8px;">
+                        <div class="user-badge" id="user-badge">
+                            <span class="user-role-pill" id="auth-role-badge">USER</span>
+                            <span id="auth-username">User</span>
+                        </div>
+                        <button type="button" id="btn-logout" class="btn btn-outline btn-sm">Sign Out</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -56,19 +65,19 @@
     <div id="auth-modal" class="modal-backdrop" style="display: none;">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 id="modal-title">Account Portal</h3>
-                <button type="button" class="btn-close-modal" id="btn-close-auth-modal"
+                <h3 id="auth-modal-title">Sign In to ClaimSense</h3>
+                <button type="button" class="btn-close-modal" id="auth-modal-close"
                     aria-label="Close modal">&times;</button>
             </div>
             <div class="auth-tabs">
-                <button type="button" id="tab-btn-login" class="auth-tab active">Log In</button>
-                <button type="button" id="tab-btn-signup" class="auth-tab">Sign Up</button>
+                <button type="button" id="tab-login" class="auth-tab active">Log In</button>
+                <button type="button" id="tab-signup" class="auth-tab">Sign Up</button>
             </div>
             <div class="modal-body">
-                <div id="auth-alert" class="alert alert-error" style="display: none;"></div>
+                <div id="auth-modal-error" class="alert alert-error" style="display: none;"></div>
 
                 <!-- Login Form -->
-                <form id="login-form">
+                <form id="form-login">
                     <div class="form-group">
                         <label for="login-identifier">Username or Email <span class="req">*</span></label>
                         <input type="text" id="login-identifier" placeholder="e.g. ansh_g or ansh@abes.ac.in" required>
@@ -81,12 +90,12 @@
                         <button type="submit" id="btn-submit-login" class="btn btn-primary full-width">Sign In</button>
                     </div>
                     <p class="auth-switch-text">
-                        Don't have an account? <a href="#" id="link-switch-to-signup">Create one here</a>
+                        Don't have an account? <a href="#" id="btn-modal-switch-signup">Create one here</a>
                     </p>
                 </form>
 
                 <!-- Signup Form -->
-                <form id="signup-form" style="display: none;">
+                <form id="form-signup" style="display: none;">
                     <div class="form-group">
                         <label for="signup-fullname">Full Name <span class="req">*</span></label>
                         <input type="text" id="signup-fullname" placeholder="e.g. Ansh Gupta" required>
@@ -102,7 +111,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="signup-password">Password <span class="req">*</span></label>
-                            <input type="password" id="signup-password" placeholder="Min 6 chars" required>
+                            <input type="password" id="signup-password" placeholder="Min 8 characters (letters & numbers)" required>
                         </div>
                         <div class="form-group">
                             <label for="signup-confirm">Confirm Password <span class="req">*</span></label>
@@ -114,7 +123,7 @@
                             Account</button>
                     </div>
                     <p class="auth-switch-text">
-                        Already have an account? <a href="#" id="link-switch-to-login">Log in here</a>
+                        Already have an account? <a href="#" id="btn-modal-switch-login">Log in here</a>
                     </p>
                 </form>
             </div>
@@ -199,7 +208,7 @@
                     <a href="#" id="link-submission-login">Click here to Sign In</a> or <a href="#" id="link-submission-signup">Register an Account</a>.
                 </div>
                 <form id="claim-form" enctype="multipart/form-data">
-                    <div id="form-error-alert" class="alert alert-error" style="display: none;"></div>
+                    <div id="form-error-alert" class="alert alert-error" style="display: none;"><span id="error-message"></span></div>
 
                     <div class="form-grid">
                         <!-- Left Column: Claim Details -->
