@@ -194,6 +194,10 @@
                 </button>
             </div>
             <div class="card-body">
+                <div id="auth-required-notice" class="alert alert-info" style="display: none;">
+                    <strong>Authentication Required:</strong> You must be signed in with an active account to submit an insurance claim.
+                    <a href="#" id="link-submission-login">Click here to Sign In</a> or <a href="#" id="link-submission-signup">Register an Account</a>.
+                </div>
                 <form id="claim-form" enctype="multipart/form-data">
                     <div id="form-error-alert" class="alert alert-error" style="display: none;"></div>
 

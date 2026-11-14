@@ -974,6 +974,12 @@ body {
     color: var(--success);
 }
 
+.alert-info {
+    background-color: var(--primary-subtle, #eff6ff);
+    border: 1px solid var(--primary-border, #bfdbfe);
+    color: var(--primary, #1e40af);
+}
+
 .mt-3 {
     margin-top: 14px;
 }

@@ -1,11 +1,42 @@
 /**
- * ClaimSense AI - Frontend Controller
+ * ClaimSense AI - Frontend Controller (Hardened)
  * Phase 1, 2 & 3: Health Monitoring, Claim Submission, Authentication,
- *                 Policy Claim Lookup, and PDF Receipt Engine.
+ *                 Policy Claim Lookup, CSRF Token Handling, XSS Sanitization,
+ *                 and Official PDF Receipt Engine.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
     let currentUser = null;
+    let csrfToken = null;
+
+    // -------------------------------------------------------------
+    // Helper: HTML Entity Escaping (Prevent Stored & Reflected XSS)
+    // -------------------------------------------------------------
+    function escapeHTML(str) {
+        if (str === null || str === undefined) return "";
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // -------------------------------------------------------------
+    // CSRF Token Management
+    // -------------------------------------------------------------
+    async function fetchCsrfToken() {
+        try {
+            const res = await fetch("/api/auth/csrf-token");
+            if (res.ok) {
+                const data = await res.json();
+                csrfToken = data.csrf_token;
+            }
+        } catch (err) {
+            console.warn("Could not retrieve CSRF token:", err);
+        }
+    }
+    fetchCsrfToken();
 
     // -------------------------------------------------------------
     // 1. Health Monitoring (Phase 1)
@@ -31,14 +62,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const data = await response.json();
-            if (statusIndicator) {
-                statusIndicator.className = "status-indicator connected";
-            }
-            if (statusBadge) {
-                statusBadge.textContent = "Backend Connected";
-            }
+            if (statusIndicator) statusIndicator.className = "status-indicator connected";
+            if (statusBadge) statusBadge.textContent = "Backend Connected";
             if (healthStatus) {
-                healthStatus.textContent = `${data.status.toUpperCase()} (HTTP 200)`;
+                healthStatus.textContent = `${escapeHTML(data.status).toUpperCase()} (HTTP 200)`;
                 healthStatus.style.color = "var(--success)";
             }
             if (healthPhase) healthPhase.textContent = data.phase || "Active";
@@ -123,6 +150,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const authAlert = document.getElementById("auth-alert");
     const linkSwitchToSignup = document.getElementById("link-switch-to-signup");
     const linkSwitchToLogin = document.getElementById("link-switch-to-login");
+    const authRequiredNotice = document.getElementById("auth-required-notice");
+    const linkSubmissionLogin = document.getElementById("link-submission-login");
+    const linkSubmissionSignup = document.getElementById("link-submission-signup");
 
     function showAuthAlert(msg, isSuccess = false) {
         if (!authAlert) return;
@@ -173,6 +203,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (linkSwitchToLogin) linkSwitchToLogin.addEventListener("click", (e) => { e.preventDefault(); switchAuthTab("login"); });
     if (btnCloseAuthModal) btnCloseAuthModal.addEventListener("click", closeAuthModal);
 
+    if (linkSubmissionLogin) linkSubmissionLogin.addEventListener("click", (e) => { e.preventDefault(); openAuthModal("login"); });
+    if (linkSubmissionSignup) linkSubmissionSignup.addEventListener("click", (e) => { e.preventDefault(); openAuthModal("signup"); });
+
     window.addEventListener("click", (e) => {
         if (e.target === authModal) closeAuthModal();
     });
@@ -180,10 +213,12 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderHeaderAuth() {
         if (!headerAuth) return;
         if (currentUser) {
+            const safeName = escapeHTML(currentUser.full_name || currentUser.username);
+            const safeRole = escapeHTML(currentUser.role || "user");
             headerAuth.innerHTML = `
                 <div class="user-badge" id="user-badge">
-                    <span class="user-role-pill">${currentUser.role || "user"}</span>
-                    <span>${currentUser.full_name || currentUser.username}</span>
+                    <span class="user-role-pill">${safeRole}</span>
+                    <span>${safeName}</span>
                 </div>
                 <button type="button" id="btn-header-logout" class="btn btn-outline btn-sm">Sign Out</button>
             `;
@@ -191,6 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (btnLogout) {
                 btnLogout.addEventListener("click", handleLogout);
             }
+            if (authRequiredNotice) authRequiredNotice.style.display = "none";
         } else {
             headerAuth.innerHTML = `
                 <button type="button" id="btn-open-login" class="btn btn-secondary btn-sm">Sign In</button>
@@ -200,6 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const btnSignup = document.getElementById("btn-open-signup");
             if (btnLogin) btnLogin.addEventListener("click", () => openAuthModal("login"));
             if (btnSignup) btnSignup.addEventListener("click", () => openAuthModal("signup"));
+            if (authRequiredNotice) authRequiredNotice.style.display = "block";
         }
     }
 
@@ -228,9 +265,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const password = document.getElementById("login-password").value;
 
             try {
+                const headers = { "Content-Type": "application/json" };
+                if (csrfToken) headers["X-CSRFToken"] = csrfToken;
+
                 const res = await fetch("/api/auth/login", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: headers,
                     body: JSON.stringify({ identifier, password }),
                 });
                 const data = await res.json();
@@ -242,8 +282,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 renderHeaderAuth();
                 closeAuthModal();
                 loginForm.reset();
+                await fetchCsrfToken(); // Refresh CSRF token for new session
 
-                // If user is on My Submissions view, reload it
                 if (activeView === "myclaims") {
                     loadMyClaims();
                 }
@@ -265,9 +305,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const confirm = document.getElementById("signup-confirm").value;
 
             try {
+                const headers = { "Content-Type": "application/json" };
+                if (csrfToken) headers["X-CSRFToken"] = csrfToken;
+
                 const res = await fetch("/api/auth/signup", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: headers,
                     body: JSON.stringify({
                         full_name: fullName,
                         username: username,
@@ -292,12 +335,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function handleLogout() {
         try {
-            await fetch("/api/auth/logout", { method: "POST" });
+            const headers = {};
+            if (csrfToken) headers["X-CSRFToken"] = csrfToken;
+            await fetch("/api/auth/logout", { method: "POST", headers: headers });
         } catch {
             // ignore network err
         }
         currentUser = null;
         renderHeaderAuth();
+        await fetchCsrfToken(); // Refresh CSRF token for anonymous session
         if (activeView === "myclaims") {
             switchView("submit");
         }
@@ -398,26 +444,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderClaimCard(claim) {
-        const dateStr = claim.created_at ? new Date(claim.created_at).toLocaleDateString() : "-";
+        const safeClaimId = escapeHTML(claim.claim_id);
+        const safeStatus = escapeHTML(claim.status || "SUBMITTED");
+        const safePolicy = escapeHTML(claim.policy_number);
+        const safeClaimant = escapeHTML(claim.claimant_name);
+        const safeVehicle = escapeHTML(claim.vehicle_number);
+        const safeAccidentDate = escapeHTML(claim.accident_date);
+        const dateStr = claim.created_at ? escapeHTML(new Date(claim.created_at).toLocaleDateString()) : "-";
         const filesCount = claim.files_count || (claim.documents ? claim.documents.length + (claim.images ? claim.images.length : 0) : 4);
+
         return `
             <div class="claim-result-card">
                 <div class="result-info">
                     <div class="result-title-line">
-                        <span class="result-claim-id">${claim.claim_id}</span>
-                        <span class="status-pill status-ready">${claim.status || "SUBMITTED"}</span>
+                        <span class="result-claim-id">${safeClaimId}</span>
+                        <span class="status-pill status-ready">${safeStatus}</span>
                     </div>
                     <div class="result-meta-line">
-                        <span><strong>Policy:</strong> ${claim.policy_number}</span>
-                        <span><strong>Claimant:</strong> ${claim.claimant_name}</span>
-                        <span><strong>Vehicle:</strong> ${claim.vehicle_number}</span>
-                        <span><strong>Accident Date:</strong> ${claim.accident_date}</span>
+                        <span><strong>Policy:</strong> ${safePolicy}</span>
+                        <span><strong>Claimant:</strong> ${safeClaimant}</span>
+                        <span><strong>Vehicle:</strong> ${safeVehicle}</span>
+                        <span><strong>Accident Date:</strong> ${safeAccidentDate}</span>
                         <span><strong>Submitted:</strong> ${dateStr}</span>
                         <span><strong>Evidence:</strong> ${filesCount} files</span>
                     </div>
                 </div>
                 <div class="result-actions">
-                    <a href="/api/claims/${claim.claim_id}/receipt" target="_blank" class="btn btn-secondary btn-sm" title="Download Official Submission Receipt (PDF)">
+                    <a href="/api/claims/${safeClaimId}/receipt" target="_blank" class="btn btn-secondary btn-sm" title="Download Official Submission Receipt (PDF)">
                         📄 Download Receipt (PDF)
                     </a>
                 </div>
@@ -522,6 +575,14 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             clearError();
 
+            // Authentication verification check before submission
+            if (!currentUser) {
+                showError("Authentication Required: You must be signed in with an active account to submit an insurance claim.");
+                openAuthModal("login");
+                showAuthAlert("Please sign in or create an account to proceed with claim submission.");
+                return;
+            }
+
             const formData = new FormData(claimForm);
 
             // Basic client-side check
@@ -539,8 +600,12 @@ document.addEventListener("DOMContentLoaded", () => {
             setSubmittingState(true);
 
             try {
+                const headers = {};
+                if (csrfToken) headers["X-CSRFToken"] = csrfToken;
+
                 const response = await fetch("/api/claims", {
                     method: "POST",
+                    headers: headers,
                     body: formData,
                 });
 
@@ -627,9 +692,14 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("claim_description").value =
                 "While halting at an intersection signal on MG Road, vehicle was rear-ended by a commercial pickup truck. Damage observed on the rear bumper, trunk hatch, and right tail lamp assembly.";
 
-            // Helper to create synthetic files for file inputs
-            const createDummyFile = (name, type, content) => {
-                const blob = new Blob([content], { type: type });
+            // Helper to create synthetic files with valid magic signatures for file inputs
+            const createDummyFile = (name, type, headerBytes, contentStr) => {
+                const enc = new TextEncoder();
+                const textBytes = enc.encode(contentStr);
+                const combined = new Uint8Array(headerBytes.length + textBytes.length);
+                combined.set(headerBytes, 0);
+                combined.set(textBytes, headerBytes.length);
+                const blob = new Blob([combined], { type: type });
                 return new File([blob], name, { type: type });
             };
 
@@ -642,10 +712,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             };
 
-            setFileInput("policy_document", createDummyFile("policy_schedule_88391.pdf", "application/pdf", "%PDF-1.4 sample policy"));
-            setFileInput("claim_form_file", createDummyFile("signed_claim_form.pdf", "application/pdf", "%PDF-1.4 claim application"));
-            setFileInput("invoice_document", createDummyFile("garage_estimate_4052.pdf", "application/pdf", "%PDF-1.4 itemized estimate"));
-            setFileInput("vehicle_image", createDummyFile("rear_bumper_damage.jpg", "image/jpeg", "sample image bytes"));
+            // Valid signatures: PDF (%PDF), JPEG (\xff\xd8\xff)
+            const pdfSig = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34]); // %PDF-1.4
+            const jpgSig = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0]);
+
+            setFileInput("policy_document", createDummyFile("policy_schedule_88391.pdf", "application/pdf", pdfSig, " sample policy"));
+            setFileInput("claim_form_file", createDummyFile("signed_claim_form.pdf", "application/pdf", pdfSig, " claim application"));
+            setFileInput("invoice_document", createDummyFile("garage_estimate_4052.pdf", "application/pdf", pdfSig, " itemized estimate"));
+            setFileInput("vehicle_image", createDummyFile("rear_bumper_damage.jpg", "image/jpeg", jpgSig, " sample image bytes"));
 
             clearError();
         });
