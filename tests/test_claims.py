@@ -1,4 +1,5 @@
 """Unit and integration tests for Claim Submission Module (Phase 2)."""
+
 import io
 import json
 import re
@@ -16,17 +17,24 @@ class ClaimSubmissionTestCase(unittest.TestCase):
 
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
-        self.upload_dir = Path(self.temp_dir.name)
+        self.upload_dir = Path(self.temp_dir.name) / "uploads"
 
         class TestConfig(Config):
             TESTING = True
-            UPLOAD_FOLDER = Path(self.temp_dir.name)
+            UPLOAD_FOLDER = Path(self.temp_dir.name) / "uploads"
+            DATABASE_PATH = Path(self.temp_dir.name) / "test.db"
+            SQLALCHEMY_DATABASE_URI = f"sqlite:///{(Path(self.temp_dir.name) / 'test.db').as_posix()}"
 
         self.app = create_app(TestConfig)
         self.client = self.app.test_client()
 
     def tearDown(self):
-        self.temp_dir.cleanup()
+        from backend.database.db import close_engine
+        close_engine()
+        try:
+            self.temp_dir.cleanup()
+        except Exception:
+            pass
 
     def _get_valid_claim_data(self):
         """Helper to generate a valid form data payload with dummy files."""

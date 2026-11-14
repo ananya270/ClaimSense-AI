@@ -74,4 +74,76 @@
   - *Challenge:* Ensuring file upload testing does not pollute the production/runtime `uploads/` directory with test binaries.
   - *Solution:* Used Python `tempfile.TemporaryDirectory()` inside `ClaimSubmissionTestCase.setUp()` and overridden `app.config["UPLOAD_FOLDER"]`, guaranteeing 100% test isolation and automatic teardown.
 - **Next Recommended Step:**
-  - Proceed to **Phase 3 — Database Architecture**: Design and implement SQLite database schema and ORM models for Claims, Documents, Extracted Information, Image Analysis, Verification Results, Risk Assessments, and Reports.
+  - Proceed to Phase 3 (Completed).
+
+---
+
+## Phase 3: Database Architecture + Authentication + Claim Receipt
+- **Status:** Completed
+- **Date:** 2026-10-09
+- **Files Created / Modified:**
+  - `requirements.txt`: Added `SQLAlchemy>=2.0.0` and `reportlab>=4.0.0`.
+  - `.env.example` & `.env`: Configured `DATABASE_PATH=data/claimsense.db` and `DATABASE_URL=sqlite:///data/claimsense.db`, default port `PORT=5001`.
+  - `backend/config.py`: Added `DATABASE_PATH`, `SQLALCHEMY_DATABASE_URI`, `SESSION_COOKIE_HTTPONLY`, and `SESSION_COOKIE_SAMESITE`.
+  - `backend/database/models.py`: Created SQLAlchemy ORM models:
+    - `User`: Accounts with Werkzeug password hashing, `role` (`user`, `assessor`, `admin`), active status, timestamps.
+    - `Claim`: Core claim record with `claim_id` primary key, `policy_number` index, `user_id` foreign key, `vehicle_number` index, `status`.
+    - `Document`: Evidentiary documents with `document_type`, file paths, original & stored filenames, sizes.
+    - `ClaimImage`: Vehicle damage photographic evidence records.
+    - `ExtractedInformation`: Future-ready table for Phase 4 OCR entities.
+    - `ImageAnalysis`: Future-ready table for Phase 5 Computer Vision component inspection.
+    - `VerificationResult`: Future-ready table for Phase 7 consistency rule engine results.
+    - `RiskAssessment`: Future-ready table for Phase 8 fraud-risk scores.
+    - `Report`: Future-ready table for Phase 10 assessor reports.
+  - `backend/database/db.py`: Engine initialization, scoped sessions, SQLite `PRAGMA foreign_keys=ON`, `close_engine()` disposal, and `migrate_existing_claims_from_disk()` to automatically ingest legacy Phase 2 claims.
+  - `backend/database/__init__.py`: Exported models and session management functions.
+  - `backend/utils/auth.py`: Helpers `get_current_user`, `login_required`, and `can_user_access_claim` access control validator.
+  - `backend/routes/auth.py`: Created authentication blueprint (`POST /api/auth/signup`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`).
+  - `backend/services/receipt.py`: ReportLab PDF submission receipt generator featuring header banners, incident narrative, evidence breakdown, and academic disclaimer.
+  - `backend/routes/claims.py`: Updated claim submission to save records into SQLite, added `GET /api/claims/policy/<policy_number>` search, `GET /api/my-claims` personal history, and `GET /api/claims/<claim_id>/receipt` PDF/JSON receipt downloads.
+  - `backend/app.py`: Integrated database initialization, legacy claim migration, CORS credentials support, and registered `auth_bp`.
+  - `frontend/index.html`: Added Auth Modal (Login / Sign Up tabs), Quick Navigation Pills (`Submit Claim`, `Policy Lookup`, `My Submissions`), Policy Search Card, My Claims Card, and PDF Receipt download button in success card.
+  - `frontend/style.css`: Added styles for modal backdrop, auth tabs, user badges, role tags, and search result cards.
+  - `frontend/app.js`: Added session state checking, login/signup handlers, view switcher, policy search queries, personal claims list rendering, and PDF receipt links.
+  - `tests/test_database.py`: 4 automated unit tests for schema tables, password hashing, persistence, and legacy metadata migration.
+  - `tests/test_auth.py`: 9 automated unit tests for signup, duplicate validations, login formats, security, logout, and `/me`.
+  - `tests/test_ownership_and_receipt.py`: 5 automated tests for user claim ownership, access boundaries, policy number lookup, and PDF/JSON receipt generation.
+  - `README.md`: Comprehensive documentation update covering Phase 3 architecture, security, receipt generation, and API reference.
+- **Features Implemented:**
+  - Persistent SQLite database located at `data/claimsense.db`.
+  - 9 relational tables implementing identity (`claim_id`), business searchability (`policy_number`), and ownership (`user_id`).
+  - Safe zero-loss migration utility ingesting existing `metadata.json` files on server startup.
+  - Werkzeug-powered password hashing (`scrypt`/`pbkdf2`) with plain passwords never stored or returned.
+  - Session-based user authentication and profile verification.
+  - Claim ownership boundaries preventing unauthorized users from accessing others' claims (`403 Forbidden`).
+  - Search claims by Policy Number (`GET /api/claims/policy/<policy_number>`).
+  - Personal claim history endpoint (`GET /api/my-claims`).
+  - Official Claim Submission Receipt generator emitting professional PDF files via ReportLab and JSON representations with mandatory academic disclaimer.
+  - Responsive frontend interface updated with Account Portal, navigation pills, policy search, and receipt downloads.
+- **Tests Performed:**
+  - Automated test suite (`python -m unittest discover tests`): **31/31 passed in 9.1s (100% pass rate)**.
+    - Phase 1 tests: 4/4 passed.
+    - Phase 2 tests: 9/9 passed.
+    - Phase 3 database tests: 4/4 passed.
+    - Phase 3 auth tests: 9/9 passed.
+    - Phase 3 ownership & receipt tests: 5/5 passed.
+  - Live server verification:
+    - User registration (`POST /api/auth/signup`) returned 201 Created.
+    - User authentication (`POST /api/auth/login`) established session cookie and returned 200 OK.
+    - Identity verification (`GET /api/auth/me`) returned profile and role.
+    - Live claim submission generated Claim ID, persisted to SQLite, and stored evidence.
+    - Receipt retrieval (`GET /api/claims/<id>/receipt`) returned binary PDF (`application/pdf`) and JSON metadata.
+    - Access control verified: logged-out user accessing protected endpoints received `401 Unauthorized`.
+- **Problems Encountered & Solutions:**
+  - *Problem 1: Windows SQLite File Lock during Test Teardown:* On Windows, SQLite holds open file handles preventing `tempfile.TemporaryDirectory().cleanup()` from deleting `.db` files, causing `PermissionError: [WinError 32]`.
+  - *Solution 1:* Added `close_engine()` to `backend/database/db.py` to invoke `_engine.dispose()` and remove scoped sessions before test cleanup.
+  - *Problem 2: ReportLab Variable Shadowing:* In `generate_claim_receipt_pdf`, variable `doc` was reassigned in `for doc in documents:`, shadowing the `SimpleDocTemplate` object and causing `AttributeError: 'dict' object has no attribute 'build'`.
+  - *Solution 2:* Renamed loop variable to `doc_entry`, ensuring `doc.build(story)` cleanly executes.
+  - *Problem 3: Windows Port 5000 Collision:* Windows `System` service occupies port 5000 on Windows 11.
+  - *Solution 3:* Configured default development port to `PORT=5001` in `.env` and `config.py`.
+- **Known Limitations & Scope Boundaries:**
+  - AI extraction and processing (OCR, Computer Vision, NLP narrative analysis, Cross-source verification, Risk scoring, LLM explanation, and final Phase 10 verification reports) are intentionally **NOT** implemented in Phase 3.
+  - Tables for future phases (`extracted_information`, `image_analysis`, `verification_results`, `risk_assessments`, `reports`) exist in SQLite but remain unpopulated with fake data.
+- **Next Recommended Step:**
+  - Proceed to **Phase 4 — OCR & Multi-Format Document Processing**: Implementation of document parsing and text extraction across PDFs, images, and DOCX files.
+
