@@ -1,0 +1,301 @@
+﻿split,image_id,file_name,width,height,annotation_count,categories,shooting angle,complete or partial,color,file_size (KB),#instances,#categories
+train,3411,003411.jpg,667,1000,12,crack; dent; glass shatter; lamp broken; scratch,front,partial,white,830,12,5
+train,3916,003916.jpg,890,1000,8,crack; dent; lamp broken; scratch; tire flat,side,partial,red,1375,8,5
+train,1427,001427.jpg,667,1000,9,crack; dent; lamp broken; scratch; tire flat,rear,partial,orange,833,9,5
+train,39,000039.jpg,1000,667,5,crack; dent; lamp broken; scratch; tire flat,rear,partial,silver,646,5,5
+train,411,000411.jpg,1000,666,7,crack; dent; lamp broken; scratch; tire flat,side,partial,champagne,729,7,5
+train,3739,003739.jpg,1000,667,6,crack; dent; lamp broken; scratch; tire flat,front,complete,black,949,6,5
+train,3846,003846.jpg,1000,667,4,crack; glass shatter; lamp broken; scratch,front,complete,silver,643,4,4
+train,1132,001132.jpg,1000,667,8,crack; dent; glass shatter; lamp broken,front,complete,silver,498,8,4
+train,3279,003279.jpg,1000,667,4,crack; dent; lamp broken; scratch,front,partial,gray,869,4,4
+train,1948,001948.jpg,1000,667,7,crack; dent; lamp broken; scratch,front,partial,silver,801,7,4
+train,134,000134.jpg,1000,750,4,dent; lamp broken; scratch; tire flat,front,complete,black,1027,4,4
+train,2038,002038.jpg,665,1000,5,crack; dent; lamp broken; scratch,rear,partial,gray,801,5,4
+train,779,000779.jpg,1000,667,5,crack; dent; lamp broken; scratch,front,partial,white,688,5,4
+train,2250,002250.jpg,1000,667,4,dent; lamp broken; scratch; tire flat,N/A,partial,red,931,4,4
+train,1490,001490.jpg,1000,667,5,crack; dent; lamp broken; scratch,front,partial,silver,687,5,4
+train,815,000815.jpg,1000,667,5,crack; dent; lamp broken; scratch,front,partial,white,618,5,4
+train,2505,002505.jpg,1000,667,6,crack; dent; scratch; tire flat,side,partial,white,786,6,4
+train,3410,003410.jpg,1000,667,9,crack; dent; lamp broken; scratch,front,partial,white,598,9,4
+train,1893,001893.jpg,1000,667,5,crack; dent; lamp broken; scratch,front,partial,silver,698,5,4
+train,2619,002619.jpg,1000,667,5,crack; dent; scratch; tire flat,front,partial,green,703,5,4
+train,940,000940.jpg,1000,667,8,crack; dent; lamp broken; scratch,front,partial,silver,740,8,4
+train,3548,003548.jpg,1000,668,5,dent; glass shatter; scratch,side,partial,black,812,5,3
+train,3869,003869.jpg,1000,667,5,crack; dent; lamp broken; scratch,front,partial,red,1057,5,4
+train,677,000677.jpg,1000,750,4,dent; glass shatter; scratch,side,partial,gray,792,4,3
+train,783,000783.jpg,1000,667,5,dent; glass shatter; scratch,side,partial,champagne,765,5,3
+train,907,000907.jpg,1000,667,4,crack; dent; lamp broken; scratch,side,partial,gray,738,4,4
+train,3944,003944.jpg,1000,667,3,dent; glass shatter; scratch,front,partial,silver,897,3,3
+train,399,000399.jpg,1000,667,4,dent; glass shatter; scratch,front,partial,black,836,4,3
+train,2921,002921.jpg,1000,665,6,crack; dent; lamp broken; scratch,front,partial,silver,514,6,4
+train,3104,003104.jpg,1000,667,3,dent; glass shatter; scratch,front,partial,white,748,3,3
+train,3236,003236.jpg,1000,750,4,dent; glass shatter; scratch,side,partial,white,751,4,3
+train,3964,003964.jpg,1000,667,5,crack; dent; lamp broken; scratch,front,partial,blue,918,5,4
+train,1491,001491.jpg,1000,667,5,crack; dent; lamp broken; scratch,side,complete,silver,717,5,4
+train,904,000904.jpg,1000,681,5,crack; dent; lamp broken; scratch,front,partial,silver,799,5,4
+train,1735,001735.jpg,1000,667,5,crack; dent; lamp broken; scratch,side,partial,silver,678,5,4
+train,1567,001567.jpg,1000,750,4,crack; dent; lamp broken; scratch,front,partial,silver,889,4,4
+train,870,000870.jpg,1000,667,7,dent; scratch; tire flat,side,partial,blue,1082,7,3
+train,506,000506.jpg,1000,667,4,crack; dent; lamp broken; scratch,front,partial,red,874,4,4
+train,868,000868.jpg,1000,665,3,dent; scratch; tire flat,front,partial,black,730,3,3
+train,3305,003305.jpg,1000,667,7,crack; dent; lamp broken; scratch,front,partial,silver,642,7,4
+train,126,000126.jpg,1000,667,5,dent; scratch; tire flat,side,partial,red,648,5,3
+train,3883,003883.jpg,1000,667,4,crack; dent; lamp broken; scratch,front,partial,blue,674,4,4
+train,863,000863.jpg,1000,669,3,dent; scratch; tire flat,side,partial,silver,700,3,3
+train,395,000395.jpg,1000,667,4,dent; glass shatter; lamp broken,front,partial,blue,999,4,3
+train,3733,003733.jpg,750,1000,7,crack; dent; lamp broken; scratch,front,partial,black,973,7,4
+train,1754,001754.jpg,1000,668,4,dent; scratch; tire flat,side,partial,silver,967,4,3
+train,1266,001266.jpg,667,1000,4,dent; glass shatter; lamp broken,front,partial,red,671,4,3
+train,964,000964.jpg,1000,668,2,glass shatter; scratch,side,partial,white,963,2,2
+train,2378,002378.jpg,1000,667,3,dent; scratch; tire flat,front,partial,green,819,3,3
+train,1895,001895.jpg,1000,667,7,crack; dent; lamp broken; scratch,front,partial,red,817,7,4
+train,3237,003237.jpg,1000,750,3,glass shatter; scratch,side,partial,white,739,3,2
+train,3847,003847.jpg,1000,667,5,glass shatter; scratch,front,complete,gray,342,5,2
+train,792,000792.jpg,1000,667,6,glass shatter; scratch,front,complete,blue,645,6,2
+train,118,000118.jpg,1000,664,6,dent; scratch; tire flat,side,partial,black,917,6,3
+train,1978,001978.jpg,1000,667,12,crack; dent; lamp broken; scratch,front,partial,gray,699,12,4
+train,3252,003252.jpg,1000,667,2,glass shatter; scratch,front,partial,blue,1059,2,2
+train,793,000793.jpg,1000,667,3,glass shatter; scratch,front,partial,blue,802,3,2
+train,494,000494.jpg,1000,750,5,crack; dent; lamp broken; scratch,N/A,partial,silver,590,5,4
+train,512,000512.jpg,1000,667,6,glass shatter; scratch,front,complete,blue,936,6,2
+train,14,000014.jpg,1000,667,4,dent; scratch; tire flat,side,partial,silver,772,4,3
+train,3596,003596.jpg,1000,664,3,dent; lamp broken; scratch,side,partial,red,839,3,3
+train,921,000921.jpg,1000,667,4,dent; lamp broken; scratch,front,partial,silver,720,4,3
+train,2457,002457.jpg,1000,830,2,dent; scratch,front,partial,silver,761,2,2
+train,874,000874.jpg,1000,554,4,dent; scratch,side,partial,white,607,4,2
+train,1486,001486.jpg,1000,750,5,dent; scratch,front,partial,silver,748,5,2
+train,1692,001692.jpg,1000,667,2,dent; glass shatter,front,partial,silver,597,2,2
+train,119,000119.jpg,1000,689,4,crack; dent; scratch,side,partial,black,1043,4,3
+train,1520,001520.jpg,1000,668,3,dent; lamp broken; scratch,front,partial,silver,586,3,3
+train,1938,001938.jpg,1000,667,2,dent; scratch,side,partial,silver,962,2,2
+train,390,000390.jpg,1000,751,4,dent; glass shatter,front,partial,green,987,4,2
+train,112,000112.jpg,750,1000,5,dent; scratch,side,partial,black,668,5,2
+train,2114,002114.jpg,1000,750,4,dent; scratch,front,partial,silver,796,4,2
+train,2538,002538.jpg,1000,664,7,crack; dent; scratch,side,partial,silver,516,7,3
+train,956,000956.jpg,1000,579,3,dent; glass shatter,side,partial,red,731,3,2
+train,566,000566.jpg,1000,667,6,crack; dent; scratch,side,partial,silver,739,6,3
+train,1868,001868.jpg,1000,666,3,dent; scratch,side,partial,silver,745,3,2
+train,1715,001715.jpg,1000,671,2,dent; scratch,rear,partial,champagne,647,2,2
+train,3114,003114.jpg,1000,667,2,dent; glass shatter,side,partial,blue,1093,2,2
+train,1892,001892.jpg,1000,667,4,dent; lamp broken; scratch,front,partial,silver,691,4,3
+train,3610,003610.jpg,1000,563,3,dent; scratch,side,partial,gray,564,3,2
+train,1529,001529.jpg,1000,750,4,dent; lamp broken; scratch,rear,partial,gray,734,4,3
+train,3787,003787.jpg,1000,787,2,dent; glass shatter,front,partial,green,947,2,2
+train,511,000511.jpg,1000,667,2,dent; scratch,N/A,partial,white,789,2,2
+train,441,000441.jpg,1000,667,2,dent; scratch,N/A,partial,silver,522,2,2
+train,2118,002118.jpg,1000,750,3,dent; scratch,side,partial,silver,729,3,2
+train,2591,002591.jpg,1000,664,2,dent; scratch,side,partial,silver,402,2,2
+train,1417,001417.jpg,1000,712,3,dent; glass shatter,front,partial,blue,904,3,2
+train,1724,001724.jpg,1000,667,4,dent; lamp broken; scratch,front,partial,gray,744,4,3
+train,3941,003941.jpg,1000,667,2,dent; scratch,side,partial,silver,638,2,2
+train,1156,001156.jpg,1000,750,2,dent; scratch,side,partial,silver,688,2,2
+train,3969,003969.jpg,1000,667,6,dent; glass shatter; lamp broken,front,partial,gray,818,6,3
+train,3593,003593.jpg,1000,664,2,dent; scratch,side,partial,silver,627,2,2
+train,1667,001667.jpg,1000,666,4,dent; scratch,side,partial,white,641,4,2
+train,1875,001875.jpg,1000,750,5,crack; dent; scratch,rear,partial,silver,753,5,3
+train,3970,003970.jpg,1000,694,2,dent; glass shatter,front,partial,white,906,2,2
+train,2218,002218.jpg,1000,759,4,dent; scratch,side,partial,silver,778,4,2
+train,872,000872.jpg,1000,751,3,dent; scratch,side,partial,gray,876,3,2
+train,2806,002806.jpg,1000,667,3,crack; dent; scratch,rear,partial,gray,770,3,3
+train,3822,003822.jpg,1000,667,5,dent; glass shatter,front,partial,white,769,5,2
+train,3007,003007.jpg,1000,667,2,dent; scratch,front,partial,white,662,2,2
+train,1530,001530.jpg,1000,667,3,dent; scratch,front,partial,silver,592,3,2
+train,485,000485.jpg,667,1000,8,crack; dent; lamp broken; scratch,front,partial,gray,699,8,4
+train,3032,003032.jpg,1000,667,1,glass shatter,front,partial,black,814,1,1
+train,1808,001808.jpg,1000,662,4,crack; dent; lamp broken; scratch,side,partial,black,781,4,4
+train,913,000913.jpg,1000,664,1,scratch,N/A,partial,gray,759,1,1
+train,1492,001492.jpg,1000,667,5,crack; dent; lamp broken; scratch,front,complete,silver,732,5,4
+train,2702,002702.jpg,1000,667,1,scratch,side,partial,black,769,1,1
+train,1207,001207.jpg,1000,668,1,glass shatter,front,partial,white,787,1,1
+train,2295,002295.jpg,1000,667,3,dent; lamp broken; scratch,front,partial,black,857,3,3
+train,1932,001932.jpg,1000,667,1,scratch,side,partial,black,753,1,1
+train,1485,001485.jpg,1000,750,5,dent; scratch,side,partial,silver,741,5,2
+train,231,000231.jpg,1000,667,1,glass shatter,front,partial,gray,697,1,1
+train,2797,002797.jpg,667,1000,1,scratch,side,partial,silver,672,1,1
+train,3826,003826.jpg,1000,668,3,scratch,side,partial,white,524,3,1
+train,936,000936.jpg,1000,662,1,scratch,N/A,partial,silver,688,1,1
+train,262,000262.jpg,1000,667,1,glass shatter,front,partial,N/A,863,1,1
+train,1902,001902.jpg,1000,667,6,dent; scratch,side,partial,white,469,6,2
+train,2666,002666.jpg,1000,667,1,scratch,rear,partial,mixture,723,1,1
+train,1826,001826.jpg,1000,667,1,scratch,N/A,partial,mixture,629,1,1
+train,3336,003336.jpg,1000,667,1,glass shatter,rear,partial,red,999,1,1
+train,372,000372.jpg,1000,667,2,dent; scratch,N/A,partial,white,581,2,2
+train,2049,002049.jpg,750,1000,3,dent; scratch,side,partial,silver,490,3,2
+train,2585,002585.jpg,1000,750,2,dent; scratch,front,partial,silver,794,2,2
+train,2595,002595.jpg,1000,639,3,dent; scratch,side,partial,silver,556,3,2
+train,279,000279.jpg,1000,667,1,glass shatter,front,partial,white,931,1,1
+train,2994,002994.jpg,1000,750,2,dent; scratch,rear,partial,silver,559,2,2
+train,1337,001337.jpg,1000,1000,2,scratch,front,partial,red,1187,2,1
+train,2802,002802.jpg,1000,667,3,scratch,front,partial,gray,612,3,1
+train,1903,001903.jpg,1000,666,2,dent; glass shatter,front,partial,black,728,2,2
+train,2518,002518.jpg,1000,750,2,dent; scratch,side,partial,white,686,2,2
+train,3839,003839.jpg,1000,750,2,scratch,front,partial,silver,689,2,1
+train,593,000593.jpg,1000,750,3,dent; scratch,side,partial,brown,755,3,2
+train,1549,001549.jpg,1000,667,1,dent,rear,partial,white,570,1,1
+train,1918,001918.jpg,1000,656,1,dent,rear,partial,white,579,1,1
+train,1010,001010.jpg,1000,750,1,tire flat,side,partial,N/A,1081,1,1
+train,2402,002402.jpg,750,1000,1,dent,side,partial,red,896,1,1
+train,3366,003366.jpg,1000,668,1,lamp broken,rear,partial,white,711,1,1
+train,3022,003022.jpg,1000,606,5,dent; lamp broken; scratch,side,partial,yellow,815,5,3
+train,8,000008.jpg,1000,678,7,crack; tire flat,front,partial,blue,873,7,2
+train,2847,002847.jpg,1000,750,2,scratch,N/A,partial,white,605,2,1
+train,942,000942.jpg,1000,667,1,dent,front,partial,white,625,1,1
+train,3757,003757.jpg,1000,667,2,crack,rear,partial,gray,796,2,1
+train,1111,001111.jpg,1000,750,5,crack; dent,front,partial,silver,803,5,2
+train,3103,003103.jpg,1000,750,1,glass shatter,front,partial,gray,557,1,1
+train,298,000298.jpg,1000,667,4,dent; lamp broken,rear,partial,white,675,4,2
+train,2249,002249.jpg,1000,666,4,dent; scratch,front,complete,white,726,4,2
+train,371,000371.jpg,1000,667,3,dent; lamp broken,side,partial,silver,285,3,2
+train,1253,001253.jpg,1000,664,3,dent,side,partial,silver,619,3,1
+train,3422,003422.jpg,1000,667,4,scratch,side,partial,black,756,4,1
+train,3529,003529.jpg,1000,519,1,scratch,N/A,partial,white,422,1,1
+train,349,000349.jpg,1000,667,1,crack,N/A,partial,N/A,668,1,1
+train,1554,001554.jpg,1000,667,1,scratch,rear,partial,silver,523,1,1
+train,2499,002499.jpg,1000,667,3,dent; scratch,side,partial,gray,703,3,2
+train,3860,003860.jpg,1000,667,2,scratch,front,partial,black,1041,2,1
+train,3855,003855.jpg,667,1000,1,glass shatter,front,partial,white,964,1,1
+train,3600,003600.jpg,1000,667,5,crack; dent; scratch,side,partial,white,532,5,3
+train,2926,002926.jpg,1000,667,5,dent; scratch,rear,partial,silver,580,5,2
+train,2980,002980.jpg,1000,667,1,dent,rear,partial,silver,583,1,1
+train,1305,001305.jpg,1000,695,1,scratch,side,partial,yellow,790,1,1
+train,135,000135.jpg,1000,562,3,dent; scratch,side,partial,silver,536,3,2
+train,583,000583.jpg,1000,704,2,scratch,N/A,partial,white,544,2,1
+train,1869,001869.jpg,1000,666,4,dent; scratch,side,partial,silver,747,4,2
+train,1075,001075.jpg,1000,667,1,tire flat,side,partial,N/A,828,1,1
+train,2327,002327.jpg,1000,750,2,dent; scratch,rear,partial,black,883,2,2
+train,3933,003933.jpg,1000,664,1,glass shatter,front,partial,N/A,885,1,1
+train,1401,001401.jpg,1000,667,1,glass shatter,front,partial,N/A,679,1,1
+train,871,000871.jpg,1000,640,3,dent; lamp broken; scratch,front,partial,silver,601,3,3
+train,1376,001376.jpg,1000,637,2,crack; lamp broken,front,partial,white,724,2,2
+train,1036,001036.jpg,1000,667,1,glass shatter,front,partial,N/A,532,1,1
+train,123,000123.jpg,1000,667,1,tire flat,side,partial,N/A,378,1,1
+train,1894,001894.jpg,1000,667,6,crack; dent; lamp broken; scratch,front,partial,red,814,6,4
+train,2149,002149.jpg,1000,750,1,scratch,rear,partial,gray,689,1,1
+train,2674,002674.jpg,1000,667,1,scratch,rear,partial,gray,635,1,1
+train,2910,002910.jpg,1000,750,2,dent; scratch,side,partial,silver,582,2,2
+train,594,000594.jpg,1000,667,5,dent; scratch,side,partial,gray,694,5,2
+train,3,000003.jpg,1000,667,1,tire flat,side,partial,white,966,1,1
+train,1293,001293.jpg,1000,667,1,scratch,side,partial,black,922,1,1
+train,901,000901.jpg,1000,563,2,scratch,side,partial,white,556,2,1
+train,1149,001149.jpg,1000,667,5,dent,side,partial,white,583,5,1
+train,1608,001608.jpg,667,1000,2,scratch,side,partial,white,437,2,1
+train,292,000292.jpg,1000,666,4,dent; glass shatter; lamp broken,front,complete,silver,961,4,3
+train,3037,003037.jpg,1000,859,2,crack,front,partial,red,822,2,1
+train,2018,002018.jpg,1000,667,3,scratch,side,partial,white,569,3,1
+train,2396,002396.jpg,1000,667,1,dent,side,partial,silver,823,1,1
+train,3921,003921.jpg,1000,667,1,scratch,rear,partial,black,680,1,1
+train,846,000846.jpg,750,1000,1,crack,side,partial,gray,658,1,1
+train,2390,002390.jpg,1000,667,6,dent; scratch,side,partial,white,698,6,2
+train,1515,001515.jpg,1000,667,2,crack; scratch,N/A,partial,white,596,2,2
+train,755,000755.jpg,1000,667,4,dent; lamp broken; scratch,side,partial,silver,964,4,3
+train,1863,001863.jpg,774,1000,2,dent; scratch,front,partial,silver,802,2,2
+train,3356,003356.jpg,667,1000,2,scratch,rear,partial,silver,536,2,1
+train,2123,002123.jpg,1000,667,4,dent; lamp broken; scratch,rear,partial,silver,764,4,3
+train,265,000265.jpg,1000,667,6,dent; glass shatter,front,partial,silver,1060,6,2
+train,3725,003725.jpg,1000,993,2,crack; scratch,side,partial,white,1214,2,2
+train,3239,003239.jpg,1000,904,1,glass shatter,front,partial,white,885,1,1
+train,2265,002265.jpg,1000,696,2,crack,front,partial,silver,603,2,1
+train,362,000362.jpg,1000,668,5,dent; scratch,side,partial,gray,661,5,2
+train,1545,001545.jpg,1000,667,5,crack; dent; lamp broken,rear,partial,silver,556,5,3
+train,114,000114.jpg,1000,683,1,scratch,front,partial,black,869,1,1
+train,1760,001760.jpg,1000,702,3,lamp broken; scratch,front,partial,white,619,3,2
+train,1681,001681.jpg,1000,668,1,lamp broken,rear,partial,black,755,1,1
+train,3035,003035.jpg,1000,667,1,glass shatter,front,partial,black,800,1,1
+train,938,000938.jpg,714,1000,3,dent; lamp broken; scratch,N/A,partial,silver,693,3,3
+train,1639,001639.jpg,1000,667,1,dent,side,partial,silver,592,1,1
+train,1153,001153.jpg,1000,732,5,crack; scratch,front,partial,silver,755,5,2
+train,3990,003990.jpg,1000,665,1,glass shatter,front,partial,white,931,1,1
+train,1478,001478.jpg,1000,750,2,scratch,N/A,partial,champagne,999,2,1
+train,3917,003917.jpg,1000,667,1,dent,side,partial,blue,896,1,1
+train,414,000414.jpg,1000,669,1,scratch,N/A,partial,black,664,1,1
+train,412,000412.jpg,1000,583,3,dent; lamp broken; scratch,rear,partial,black,666,3,3
+val,1494,001494.jpg,667,1000,5,crack; dent; lamp broken; scratch; tire flat,rear,complete,silver,608,5,5
+val,930,000930.jpg,1000,667,4,crack; dent; glass shatter; scratch,front,complete,white,741,4,4
+val,1128,001128.jpg,1000,667,6,crack; dent; lamp broken; scratch,front,partial,silver,715,6,4
+val,1994,001994.jpg,1000,667,5,crack; dent; lamp broken; scratch,front,partial,blue,799,5,4
+val,2605,002605.jpg,1000,666,4,crack; dent; scratch; tire flat,side,partial,black,852,4,4
+val,2503,002503.jpg,1000,667,7,crack; dent; glass shatter; lamp broken,front,partial,gray,943,7,4
+val,1642,001642.jpg,667,1000,3,dent; glass shatter; scratch,front,partial,blue,815,3,3
+val,2575,002575.jpg,667,1000,3,dent; glass shatter; scratch,front,partial,white,678,3,3
+val,2934,002934.jpg,668,1000,6,crack; dent; lamp broken; scratch,rear,partial,green,871,6,4
+val,1243,001243.jpg,1000,750,3,dent; scratch; tire flat,side,partial,purple,1049,3,3
+val,2315,002315.jpg,750,1000,7,dent; lamp broken; scratch,rear,partial,red,1112,7,3
+val,2463,002463.jpg,662,1000,4,dent; lamp broken; scratch,side,partial,silver,756,4,3
+val,3127,003127.jpg,668,1000,4,dent; lamp broken; scratch,rear,partial,black,741,4,3
+val,3206,003206.jpg,1000,667,2,glass shatter; scratch,side,partial,blue,631,2,2
+val,3451,003451.jpg,1000,668,3,dent; scratch; tire flat,front,partial,silver,895,3,3
+val,3433,003433.jpg,667,1000,3,dent; scratch,side,partial,black,1049,3,2
+val,2954,002954.jpg,1000,675,5,dent; scratch,side,partial,silver,753,5,2
+val,2629,002629.jpg,1000,664,2,dent; scratch,side,partial,blue,638,2,2
+val,2685,002685.jpg,1000,667,2,dent; glass shatter,front,partial,white,855,2,2
+val,2007,002007.jpg,1000,667,3,dent; scratch,front,partial,silver,557,3,2
+val,835,000835.jpg,1000,667,4,dent; scratch,N/A,partial,gray,853,4,2
+val,1105,001105.jpg,667,1000,3,dent; scratch,front,partial,black,889,3,2
+val,934,000934.jpg,1000,663,1,glass shatter,front,partial,N/A,797,1,1
+val,3712,003712.jpg,1000,702,1,scratch,front,partial,white,587,1,1
+val,376,000376.jpg,1000,662,3,lamp broken; scratch,rear,partial,silver,716,3,2
+val,1316,001316.jpg,1000,667,1,scratch,side,partial,white,471,1,1
+val,3753,003753.jpg,1000,667,1,glass shatter,inside,partial,N/A,928,1,1
+val,2066,002066.jpg,1000,667,1,scratch,N/A,partial,gray,618,1,1
+val,1411,001411.jpg,1000,667,2,dent; scratch,N/A,partial,silver,732,2,2
+val,2663,002663.jpg,1000,667,1,scratch,N/A,partial,silver,736,1,1
+val,1771,001771.jpg,1000,667,1,scratch,side,partial,red,694,1,1
+val,810,000810.jpg,1000,667,3,dent; scratch,side,partial,silver,611,3,2
+val,2241,002241.jpg,1000,667,6,scratch,side,partial,red,747,6,1
+val,721,000721.jpg,1000,667,1,tire flat,side,partial,N/A,631,1,1
+val,289,000289.jpg,1000,667,1,glass shatter,side,partial,black,1028,1,1
+val,2452,002452.jpg,1000,667,5,crack; dent; scratch,front,partial,gray,945,5,3
+val,3512,003512.jpg,1000,800,5,crack; dent; scratch,rear,partial,gray,1042,5,3
+val,290,000290.jpg,1000,667,1,glass shatter,front,partial,N/A,710,1,1
+val,2156,002156.jpg,1000,667,1,dent,rear,partial,silver,515,1,1
+val,2468,002468.jpg,1000,662,4,dent; lamp broken; scratch,front,partial,silver,716,4,3
+val,1747,001747.jpg,1000,662,1,scratch,side,partial,white,619,1,1
+val,3445,003445.jpg,1000,667,3,dent; scratch,front,partial,silver,728,3,2
+val,1248,001248.jpg,667,1000,2,dent,rear,partial,white,804,2,1
+val,858,000858.jpg,750,1000,3,dent; scratch,N/A,partial,silver,598,3,2
+val,2996,002996.jpg,1000,731,4,crack; dent; scratch,front,partial,white,892,4,3
+test,42,000042.jpg,1000,667,12,crack; dent; glass shatter; lamp broken; scratch,front,complete,blue,658,12,5
+test,513,000513.jpg,1000,667,7,crack; dent; glass shatter; lamp broken; scratch,front,complete,blue,1077,7,5
+test,1493,001493.jpg,1000,667,4,dent; lamp broken; scratch; tire flat,rear,complete,silver,673,4,4
+test,3925,003925.jpg,1000,740,6,dent; glass shatter; lamp broken; scratch,front,complete,gray,939,6,4
+test,3354,003354.jpg,1000,667,5,crack; dent; lamp broken; scratch,rear,partial,silver,757,5,4
+test,1874,001874.jpg,1000,750,4,crack; dent; lamp broken; scratch,rear,partial,silver,799,4,4
+test,1236,001236.jpg,1000,667,4,dent; scratch; tire flat,rear,partial,silver,743,4,3
+test,965,000965.jpg,1000,667,4,dent; glass shatter; scratch,side,partial,silver,697,4,3
+test,3734,003734.jpg,1000,667,4,crack; dent; lamp broken; scratch,side,partial,gray,747,4,4
+test,2252,002252.jpg,1000,667,4,crack; dent; scratch,rear,partial,silver,691,4,3
+test,3414,003414.jpg,1000,668,6,dent; lamp broken; scratch,front,partial,white,534,6,3
+test,224,000224.jpg,1000,667,2,glass shatter; scratch,front,partial,black,818,2,2
+test,1071,001071.jpg,1000,652,2,scratch; tire flat,side,partial,gray,898,2,2
+test,3226,003226.jpg,761,1000,4,crack; dent; glass shatter,front,partial,silver,908,4,3
+test,2314,002314.jpg,667,1000,3,dent; lamp broken; scratch,rear,partial,silver,926,3,3
+test,2422,002422.jpg,1000,667,4,dent; scratch,side,partial,silver,470,4,2
+test,3338,003338.jpg,1000,563,2,glass shatter; scratch,side,complete,mixture,193,2,2
+test,1665,001665.jpg,1000,750,4,dent; lamp broken; scratch,front,partial,champagne,846,4,3
+test,1799,001799.jpg,1000,667,6,dent; scratch,side,partial,blue,1138,6,2
+test,3829,003829.jpg,1000,750,4,dent; tire flat,side,complete,white,884,4,2
+test,3743,003743.jpg,1000,654,4,dent; scratch,side,partial,blue,1023,4,2
+test,3872,003872.jpg,1000,534,2,dent; glass shatter,front,partial,black,572,2,2
+test,1617,001617.jpg,1000,667,4,dent; lamp broken; scratch,front,partial,blue,870,4,3
+test,23,000023.jpg,1000,667,2,dent; scratch,side,partial,white,609,2,2
+test,3812,003812.jpg,1000,681,1,glass shatter,front,partial,white,647,1,1
+test,2801,002801.jpg,1000,750,3,crack; dent; scratch,front,partial,white,650,3,3
+test,2707,002707.jpg,1000,694,8,crack; dent; scratch,side,partial,white,716,8,3
+test,1800,001800.jpg,1000,667,3,scratch,side,partial,blue,1027,3,1
+test,2961,002961.jpg,1000,667,3,dent; scratch,side,partial,blue,846,3,2
+test,2475,002475.jpg,1000,667,3,dent; lamp broken,side,partial,silver,574,3,2
+test,3418,003418.jpg,1000,750,1,crack,side,partial,gray,515,1,1
+test,330,000330.jpg,1000,667,1,glass shatter,front,partial,N/A,877,1,1
+test,3233,003233.jpg,1000,667,1,glass shatter,front,partial,N/A,571,1,1
+test,2409,002409.jpg,1000,667,2,dent,front,partial,yellow,650,2,1
+test,1917,001917.jpg,1000,667,2,dent; lamp broken,rear,partial,silver,891,2,2
+test,3399,003399.jpg,1000,668,1,lamp broken,front,partial,red,643,1,1
+test,834,000834.jpg,1000,665,2,scratch,N/A,partial,yellow,786,2,1
+test,1118,001118.jpg,1000,668,1,glass shatter,front,partial,gray,762,1,1
+test,2661,002661.jpg,1000,500,2,dent,N/A,partial,yellow,460,2,1
+test,687,000687.jpg,1000,750,1,scratch,front,partial,blue,919,1,1
+test,1967,001967.jpg,1000,667,2,dent; scratch,side,partial,silver,615,2,2
+test,353,000353.jpg,1000,647,1,tire flat,side,partial,yellow,700,1,1
+test,152,000152.jpg,1000,666,3,dent; lamp broken,side,partial,silver,796,3,2
+test,1506,001506.jpg,1000,667,3,scratch,side,partial,black,660,3,1
+test,969,000969.jpg,1000,667,1,tire flat,side,partial,yellow,823,1,1

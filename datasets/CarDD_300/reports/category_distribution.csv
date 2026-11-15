@@ -1,0 +1,7 @@
+﻿Category,Train annotations,Validation annotations,Test annotations,Total annotations
+dent,234,44,49,327
+scratch,258,60,53,371
+crack,91,11,13,115
+glass shatter,45,10,12,67
+lamp broken,64,10,15,89
+tire flat,22,5,6,33

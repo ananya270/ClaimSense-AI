@@ -43,7 +43,114 @@ logs/
 .DS_Store
 Thumbs.db
 
+<<<<<<< HEAD
 # Research Datasets
 # CarDD and FUNSD are excluded due to redistribution restrictions
 datasets/
 
+=======
+# ==========================================
+# PYTHON VIRTUAL ENVIRONMENT
+# ==========================================
+.venv/
+venv/
+ENV/
+env/
+
+# ==========================================
+# PYTHON CACHE
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ==========================================
+# ENVIRONMENT VARIABLES / SECRETS
+# ==========================================
+.env
+.env.*
+!.env.example
+
+# ==========================================
+# USER UPLOADS AND CLAIM EVIDENCE
+# ==========================================
+uploads/*
+!uploads/.gitkeep
+
+# ==========================================
+# GENERATED REPORTS
+# ==========================================
+reports/*
+!reports/.gitkeep
+
+# ==========================================
+# MODEL WEIGHTS
+# ==========================================
+models/*.pth
+models/*.pt
+models/*.h5
+models/*.onnx
+models/*.weights
+
+# ==========================================
+# RESEARCH DATASETS
+# Keep dataset instructions, not raw datasets
+# ==========================================
+datasets/FUNSD/
+datasets/SROIE/
+datasets/CarDD/
+
+datasets/**/images/
+datasets/**/annotations/
+
+!datasets/README.md
+!datasets/.gitkeep
+
+# ==========================================
+# LOCAL DATA AND SAMPLE CLAIMS
+# ==========================================
+data/sample_claims/*
+!data/sample_claims/.gitkeep
+
+# ==========================================
+# DATABASE FILES
+# ==========================================
+*.db
+*.sqlite
+*.sqlite3
+*.db-wal
+*.db-shm
+
+# ==========================================
+# BACKUPS
+# ==========================================
+backups/
+*.bak
+*.backup
+
+# ==========================================
+# LOGS AND TEMPORARY FILES
+# ==========================================
+*.log
+logs/
+temp/
+tmp/
+
+# ==========================================
+# IDE / EDITOR
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ==========================================
+# OPERATING SYSTEM
+# ==========================================
+.DS_Store
+Thumbs.db
+desktop.ini
+>>>>>>> 772aeb2 (Phase 4)

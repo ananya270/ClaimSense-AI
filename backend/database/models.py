@@ -72,6 +72,7 @@ class Claim(Base):
     policy_number = Column(String(64), nullable=False, index=True)
     vehicle_number = Column(String(32), nullable=False, index=True)
     accident_date = Column(String(32), nullable=False)
+    incident_location = Column(String(256), nullable=True)
     claim_description = Column(Text, nullable=False)
     status = Column(String(32), default="SUBMITTED", nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
@@ -101,6 +102,7 @@ class Claim(Base):
             "policy_number": self.policy_number,
             "vehicle_number": self.vehicle_number,
             "accident_date": self.accident_date,
+            "incident_location": self.incident_location,
             "claim_description": self.claim_description,
             "status": self.status,
             "created_at": self.created_at.isoformat() if self.created_at else None,
@@ -200,14 +202,22 @@ class ClaimImage(Base):
 
 
 class ExtractedInformation(Base):
-    """Future schema for Phase 4 (OCR structured entity extraction)."""
+    """Phase 4 structured extraction storage with evidence and status metadata."""
     __tablename__ = "extracted_information"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     claim_id = Column(String(32), ForeignKey("claims.claim_id"), nullable=False, index=True)
     field_name = Column(String(128), nullable=False)
     field_value = Column(Text, nullable=True)
+    field_status = Column(String(32), nullable=True, default="not_present")
     source = Column(String(64), nullable=False)  # policy_document, claim_form, invoice
+    source_filename = Column(String(255), nullable=True)
+    page_number = Column(Integer, nullable=True)
+    extraction_method = Column(String(64), nullable=True)
+    supporting_text = Column(Text, nullable=True)
+    confidence_score = Column(Float, nullable=True)
+    error_message = Column(Text, nullable=True)
+    evaluation_metadata = Column(Text, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     claim = relationship("Claim", back_populates="extracted_info")
@@ -218,7 +228,15 @@ class ExtractedInformation(Base):
             "claim_id": self.claim_id,
             "field_name": self.field_name,
             "field_value": self.field_value,
+            "field_status": self.field_status,
             "source": self.source,
+            "source_filename": self.source_filename,
+            "page_number": self.page_number,
+            "extraction_method": self.extraction_method,
+            "supporting_text": self.supporting_text,
+            "confidence_score": self.confidence_score,
+            "error_message": self.error_message,
+            "evaluation_metadata": self.evaluation_metadata,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 

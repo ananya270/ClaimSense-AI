@@ -7,5 +7,17 @@ python-dotenv>=1.0.0,<2.0.0
 # Phase 3: Database, Auth, Security & Claim Receipt
 SQLAlchemy>=2.0.0,<3.0.0
 reportlab>=4.0.0,<6.0.0
+<<<<<<< HEAD
 Flask-WTF>=1.2.0,<2.0.0
 Flask-Limiter>=3.5.0,<5.0.0
+=======
+
+# Phase 4: OCR, PDF, DOCX, and image document intelligence
+PyMuPDF>=1.24.0,<2.0.0
+python-docx>=1.1.0,<2.0.0
+Pillow>=10.0.0,<12.0.0
+opencv-python-headless>=4.10.0,<5.0.0
+pytesseract>=0.3.10,<0.4.0
+pyarrow>=15.0.0,<20.0.0
+numpy>=1.26.0,<3.0.0
+>>>>>>> 772aeb2 (Phase 4)

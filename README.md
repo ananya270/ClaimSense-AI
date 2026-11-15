@@ -133,6 +133,16 @@ ClaimSense-AI/
 
 ---
 
+## 📊 Dataset Evaluation Summary (Phase 4)
+
+The project includes real dataset verification for the supplied benchmark assets without mixing them into the claim-processing pipeline.
+
+- FUNSD: evaluated on the provided `testing_data` split (50 sample forms, 2,332 entities) using layout-based semantic question-answer link extraction against 837 ground-truth linking pairs. Result: precision = 0.5704 (57.04%), recall = 0.5759 (57.59%), F1 = 0.5731 (57.31%).
+- SROIE: evaluated on the shipped `train-00000-of-00001.parquet` dataset (626 receipt images) natively via PyArrow. Result: average CER = 0.8539, average WER = 0.9189, field-extraction precision = 0.7504, recall = 0.7504, F1 = 0.7504.
+- CarDD: verified as Phase 5 ready. Split counts: train = 210 images, val = 45, test = 45; total = 300 images with paired YOLO labels and COCO instance annotations across 6 vehicle damage categories (`dent`, `scratch`, `crack`, `glass shatter`, `lamp broken`, `tire flat`). The dataset remains isolated from the Phase 4 document processing pipeline.
+
+All reproducible dataset outputs are saved under `reports/dataset_evaluation_summary.json`.
+
 ## 🗄️ Database Architecture (Phase 3)
 
 ClaimSense AI uses **SQLite** located at `data/claimsense.db` as its persistent source of truth. File contents remain stored securely on the filesystem under `uploads/`, while the database stores structured references, metadata, and user accounts.
@@ -342,6 +352,7 @@ http://127.0.0.1:5001/
 ```powershell
 python -m unittest discover tests -v
 ```
+<<<<<<< HEAD
 **Results:** **45 / 45 tests passing (100%)** across:
 - `test_health.py` (4 tests) &mdash; Health check, database diagnostic, 404 handler, index route
 - `test_database.py` (4 tests) &mdash; SQLite schema, entity relationships, constraints & legacy migration
@@ -349,6 +360,15 @@ python -m unittest discover tests -v
 - `test_auth.py` (11 tests) &mdash; Signup, login, password complexity, unique constraints, session lifecycle, inactive user enforcement
 - `test_ownership_and_receipt.py` (6 tests) &mdash; Owner boundaries, assessor/admin access, legacy claim protection, policy search, PDF/JSON receipt
 - `test_security.py` (8 tests) &mdash; Production secret enforcement, CORS origin rejection, CSRF protection, rate limiting, PDF XML escaping, DB rollback cleanup, path traversal detection, magic bytes validator
+=======
+**Results:** **42 / 42 tests passing (100%)** across:
+- `test_health.py` (4 tests)
+- `test_claims.py` (9 tests)
+- `test_database.py` (4 tests)
+- `test_auth.py` (9 tests)
+- `test_ownership_and_receipt.py` (5 tests)
+- `test_document_processing.py` (11 tests)
+>>>>>>> 772aeb2 (Phase 4)
 
 ---
 
@@ -357,8 +377,13 @@ python -m unittest discover tests -v
 - [x] **Phase 0:** Project Repository & Technology Audit
 - [x] **Phase 1:** Project Foundation, Scaffolding, Flask API, UI Shell & Health Diagnostics
 - [x] **Phase 2:** Claim Submission Module (File uploads, validation, Claim ID generation, safe storage)
+<<<<<<< HEAD
 - [x] **Phase 3:** Database Architecture, Authentication & Claim Receipt (SQLite, SQLAlchemy, Werkzeug Auth, PDF Receipt Engine &mdash; Stabilized, Hardened & Tested)
 - [ ] **Phase 4:** OCR & Multi-Format Document Processing *(Ready for Implementation)*
+=======
+- [x] **Phase 3:** Database Architecture, Authentication & Claim Receipt (SQLite, SQLAlchemy, Werkzeug Auth, PDF Receipt Engine)
+- [x] **Phase 4:** OCR & Multi-Format Document Processing (Document Extraction, Field Provenance, Vehicle Image Validation & Consolidated Intelligence Report)
+>>>>>>> 772aeb2 (Phase 4)
 - [ ] **Phase 5:** Computer Vision Analysis (Vehicle damage inspection) *(Planned)*
 - [ ] **Phase 6:** NLP Narrative & Chronology Extraction *(Planned)*
 - [ ] **Phase 7:** Cross-Source Verification Engine *(Planned)*

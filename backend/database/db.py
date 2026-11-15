@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Generator, Optional
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, inspect, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker, Session, scoped_session
 
@@ -52,8 +52,43 @@ def init_database(db_uri: str) -> Engine:
 
     # Create tables
     Base.metadata.create_all(bind=_engine)
+    _ensure_schema_migrations(_engine)
     logger.info(f"Initialized database schema with URI: {db_uri}")
     return _engine
+
+
+def _ensure_schema_migrations(engine: Engine) -> None:
+    """Apply compatibility migrations for existing SQLite databases."""
+    try:
+        inspector = inspect(engine)
+        table_names = set(inspector.get_table_names())
+
+        if "claims" in table_names:
+            claim_columns = {col["name"] for col in inspector.get_columns("claims")}
+            if "incident_location" not in claim_columns:
+                with engine.begin() as conn:
+                    conn.execute(text("ALTER TABLE claims ADD COLUMN incident_location VARCHAR(256)"))
+
+        if "extracted_information" not in table_names:
+            return
+
+        columns = {column["name"] for column in inspector.get_columns("extracted_information")}
+        migrations = {
+            "field_status": "VARCHAR(32)",
+            "source_filename": "VARCHAR(255)",
+            "page_number": "INTEGER",
+            "extraction_method": "VARCHAR(64)",
+            "supporting_text": "TEXT",
+            "confidence_score": "FLOAT",
+            "error_message": "TEXT",
+            "evaluation_metadata": "TEXT",
+        }
+        for name, ddl in migrations.items():
+            if name not in columns:
+                with engine.begin() as conn:
+                    conn.execute(text(f"ALTER TABLE extracted_information ADD COLUMN {name} {ddl}"))
+    except Exception as exc:
+        logger.warning(f"Schema migration check skipped or failed: {exc}")
 
 
 def get_engine() -> Engine:

@@ -1,0 +1,23 @@
+ClaimSense AI - CarDD Sub-Dataset Report
+=============================================
+Random seed: 42
+
+Split details:
+train: 210 images
+val: 45 images
+test: 45 images
+
+Total images: 300
+Total annotations: 1002
+
+Categories:
+YOLO class 0: dent - 327 annotations
+YOLO class 1: scratch - 371 annotations
+YOLO class 2: crack - 115 annotations
+YOLO class 3: glass shatter - 67 annotations
+YOLO class 4: lamp broken - 89 annotations
+YOLO class 5: tire flat - 33 annotations
+
+Annotation formats: COCO JSON and YOLO TXT
+Metadata: Original Excel metadata preserved
+Original dataset: Not modified
