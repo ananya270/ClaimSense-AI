@@ -19,6 +19,8 @@ from backend.database.models import (
     VehicleDamageAnalysis,
     VehicleDamageDetection,
     ClaimNLPAnalysis,
+    ClaimVerificationRun,
+    VerificationFinding,
 )
 from backend.services.ocr.document_service import ingest_extracted_claim_data, process_document
 from backend.services.receipt import (
@@ -33,6 +35,7 @@ from backend.services.vision import (
     process_claim_damage_detection,
 )
 from backend.services.nlp import ClaimNLPService
+from backend.services.verification import ClaimVerificationService
 from backend.extensions import csrf
 from backend.utils.auth import get_current_user_id, can_user_access_claim
 from backend.utils.logger import setup_logger
@@ -1626,5 +1629,182 @@ def get_claim_nlp_consistency(claim_id: str):
             "claim_id": claim_id,
             "consistency": data.get("consistency", {}),
         }), 200
+
+
+# =========================================================================
+# Phase 7: Cross-Source Verification & Intelligent Claim Validation Routes
+# =========================================================================
+
+@claims_bp.route("/claims/<claim_id>/verify-cross-source", methods=["POST"])
+@csrf.exempt
+def verify_claim_cross_source(claim_id: str):
+    """Executes Phase 7 multi-source verification across policy, forms, OCR, NLP, and vision."""
+    if not is_valid_claim_id_format(claim_id):
+        return jsonify({
+            "success": False,
+            "error": "Invalid Claim ID format",
+            "message": "Claim ID must follow format CLM-YYYYMMDD-XXXX.",
+        }), 400
+
+    user_id = session.get("user_id")
+    user_role = session.get("role")
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim:
+            return jsonify({
+                "success": False,
+                "error": "Not Found",
+                "message": f"Claim with ID '{claim_id}' was not found.",
+            }), 404
+
+        if not can_user_access_claim(claim, user_id, user_role):
+            if not user_id:
+                return jsonify({
+                    "success": False,
+                    "error": "Unauthorized",
+                    "message": "Authentication required to perform cross-source verification.",
+                }), 401
+            return jsonify({
+                "success": False,
+                "error": "Forbidden",
+                "message": "You do not have permission to verify this claim.",
+            }), 403
+
+    # Check for force flag
+    force = False
+    if request.is_json and request.json:
+        force = bool(request.json.get("force", False))
+    elif request.args.get("force"):
+        force = request.args.get("force").lower() in ("true", "1", "yes")
+
+    try:
+        verification_result = ClaimVerificationService.verify_claim(claim_id=claim_id, force=force)
+        return jsonify({
+            "success": True,
+            "claim_id": claim_id,
+            "verification": verification_result,
+        }), 200
+    except Exception as exc:
+        logger.error(f"Error during cross-source verification for {claim_id}: {exc}", exc_info=True)
+        return jsonify({
+            "success": False,
+            "error": "Verification Failed",
+            "message": "An error occurred during multi-source cross-verification.",
+        }), 500
+
+
+@claims_bp.route("/claims/<claim_id>/verification", methods=["GET"])
+def get_claim_verification(claim_id: str):
+    """Retrieves the latest Phase 7 cross-source verification run for a claim."""
+    if not is_valid_claim_id_format(claim_id):
+        return jsonify({"success": False, "error": "Invalid Claim ID format"}), 400
+
+    user_id = session.get("user_id")
+    user_role = session.get("role")
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim:
+            return jsonify({"success": False, "error": "Not Found"}), 404
+
+        if not can_user_access_claim(claim, user_id, user_role):
+            if not user_id:
+                return jsonify({"success": False, "error": "Unauthorized"}), 401
+            return jsonify({"success": False, "error": "Forbidden"}), 403
+
+        if not claim.verification_runs:
+            return jsonify({
+                "success": False,
+                "error": "Not Verified",
+                "message": "Cross-source verification has not been executed for this claim yet.",
+                "verified": False,
+            }), 404
+
+        latest_run = sorted(claim.verification_runs, key=lambda r: r.id)[-1]
+        return jsonify({
+            "success": True,
+            "claim_id": claim_id,
+            "verified": True,
+            "verification": latest_run.to_dict(include_findings=True),
+        }), 200
+
+
+@claims_bp.route("/claims/<claim_id>/verification/findings", methods=["GET"])
+def get_claim_verification_findings(claim_id: str):
+    """Retrieves individual comparison findings with optional severity or status filtering."""
+    if not is_valid_claim_id_format(claim_id):
+        return jsonify({"success": False, "error": "Invalid Claim ID format"}), 400
+
+    user_id = session.get("user_id")
+    user_role = session.get("role")
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim or not can_user_access_claim(claim, user_id, user_role):
+            if not claim:
+                return jsonify({"success": False, "error": "Not Found"}), 404
+            return jsonify({"success": False, "error": "Unauthorized" if not user_id else "Forbidden"}), 401 if not user_id else 403
+
+        if not claim.verification_runs:
+            return jsonify({"success": False, "error": "Not Verified", "findings": []}), 404
+
+        latest_run = sorted(claim.verification_runs, key=lambda r: r.id)[-1]
+        findings = [f.to_dict() for f in latest_run.findings]
+
+        # Optional filtering
+        severity_filter = request.args.get("severity")
+        status_filter = request.args.get("status")
+
+        if severity_filter:
+            findings = [f for f in findings if f.get("severity", "").upper() == severity_filter.upper()]
+        if status_filter:
+            findings = [f for f in findings if f.get("comparison_status", "").upper() == status_filter.upper()]
+
+        return jsonify({
+            "success": True,
+            "claim_id": claim_id,
+            "total_findings": len(findings),
+            "findings": findings,
+        }), 200
+
+
+@claims_bp.route("/claims/<claim_id>/verification/summary", methods=["GET"])
+def get_claim_verification_summary(claim_id: str):
+    """Retrieves high-level verification metrics, consistency score, and review recommendations."""
+    if not is_valid_claim_id_format(claim_id):
+        return jsonify({"success": False, "error": "Invalid Claim ID format"}), 400
+
+    user_id = session.get("user_id")
+    user_role = session.get("role")
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim or not can_user_access_claim(claim, user_id, user_role):
+            if not claim:
+                return jsonify({"success": False, "error": "Not Found"}), 404
+            return jsonify({"success": False, "error": "Unauthorized" if not user_id else "Forbidden"}), 401 if not user_id else 403
+
+        if not claim.verification_runs:
+            return jsonify({"success": False, "error": "Not Verified"}), 404
+
+        latest_run = sorted(claim.verification_runs, key=lambda r: r.id)[-1]
+        data = latest_run.to_dict(include_findings=False)
+
+        return jsonify({
+            "success": True,
+            "claim_id": claim_id,
+            "overall_status": data["overall_status"],
+            "consistency_score": data["consistency_score"],
+            "matched_comparisons": data["matched_comparisons"],
+            "mismatched_comparisons": data["mismatched_comparisons"],
+            "missing_evidence_count": data["missing_evidence_count"],
+            "inconclusive_count": data["inconclusive_count"],
+            "high_severity_count": data["high_severity_count"],
+            "critical_severity_count": data["critical_severity_count"],
+            "recommendations": data["recommendations"],
+            "processing_time_ms": data["processing_time_ms"],
+        }), 200
+
 
 

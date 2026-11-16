@@ -1,1 +1,73 @@
-"""Cross-source verification service placeholder (Phase 7)."""
+"""Cross-Source Verification and Intelligent Claim Validation Package (Phase 7)."""
+
+from backend.services.verification.rules import (
+    STATUS_MATCH,
+    STATUS_MISMATCH,
+    STATUS_MISSING_IN_SOURCE,
+    STATUS_INCONCLUSIVE,
+    STATUS_NOT_VISUALLY_CONFIRMED,
+    STATUS_VISUAL_ONLY_FINDING,
+    STATUS_POTENTIAL_DISCREPANCY,
+    SEVERITY_LOW,
+    SEVERITY_MEDIUM,
+    SEVERITY_HIGH,
+    SEVERITY_CRITICAL,
+    OVERALL_CONSISTENT,
+    OVERALL_REVIEW_REQUIRED,
+    OVERALL_INSUFFICIENT_EVIDENCE,
+    DECISION_SUPPORT_DISCLAIMER,
+)
+from backend.services.verification.field_comparator import (
+    normalize_name,
+    compare_names,
+    normalize_vehicle_reg,
+    compare_vehicle_registrations,
+    normalize_date,
+    compare_dates,
+    parse_policy_period,
+    compare_policy_validity,
+    normalize_policy_num,
+    compare_policy_numbers,
+)
+from backend.services.verification.damage_comparator import (
+    compare_narrative_vs_vision,
+    compare_invoice_vs_damage,
+)
+from backend.services.verification.scoring import (
+    compute_verification_score_and_summary,
+)
+from backend.services.verification.service import (
+    ClaimVerificationService,
+)
+
+__all__ = [
+    "STATUS_MATCH",
+    "STATUS_MISMATCH",
+    "STATUS_MISSING_IN_SOURCE",
+    "STATUS_INCONCLUSIVE",
+    "STATUS_NOT_VISUALLY_CONFIRMED",
+    "STATUS_VISUAL_ONLY_FINDING",
+    "STATUS_POTENTIAL_DISCREPANCY",
+    "SEVERITY_LOW",
+    "SEVERITY_MEDIUM",
+    "SEVERITY_HIGH",
+    "SEVERITY_CRITICAL",
+    "OVERALL_CONSISTENT",
+    "OVERALL_REVIEW_REQUIRED",
+    "OVERALL_INSUFFICIENT_EVIDENCE",
+    "DECISION_SUPPORT_DISCLAIMER",
+    "normalize_name",
+    "compare_names",
+    "normalize_vehicle_reg",
+    "compare_vehicle_registrations",
+    "normalize_date",
+    "compare_dates",
+    "parse_policy_period",
+    "compare_policy_validity",
+    "normalize_policy_num",
+    "compare_policy_numbers",
+    "compare_narrative_vs_vision",
+    "compare_invoice_vs_damage",
+    "compute_verification_score_and_summary",
+    "ClaimVerificationService",
+]

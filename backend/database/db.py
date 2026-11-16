@@ -18,6 +18,8 @@ from backend.database.models import (
     ClaimImage,
     VehicleDamageAnalysis,
     VehicleDamageDetection,
+    ClaimVerificationRun,
+    VerificationFinding,
 )
 from backend.utils.logger import setup_logger
 

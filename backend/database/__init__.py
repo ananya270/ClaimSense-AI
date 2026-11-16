@@ -8,6 +8,8 @@ from backend.database.models import (
     ExtractedInformation,
     ImageAnalysis,
     VerificationResult,
+    ClaimVerificationRun,
+    VerificationFinding,
     RiskAssessment,
     Report,
 )
@@ -27,6 +29,8 @@ __all__ = [
     "ExtractedInformation",
     "ImageAnalysis",
     "VerificationResult",
+    "ClaimVerificationRun",
+    "VerificationFinding",
     "RiskAssessment",
     "Report",
     "init_database",

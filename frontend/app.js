@@ -1368,8 +1368,36 @@ function initClaimSenseApp() {
     const btnCloseEvidenceModal = document.getElementById("btn-close-evidence-modal");
     const btnEvidenceModalClose = document.getElementById("btn-evidence-modal-close");
 
+    let claimDetailsScrollPos = 0;
+
+    function lockClaimDetailsScroll() {
+        if (!document.body.classList.contains("modal-open")) {
+            claimDetailsScrollPos = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+            document.documentElement.classList.add("modal-open");
+            document.body.classList.add("modal-open");
+        }
+    }
+
+    function unlockClaimDetailsScroll() {
+        document.documentElement.classList.remove("modal-open");
+        document.body.classList.remove("modal-open");
+        const prevBehavior = document.documentElement.style.scrollBehavior;
+        document.documentElement.style.scrollBehavior = "auto";
+        try {
+            window.scrollTo({
+                top: claimDetailsScrollPos,
+                left: 0,
+                behavior: "instant"
+            });
+        } catch (e) {
+            window.scrollTo(0, claimDetailsScrollPos);
+        }
+        document.documentElement.style.scrollBehavior = prevBehavior;
+    }
+
     function closeClaimDetailsModal() {
         if (modalClaimDetails) modalClaimDetails.style.display = "none";
+        unlockClaimDetailsScroll();
     }
 
     function closeClaimEvidenceModal() {
@@ -1381,8 +1409,19 @@ function initClaimSenseApp() {
     if (btnCloseEvidenceModal) btnCloseEvidenceModal.addEventListener("click", closeClaimEvidenceModal);
     if (btnEvidenceModalClose) btnEvidenceModalClose.addEventListener("click", closeClaimEvidenceModal);
 
+    // Close Claim Details modal with Escape key
+    window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" || e.keyCode === 27) {
+            if (modalClaimDetails && modalClaimDetails.style.display === "flex") {
+                closeClaimDetailsModal();
+            }
+        }
+    });
+
     async function openClaimDetailsModal(claimId) {
         if (!modalClaimDetails) return;
+
+        lockClaimDetailsScroll();
 
         const idSpan = document.getElementById("modal-details-id");
         if (idSpan) idSpan.textContent = claimId;
@@ -1407,6 +1446,8 @@ function initClaimSenseApp() {
         if (extractedRows) extractedRows.innerHTML = "";
 
         modalClaimDetails.style.display = "flex";
+        const modalBody = modalClaimDetails.querySelector(".modal-body");
+        if (modalBody) modalBody.scrollTop = 0;
 
         try {
             const res = await fetch(`/api/claims/${claimId}`);
@@ -1842,6 +1883,161 @@ function initClaimSenseApp() {
                     }
                 } catch {
                     displayNlpAnalysis(null);
+                }
+            }
+
+            // =========================================================
+            // PHASE 7: Cross-Source Verification Logic
+            // =========================================================
+            const btnRunVerification = document.getElementById("btn-run-verification");
+            const verifPendingBanner = document.getElementById("verif-pending-banner");
+            const verifContentContainer = document.getElementById("verif-content-container");
+            const verifMetricStatus = document.getElementById("verif-metric-status");
+            const verifMetricScore = document.getElementById("verif-metric-score");
+            const verifMetricMatched = document.getElementById("verif-metric-matched");
+            const verifMetricMismatched = document.getElementById("verif-metric-mismatched");
+            const verifMetricMissing = document.getElementById("verif-metric-missing");
+            const verifFindingsRows = document.getElementById("verif-findings-rows");
+            const verifRecommendationsContainer = document.getElementById("verif-recommendations-container");
+            const verifRecommendationsList = document.getElementById("verif-recommendations-list");
+
+            function displayVerificationResults(verif) {
+                if (!verif || !verif.total_comparisons) {
+                    if (verifPendingBanner) verifPendingBanner.style.display = "block";
+                    if (verifContentContainer) verifContentContainer.style.display = "none";
+                    return;
+                }
+
+                if (verifPendingBanner) verifPendingBanner.style.display = "none";
+                if (verifContentContainer) verifContentContainer.style.display = "block";
+
+                // Populate metrics
+                if (verifMetricStatus) {
+                    verifMetricStatus.textContent = verif.overall_status || "CONSISTENT";
+                    if (verif.overall_status === "CONSISTENT") {
+                        verifMetricStatus.style.color = "var(--success)";
+                    } else if (verif.overall_status === "REVIEW_REQUIRED") {
+                        verifMetricStatus.style.color = "var(--danger)";
+                    } else {
+                        verifMetricStatus.style.color = "var(--warning)";
+                    }
+                }
+                if (verifMetricScore) {
+                    const score = verif.consistency_score != null ? Number(verif.consistency_score).toFixed(1) : "100.0";
+                    verifMetricScore.textContent = `${score}%`;
+                    verifMetricScore.style.color = Number(score) >= 75 ? "var(--success)" : (Number(score) >= 50 ? "var(--warning)" : "var(--danger)");
+                }
+                if (verifMetricMatched) verifMetricMatched.textContent = verif.matched_comparisons || 0;
+                if (verifMetricMismatched) verifMetricMismatched.textContent = verif.mismatched_comparisons || 0;
+                if (verifMetricMissing) verifMetricMissing.textContent = verif.missing_evidence_count || 0;
+
+                // Populate findings table
+                if (verifFindingsRows) {
+                    verifFindingsRows.innerHTML = "";
+                    const findings = verif.findings || [];
+                    if (findings.length === 0) {
+                        verifFindingsRows.innerHTML = `<tr><td colspan="7" class="text-center text-muted p-3">No comparison findings generated.</td></tr>`;
+                    } else {
+                        findings.forEach(f => {
+                            const tr = document.createElement("tr");
+
+                            // Status badge
+                            let stClass = "badge-neutral";
+                            if (f.comparison_status === "MATCH") stClass = "badge-success";
+                            else if (f.comparison_status === "MISMATCH") stClass = "badge-danger";
+                            else if (f.comparison_status === "POTENTIAL_DISCREPANCY") stClass = "badge-warning";
+                            else if (f.comparison_status === "VISUAL_ONLY_FINDING") stClass = "badge-info";
+
+                            // Severity badge
+                            let sevClass = "badge-neutral";
+                            if (f.severity === "CRITICAL" || f.severity === "HIGH") sevClass = "badge-danger";
+                            else if (f.severity === "MEDIUM") sevClass = "badge-warning";
+
+                            tr.innerHTML = `
+                                <td>
+                                    <strong>${escapeHtml(f.source_a || '')}</strong><br/>
+                                    <small class="text-muted">vs ${escapeHtml(f.source_b || '')}</small>
+                                </td>
+                                <td>
+                                    <strong>${escapeHtml(f.field_name || '')}</strong><br/>
+                                    <small class="text-muted monospace">${escapeHtml(f.comparison_id || '')}</small>
+                                </td>
+                                <td><span style="font-size: 0.85rem;">${escapeHtml(f.original_value_a || '—')}</span></td>
+                                <td><span style="font-size: 0.85rem;">${escapeHtml(f.original_value_b || '—')}</span></td>
+                                <td><span class="badge ${stClass}">${escapeHtml(f.comparison_status || '')}</span></td>
+                                <td><span class="badge ${sevClass}">${escapeHtml(f.severity || '')}</span></td>
+                                <td><small>${escapeHtml(f.explanation || '')}</small></td>
+                            `;
+                            verifFindingsRows.appendChild(tr);
+                        });
+                    }
+                }
+
+                // Recommendations
+                if (verifRecommendationsContainer && verifRecommendationsList) {
+                    verifRecommendationsList.innerHTML = "";
+                    const recs = verif.recommendations || [];
+                    if (recs.length > 0) {
+                        recs.forEach(r => {
+                            const li = document.createElement("li");
+                            li.textContent = r;
+                            verifRecommendationsList.appendChild(li);
+                        });
+                        verifRecommendationsContainer.style.display = "block";
+                    } else {
+                        verifRecommendationsContainer.style.display = "none";
+                    }
+                }
+            }
+
+            // Wire up Run Verification button
+            if (btnRunVerification) {
+                btnRunVerification.onclick = async () => {
+                    btnRunVerification.disabled = true;
+                    btnRunVerification.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Verifying...`;
+
+                    try {
+                        const vRes = await fetch(`/api/claims/${claimId}/verify-cross-source`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ force: true })
+                        });
+                        const vData = await vRes.json();
+                        if (!vRes.ok || !vData.success) {
+                            throw new Error(vData.message || "Failed to execute cross-source verification.");
+                        }
+                        displayVerificationResults(vData.verification);
+                    } catch (err) {
+                        if (verifPendingBanner) {
+                            verifPendingBanner.className = "damage-banner banner-danger mt-2";
+                            verifPendingBanner.textContent = `Verification Error: ${err.message}`;
+                            verifPendingBanner.style.display = "block";
+                        }
+                    } finally {
+                        btnRunVerification.disabled = false;
+                        btnRunVerification.innerHTML = `<span class="btn-icon">⚡</span> Run Verification`;
+                    }
+                };
+            }
+
+            // Initial load of verification data
+            if (claim.verification) {
+                displayVerificationResults(claim.verification);
+            } else {
+                try {
+                    const vGet = await fetch(`/api/claims/${claimId}/verification`);
+                    if (vGet.ok) {
+                        const vJson = await vGet.json();
+                        if (vJson.verified && vJson.verification) {
+                            displayVerificationResults(vJson.verification);
+                        } else {
+                            displayVerificationResults(null);
+                        }
+                    } else {
+                        displayVerificationResults(null);
+                    }
+                } catch {
+                    displayVerificationResults(null);
                 }
             }
 
