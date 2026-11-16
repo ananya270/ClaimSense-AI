@@ -967,34 +967,93 @@ def generate_document_intelligence_report_pdf(
     story.append(PageBreak())
 
     # Page 5: Vehicle Damage Detection Analysis (Phase 5 Computer Vision)
-    damage_analysis = claim_dict.get("damage_analysis") or claim_dict.get("latest_damage_analysis")
-    is_cv_fallback = bool(
+    claim_id = str(claim_dict.get("claim_id") or "").strip()
+    damage_analysis = None
+
+    # 1. Dynamically retrieve latest persisted VehicleDamageAnalysis from SQLite for this exact claim
+    if claim_id and claim_id != "N/A":
+        try:
+            from backend.database.db import get_db_session
+            from backend.database.models import VehicleDamageAnalysis
+            with get_db_session() as db:
+                query = db.query(VehicleDamageAnalysis).filter(VehicleDamageAnalysis.claim_id == claim_id)
+                # Verify the analysis image_id matches the appropriate active evidence
+                chosen_img_id = vehicle_meta.get("image_id") if vehicle_meta else None
+                if chosen_img_id:
+                    matched = query.filter(
+                        (VehicleDamageAnalysis.image_id == chosen_img_id) | (VehicleDamageAnalysis.image_id.is_(None))
+                    ).order_by(VehicleDamageAnalysis.id.desc()).first()
+                    if matched:
+                        damage_analysis = matched.to_dict()
+                if not damage_analysis:
+                    db_analysis = query.order_by(VehicleDamageAnalysis.id.desc()).first()
+                    if db_analysis:
+                        if not chosen_img_id or db_analysis.image_id == chosen_img_id or not db_analysis.image_id:
+                            damage_analysis = db_analysis.to_dict()
+        except Exception:
+            pass
+
+    # 2. Fallback to claim_dict only if database query was not performed or yielded no result
+    if not damage_analysis:
+        cand_analysis = claim_dict.get("damage_analysis") or claim_dict.get("latest_damage_analysis")
+        if cand_analysis:
+            # Enforce cross-claim isolation: never display analysis belonging to a different claim
+            cand_cid = str(cand_analysis.get("claim_id") or "").strip()
+            if not cand_cid or cand_cid == claim_id:
+                damage_analysis = cand_analysis
+    elif damage_analysis:
+        # Cross-claim isolation check
+        da_cid = str(damage_analysis.get("claim_id") or "").strip()
+        if da_cid and claim_id and da_cid != claim_id:
+            damage_analysis = None
+
+    raw_status = str(damage_analysis.get("analysis_status") or "").lower() if damage_analysis else ""
+    is_failed = bool(
         damage_analysis and (
-            damage_analysis.get("detection_method") == "opencv_traditional_cv"
+            raw_status in {"failed", "error"}
+            or damage_analysis.get("error")
+        )
+    )
+    is_processing = bool(
+        damage_analysis and not is_failed and raw_status in {"processing", "running"}
+    )
+    is_cv_fallback = bool(
+        damage_analysis and not is_failed and not is_processing and (
+            damage_analysis.get("detection_method") in {"opencv_traditional_cv", "opencv_fallback", "opencv"}
             or not damage_analysis.get("model_available", True)
+            or "opencv" in str(damage_analysis.get("detection_method", "")).lower()
         )
     )
 
     story.append(Paragraph("Page 5: Vehicle Damage Detection Analysis", section_heading))
-    if is_cv_fallback:
-        story.append(Paragraph("Computer Vision Structural & Edge Analysis using OpenCV Diagnostic Fallback", subtitle_style))
-    else:
+    if is_failed:
+        story.append(Paragraph("Computer Vision Vehicle Damage Inspection — Analysis Execution Failed", subtitle_style))
+    elif is_processing:
+        story.append(Paragraph("AI-Powered Computer Vision Damage Inspection (Status: Processing)", subtitle_style))
+    elif is_cv_fallback:
+        story.append(Paragraph("Computer Vision Structural & Edge Analysis using OpenCV Diagnostic Fallback (Structural Only)", subtitle_style))
+    elif damage_analysis and raw_status == "completed":
         story.append(Paragraph("AI-Powered Computer Vision Damage Inspection using fine-tuned YOLOv8 on CarDD", subtitle_style))
+    elif not valid_photo_item or (vehicle_validation and not vehicle_validation.get("is_valid_vehicle_photo")):
+        story.append(Paragraph("AI-Powered Computer Vision Damage Inspection (Status: Awaiting Valid Vehicle Evidence)", subtitle_style))
+    else:
+        story.append(Paragraph("AI-Powered Computer Vision Damage Inspection (Status: Analysis Pending)", subtitle_style))
     story.append(Spacer(1, 6))
 
-    # Try resolving annotated image from disk if available
+    # Try resolving annotated image from disk if available (only for successful/fallback analysis)
     annotated_photo = None
     annotated_path = None
-    if damage_analysis and damage_analysis.get("annotated_image_path"):
-        annotated_path = _resolve_upload_path(damage_analysis["annotated_image_path"], upload_root)
-    elif upload_root and claim_id:
-        img_dir = Path(upload_root) / claim_id / "images"
-        if img_dir.exists():
-            ann_matches = list(img_dir.glob("annotated_*"))
-            if not ann_matches:
-                ann_matches = list(img_dir.glob("opencv_analysis_*"))
-            if ann_matches:
-                annotated_path = ann_matches[-1]
+    if damage_analysis and not is_failed:
+        if damage_analysis.get("annotated_image_path"):
+            annotated_path = _resolve_upload_path(damage_analysis["annotated_image_path"], upload_root)
+        elif upload_root and claim_id:
+            img_dir = Path(upload_root) / claim_id / "images"
+            if img_dir.exists():
+                ann_matches = list(img_dir.glob("annotated_*"))
+                if not ann_matches:
+                    ann_matches = list(img_dir.glob("opencv_analysis_*"))
+                if ann_matches:
+                    annotated_path = ann_matches[-1]
 
     if annotated_path and annotated_path.exists():
         try:
@@ -1014,24 +1073,30 @@ def generate_document_intelligence_report_pdf(
 
     # Side-by-side or stacked photo layout
     orig_photo_small = None
+    orig_p = None
     if vehicle_meta:
         rel = vehicle_meta.get("file_path") or vehicle_meta.get("relative_path")
         orig_p = _resolve_upload_path(rel, upload_root) or _resolve_upload_path(vehicle_meta.get("stored_filename"), upload_root)
-        if orig_p and orig_p.exists():
-            try:
-                with Image.open(orig_p) as o_img:
-                    o_img = ImageOps.exif_transpose(o_img)
-                    if o_img.mode not in {"RGB", "RGBA"}:
-                        o_img = o_img.convert("RGB")
-                    ow, oh = o_img.size
-                    scale_o = min(240 / ow, 160 / oh)
-                    rw, rh = max(1, int(ow * scale_o)), max(1, int(oh * scale_o))
-                    o_buf = io.BytesIO()
-                    o_img.resize((rw, rh), Image.Resampling.LANCZOS).save(o_buf, format="PNG")
-                    o_buf.seek(0)
-                    orig_photo_small = RLImage(o_buf, width=rw, height=rh)
-            except Exception:
-                orig_photo_small = None
+    if not orig_p and damage_analysis:
+        rel = damage_analysis.get("original_image_path") or damage_analysis.get("image_path")
+        if rel:
+            orig_p = _resolve_upload_path(rel, upload_root)
+
+    if orig_p and orig_p.exists():
+        try:
+            with Image.open(orig_p) as o_img:
+                o_img = ImageOps.exif_transpose(o_img)
+                if o_img.mode not in {"RGB", "RGBA"}:
+                    o_img = o_img.convert("RGB")
+                ow, oh = o_img.size
+                scale_o = min(240 / ow, 160 / oh)
+                rw, rh = max(1, int(ow * scale_o)), max(1, int(oh * scale_o))
+                o_buf = io.BytesIO()
+                o_img.resize((rw, rh), Image.Resampling.LANCZOS).save(o_buf, format="PNG")
+                o_buf.seek(0)
+                orig_photo_small = RLImage(o_buf, width=rw, height=rh)
+        except Exception:
+            orig_photo_small = None
 
     right_col_title = "<b>OpenCV Structural & Edge Analysis</b>" if is_cv_fallback else "<b>AI Damage Localization & Classification</b>"
     if orig_photo_small and annotated_photo:
@@ -1056,38 +1121,43 @@ def generate_document_intelligence_report_pdf(
         story.append(annotated_photo)
         story.append(Spacer(1, 8))
     elif orig_photo_small:
-        if vehicle_validation and not vehicle_validation.get("is_valid_vehicle_photo"):
+        if is_failed:
+            story.append(Paragraph("<b>Original Vehicle Photograph</b> (Damage analysis failed during execution)", warning_style))
+        elif vehicle_validation and not vehicle_validation.get("is_valid_vehicle_photo"):
             story.append(Paragraph("<b>Flagged Non-Photographic Evidence:</b> The uploaded vehicle image was identified as a synthetic document graphic render (policy schedule). Automated vehicle damage detection requires an authentic camera photograph of vehicle damage.", warning_style))
         else:
             story.append(Paragraph("<b>Original Vehicle Photograph</b> (Automated damage analysis pending)", meta_label))
-            story.append(orig_photo_small)
+        story.append(orig_photo_small)
         story.append(Spacer(1, 8))
     else:
         story.append(Paragraph("No vehicle accident photograph was available for visual damage analysis.", warning_style))
         story.append(Spacer(1, 8))
 
     # Metadata, evaluation benchmarks & processing status
-    total_det = damage_analysis.get("total_detections", 0) if damage_analysis else 0
-    categories = damage_analysis.get("damage_categories", []) if damage_analysis else []
-    cats_str = ", ".join(categories) if categories else ("None detected" if damage_analysis else "Not analyzed")
-    peak_conf = damage_analysis.get("highest_confidence", 0.0) if damage_analysis else 0.0
+    total_det = damage_analysis.get("total_detections", 0) if (damage_analysis and not is_failed) else 0
+    categories = damage_analysis.get("damage_categories", []) if (damage_analysis and not is_failed) else []
+    cats_str = ", ".join(categories) if categories else ("None detected" if (damage_analysis and not is_failed) else ("None (Analysis Failed)" if is_failed else "Not analyzed"))
+    peak_conf = damage_analysis.get("highest_confidence", 0.0) if (damage_analysis and not is_failed) else 0.0
+    avg_conf = damage_analysis.get("average_confidence", 0.0) if (damage_analysis and not is_failed) else 0.0
     latency = damage_analysis.get("processing_time_ms", 0.0) if damage_analysis else 0.0
     model_name = damage_analysis.get("model_name", "YOLOv8n-CarDD") if damage_analysis else "YOLOv8n-CarDD"
-    device_name = damage_analysis.get("device", "CPU").upper() if damage_analysis else "CPU"
+    device_name = str(damage_analysis.get("device", "CPU")).upper() if damage_analysis else "CPU"
     det_method_str = damage_analysis.get("detection_method", "yolov8_cardd") if damage_analysis else "Not executed"
 
     # Determine explicit processing status
-    if damage_analysis:
-        if damage_analysis.get("error"):
-            proc_status = "Failed"
-        elif is_cv_fallback:
-            proc_status = "Completed (OpenCV Traditional CV Fallback - Structural Only)"
-        elif total_det == 0:
+    if is_failed:
+        proc_status = "Failed"
+    elif is_processing:
+        proc_status = "Processing"
+    elif is_cv_fallback:
+        proc_status = "Completed (OpenCV Traditional CV Fallback - Structural Only)"
+    elif damage_analysis:
+        if total_det == 0:
             proc_status = "Completed (No damage detected by the model)"
         else:
             proc_status = "Completed"
-    elif vehicle_validation and not vehicle_validation.get("is_valid_vehicle_photo"):
-        proc_status = "Pending (Invalid evidence: Photographic capture required; uploaded file flagged as synthetic graphic)"
+    elif not valid_photo_item or (vehicle_validation and not vehicle_validation.get("is_valid_vehicle_photo")):
+        proc_status = "Pending (Awaiting Valid Vehicle Evidence)"
     else:
         proc_status = "Pending (Automated vehicle damage analysis has not yet been executed for this claim)"
 
@@ -1111,25 +1181,76 @@ def generate_document_intelligence_report_pdf(
     except Exception:
         pass
 
-    if is_cv_fallback:
-        meta_rows = [
-            [Paragraph("Vision Method", meta_label), Paragraph("OpenCV Traditional CV Fallback", meta_val),
-             Paragraph("Model Availability", meta_label), Paragraph("Fallback Invoked (No Fake Detections)", meta_val)],
-            [Paragraph("Processing Status", meta_label), Paragraph(f"<b>{proc_status}</b>", meta_val),
-             Paragraph("Processing Engine", meta_label), Paragraph(f"OpenCV (cv2) on {device_name}", meta_val)],
-            [Paragraph("Semantic Damage Classes", meta_label), Paragraph("None asserted (Fallback Mode)", meta_val),
-             Paragraph("Processing Latency", meta_label), Paragraph(f"{latency:.1f} ms" if latency else "—", meta_val)],
-        ]
-    else:
+    if is_failed:
+        err_msg = str(damage_analysis.get("error") or damage_analysis.get("error_message") or "Computer vision execution failed.")
         meta_rows = [
             [Paragraph("Vision Model", meta_label), Paragraph(f"{model_name} (Ultralytics YOLOv8n)", meta_val),
+             Paragraph("Detection Method", meta_label), Paragraph(det_method_str, meta_val)],
+            [Paragraph("Processing Status", meta_label), Paragraph(f"<b><font color='#dc2626'>{proc_status}</font></b>", meta_val),
+             Paragraph("Processing Device", meta_label), Paragraph(device_name, meta_val)],
+            [Paragraph("Total Damages Identified", meta_label), Paragraph("0", meta_val),
+             Paragraph("Inference Latency", meta_label), Paragraph(f"{latency:.1f} ms" if latency else "—", meta_val)],
+            [Paragraph("Peak Confidence", meta_label), Paragraph("—", meta_val),
+             Paragraph("Average Confidence", meta_label), Paragraph("—", meta_val)],
+            [Paragraph("Detected Damage Classes", meta_label), Paragraph(cats_str, meta_val),
+             Paragraph("Execution Error", meta_label), Paragraph(err_msg[:60], meta_val)],
+        ]
+    elif is_processing:
+        meta_rows = [
+            [Paragraph("Vision Model", meta_label), Paragraph(f"{model_name} (Ultralytics YOLOv8n)", meta_val),
+             Paragraph("Detection Method", meta_label), Paragraph("YOLOv8 CarDD (In Progress)", meta_val)],
+            [Paragraph("Processing Status", meta_label), Paragraph(f"<b><font color='#d97706'>{proc_status}</font></b>", meta_val),
+             Paragraph("Processing Device", meta_label), Paragraph(device_name, meta_val)],
+            [Paragraph("Total Damages Identified", meta_label), Paragraph("Inference in progress...", meta_val),
+             Paragraph("Inference Latency", meta_label), Paragraph("—", meta_val)],
+            [Paragraph("Peak Confidence", meta_label), Paragraph("—", meta_val),
+             Paragraph("Average Confidence", meta_label), Paragraph("—", meta_val)],
+            [Paragraph("Detected Damage Classes", meta_label), Paragraph("Processing...", meta_val),
              Paragraph("Dataset Name", meta_label), Paragraph("CarDD (Car Damage Dataset)", meta_val)],
+            [Paragraph("CarDD Test Precision / Recall", meta_label), Paragraph(f"{bench_precision_str} / {bench_recall_str}", meta_val),
+             Paragraph("CarDD Test mAP@50 / mAP@50-95", meta_label), Paragraph(f"{bench_map50_str} / {bench_map95_str}", meta_val)],
+        ]
+    elif is_cv_fallback:
+        meta_rows = [
+            [Paragraph("Vision Method", meta_label), Paragraph("OpenCV Traditional CV Fallback", meta_val),
+             Paragraph("Detection Method", meta_label), Paragraph("OpenCV Diagnostic Fallback (Structural Only)", meta_val)],
+            [Paragraph("Processing Status", meta_label), Paragraph(f"<b>{proc_status}</b>", meta_val),
+             Paragraph("Processing Device", meta_label), Paragraph(f"OpenCV (cv2) on {device_name}", meta_val)],
+            [Paragraph("Total Damages Identified", meta_label), Paragraph("0 (Structural analysis only; semantic predictions disabled)", meta_val),
+             Paragraph("Inference Latency", meta_label), Paragraph(f"{latency:.1f} ms" if latency else "—", meta_val)],
+            [Paragraph("Peak Confidence", meta_label), Paragraph("—", meta_val),
+             Paragraph("Average Confidence", meta_label), Paragraph("—", meta_val)],
+            [Paragraph("Detected Damage Classes", meta_label), Paragraph("None asserted (Structural analysis without semantic damage predictions)", meta_val),
+             Paragraph("Model Availability", meta_label), Paragraph("Fallback Invoked (No Fake Detections)", meta_val)],
+        ]
+    elif damage_analysis:
+        meta_rows = [
+            [Paragraph("Vision Model", meta_label), Paragraph(f"{model_name} (Ultralytics YOLOv8n)", meta_val),
+             Paragraph("Detection Method", meta_label), Paragraph("YOLOv8 fine-tuned on CarDD" if "yolo" in det_method_str.lower() else det_method_str, meta_val)],
             [Paragraph("Processing Status", meta_label), Paragraph(f"<b>{proc_status}</b>", meta_val),
              Paragraph("Processing Device", meta_label), Paragraph(device_name, meta_val)],
             [Paragraph("Total Damages Identified", meta_label), Paragraph(str(total_det), meta_val),
-             Paragraph("Peak Confidence", meta_label), Paragraph(f"{peak_conf * 100:.1f}%" if peak_conf else "—", meta_val)],
-            [Paragraph("Detected Damage Classes", meta_label), Paragraph(cats_str, meta_val),
              Paragraph("Inference Latency", meta_label), Paragraph(f"{latency:.1f} ms" if latency else "—", meta_val)],
+            [Paragraph("Peak Confidence", meta_label), Paragraph(f"{peak_conf * 100:.1f}%" if peak_conf else "—", meta_val),
+             Paragraph("Average Confidence", meta_label), Paragraph(f"{avg_conf * 100:.1f}%" if avg_conf else "—", meta_val)],
+            [Paragraph("Detected Damage Classes", meta_label), Paragraph(cats_str, meta_val),
+             Paragraph("Dataset Name", meta_label), Paragraph("CarDD (Car Damage Dataset)", meta_val)],
+            [Paragraph("CarDD Test Precision / Recall", meta_label), Paragraph(f"{bench_precision_str} / {bench_recall_str}", meta_val),
+             Paragraph("CarDD Test mAP@50 / mAP@50-95", meta_label), Paragraph(f"{bench_map50_str} / {bench_map95_str}", meta_val)],
+        ]
+    else:
+        status_color = "#d97706" if proc_status.startswith("Awaiting") else "#475569"
+        meta_rows = [
+            [Paragraph("Vision Model", meta_label), Paragraph(f"{model_name} (Ultralytics YOLOv8n)", meta_val),
+             Paragraph("Detection Method", meta_label), Paragraph("Not executed", meta_val)],
+            [Paragraph("Processing Status", meta_label), Paragraph(f"<b><font color='{status_color}'>{proc_status}</font></b>", meta_val),
+             Paragraph("Processing Device", meta_label), Paragraph(device_name, meta_val)],
+            [Paragraph("Total Damages Identified", meta_label), Paragraph("0", meta_val),
+             Paragraph("Inference Latency", meta_label), Paragraph("—", meta_val)],
+            [Paragraph("Peak Confidence", meta_label), Paragraph("—", meta_val),
+             Paragraph("Average Confidence", meta_label), Paragraph("—", meta_val)],
+            [Paragraph("Detected Damage Classes", meta_label), Paragraph("Not analyzed", meta_val),
+             Paragraph("Dataset Name", meta_label), Paragraph("CarDD (Car Damage Dataset)", meta_val)],
             [Paragraph("CarDD Test Precision / Recall", meta_label), Paragraph(f"{bench_precision_str} / {bench_recall_str}", meta_val),
              Paragraph("CarDD Test mAP@50 / mAP@50-95", meta_label), Paragraph(f"{bench_map50_str} / {bench_map95_str}", meta_val)],
         ]
@@ -1192,7 +1313,7 @@ def generate_document_intelligence_report_pdf(
         story.append(Spacer(1, 8))
 
     # Detections table
-    detections_list = damage_analysis.get("detections", []) if damage_analysis else []
+    detections_list = damage_analysis.get("detections", []) if (damage_analysis and not is_failed) else []
     if detections_list:
         det_table_rows = [[
             Paragraph("Detection #", meta_label),
@@ -1227,17 +1348,29 @@ def generate_document_intelligence_report_pdf(
             ("RIGHTPADDING", (0, 0), (-1, -1), 6),
         ]))
         story.append(det_table)
+    elif is_failed:
+        story.append(Paragraph(
+            "<b>Damage Inspection Assessment:</b> Vehicle damage analysis failed during execution. "
+            "Automated damage inspection could not be completed. Please review error diagnostics and re-execute inference on authentic vehicle evidence.",
+            warning_style
+        ))
+    elif is_processing:
+        story.append(Paragraph(
+            "<b>Damage Inspection Assessment:</b> Automated vehicle damage analysis is currently processing for this claim. "
+            "Inference is running in the background. Please refresh or regenerate the report once complete.",
+            meta_val
+        ))
     elif is_cv_fallback:
         story.append(Paragraph(
             "<b>Damage Inspection Assessment:</b> OpenCV traditional computer vision fallback executed. "
-            "No semantic damage classes (e.g. dent, scratch, crack) were asserted because machine learning inference "
+            "Structural analysis without semantic damage predictions. No semantic damage classes (e.g. dent, scratch, crack) were asserted because machine learning inference "
             "was in fallback mode. Morphological contours were mapped without fabricating predictions.",
             meta_val
         ))
     elif damage_analysis:
         story.append(Paragraph("<b>Damage Inspection Assessment:</b> No damage detected by the model (no vehicle damages identified exceeding the confidence threshold).", meta_val))
-    elif vehicle_validation and not vehicle_validation.get("is_valid_vehicle_photo"):
-        story.append(Paragraph("<b>Damage Inspection Assessment:</b> Pending authentic photographic evidence. The submitted image file was flagged as a synthetic document graphic. Please upload a genuine vehicle accident photograph to enable AI damage detection.", warning_style))
+    elif not valid_photo_item or (vehicle_validation and not vehicle_validation.get("is_valid_vehicle_photo")):
+        story.append(Paragraph("<b>Damage Inspection Assessment:</b> Awaiting Valid Vehicle Evidence. The submitted image file was flagged as a synthetic document graphic or non-photographic evidence. Please upload an authentic vehicle accident photograph to enable AI damage detection.", warning_style))
     else:
         story.append(Paragraph("<b>Damage Inspection Assessment:</b> Automated vehicle damage analysis has not yet been executed for this claim.", warning_style))
 

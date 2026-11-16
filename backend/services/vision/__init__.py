@@ -22,6 +22,10 @@ from backend.services.vision.visualization import (
 from backend.services.vision.evaluation import (
     get_model_evaluation_metrics,
 )
+from backend.services.vision.service import (
+    process_claim_damage_detection,
+    trigger_claim_damage_detection_async,
+)
 
 __all__ = [
     "validate_image_file",
@@ -38,4 +42,6 @@ __all__ = [
     "get_category_color",
     "CATEGORY_COLORS_RGB",
     "get_model_evaluation_metrics",
+    "process_claim_damage_detection",
+    "trigger_claim_damage_detection_async",
 ]

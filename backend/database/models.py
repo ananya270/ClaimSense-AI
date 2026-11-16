@@ -207,6 +207,10 @@ class ClaimImage(Base):
 
     claim = relationship("Claim", back_populates="images")
 
+    @property
+    def id(self) -> int:
+        return self.image_id
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "image_id": self.image_id,
@@ -294,6 +298,7 @@ class VehicleDamageAnalysis(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     claim_id = Column(String(32), ForeignKey("claims.claim_id"), nullable=False, index=True)
     image_id = Column(Integer, ForeignKey("claim_images.image_id"), nullable=True)
+    image_hash = Column(String(64), nullable=True)
     image_path = Column(String(512), nullable=True)
     original_image_path = Column(String(512), nullable=True, default="")
     annotated_image_path = Column(String(512), nullable=True)
@@ -334,6 +339,7 @@ class VehicleDamageAnalysis(Base):
             "id": self.id,
             "claim_id": self.claim_id,
             "image_id": self.image_id,
+            "image_hash": self.image_hash,
             "image_path": self.image_path,
             "annotated_image_path": self.annotated_image_path,
             "model_name": self.model_name,

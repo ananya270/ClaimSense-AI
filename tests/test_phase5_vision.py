@@ -516,7 +516,7 @@ class Phase5VisionTestSuite(unittest.TestCase):
 
         # 2. Database record check
         with get_db_session() as db:
-            db_analysis = db.query(VehicleDamageAnalysis).filter_by(claim_id=cid).first()
+            db_analysis = db.query(VehicleDamageAnalysis).filter_by(claim_id=cid).order_by(VehicleDamageAnalysis.id.desc()).first()
             self.assertIsNotNone(db_analysis)
             self.assertEqual(db_analysis.detection_method, "opencv_traditional_cv")
             self.assertEqual(db_analysis.total_detections, 0)
@@ -542,6 +542,419 @@ class Phase5VisionTestSuite(unittest.TestCase):
             self.assertIn("OPENCV", pdf_text.upper())
             self.assertIn("FALLBACK", pdf_text.upper())
             self.assertIn("MORPHOLOGICAL", pdf_text.upper())
+
+    # -------------------------------------------------------------
+    # 9. Page 5 Dynamic Status & Isolation Verification Tests
+    # -------------------------------------------------------------
+    def test_pdf_page5_completed_yolov8_analysis(self):
+        """Verifies completed YOLOv8 analysis populates Page 5 with live detections, confidence, and latency."""
+        real_img = self.cardd_dir / "test" / "images" / "000023.jpg"
+        cid = self._create_test_claim(real_img)
+
+        # 1. Run YOLOv8 damage analysis
+        res = self.client.post(f"/api/claims/{cid}/analyze-damage", json={"conf_threshold": 0.10})
+        self.assertEqual(res.status_code, 200)
+        da = res.get_json()["analysis"]
+        expected_count = da["total_detections"]
+
+        # 2. Retrieve consolidated PDF report
+        pdf_res = self.client.get(f"/api/claims/{cid}/document-report")
+        self.assertEqual(pdf_res.status_code, 200)
+
+        import fitz
+        with fitz.open(stream=pdf_res.data, filetype="pdf") as doc:
+            self.assertGreaterEqual(len(doc), 5)
+            p5 = doc[4].get_text()
+            self.assertIn("Page 5: Vehicle Damage Detection Analysis", p5)
+            self.assertIn("Completed", p5)
+            self.assertIn("Total Damages Identified", p5)
+            self.assertIn(str(expected_count), p5)
+            self.assertIn("Peak Confidence", p5)
+            self.assertIn("Average Confidence", p5)
+            self.assertIn("Inference Latency", p5)
+            self.assertIn("Detection Method", p5)
+            self.assertNotIn("Automated vehicle damage analysis has not yet been executed", p5)
+
+    def test_pdf_page5_opencv_fallback_analysis(self):
+        """Verifies OpenCV fallback analysis populates Page 5 with structural diagnostics and no fake detections."""
+        real_img = self.cardd_dir / "test" / "images" / "000023.jpg"
+        cid = self._create_test_claim(real_img)
+
+        # 1. Run damage analysis with OpenCV fallback forced
+        res = self.client.post(f"/api/claims/{cid}/analyze-damage", json={"force_opencv": True})
+        self.assertEqual(res.status_code, 200)
+
+        # 2. Retrieve consolidated PDF report
+        pdf_res = self.client.get(f"/api/claims/{cid}/document-report")
+        self.assertEqual(pdf_res.status_code, 200)
+
+        import fitz
+        with fitz.open(stream=pdf_res.data, filetype="pdf") as doc:
+            p5 = doc[4].get_text()
+            p5_clean = " ".join(p5.split())
+            self.assertIn("Page 5: Vehicle Damage Detection Analysis", p5_clean)
+            self.assertIn("Completed (OpenCV Traditional CV Fallback - Structural Only)", p5_clean)
+            self.assertIn("Structural analysis without semantic damage predictions", p5_clean)
+            self.assertIn("OpenCV Morphological & Quality Assessment", p5_clean)
+
+    def _clear_claim_damage_analysis(self, claim_id: str):
+        """Helper to safely clear damage analysis records and their child detection records."""
+        with get_db_session() as db:
+            analyses = db.query(VehicleDamageAnalysis).filter_by(claim_id=claim_id).all()
+            for a in analyses:
+                db.query(VehicleDamageDetection).filter_by(analysis_id=a.id).delete()
+                db.delete(a)
+            db.commit()
+
+    def test_pdf_page5_no_analysis_displays_pending(self):
+        """Verifies Page 5 displays Pending when no analysis has been executed for the claim."""
+        real_img = self.cardd_dir / "test" / "images" / "000023.jpg"
+        cid = self._create_test_claim(real_img)
+
+        # Clear auto-executed analysis to test pre-inference Pending state
+        self._clear_claim_damage_analysis(cid)
+
+        # Retrieve consolidated PDF report without executing damage analysis
+        pdf_res = self.client.get(f"/api/claims/{cid}/document-report")
+        self.assertEqual(pdf_res.status_code, 200)
+
+        import fitz
+        with fitz.open(stream=pdf_res.data, filetype="pdf") as doc:
+            p5 = doc[4].get_text()
+            self.assertIn("Page 5: Vehicle Damage Detection Analysis", p5)
+            self.assertIn("Pending", p5)
+            self.assertIn("Automated vehicle damage analysis has not yet been executed for this claim", p5)
+            self.assertIn("Not analyzed", p5)
+            self.assertNotIn("Completed", p5)
+
+    def test_pdf_page5_failed_analysis_displays_failed(self):
+        """Verifies Page 5 displays Failed when vehicle damage analysis recorded a failure status."""
+        real_img = self.cardd_dir / "test" / "images" / "000023.jpg"
+        cid = self._create_test_claim(real_img)
+
+        # Insert a failed analysis record directly into DB
+        with get_db_session() as db:
+            failed_analysis = VehicleDamageAnalysis(
+                claim_id=cid,
+                model_name="YOLOv8n-CarDD",
+                model_version="v1.0",
+                detection_method="yolov8_cardd",
+                total_detections=0,
+                damage_categories="[]",
+                highest_confidence=0.0,
+                average_confidence=0.0,
+                analysis_status="failed",
+                processing_time_ms=15.0,
+                device="cpu",
+            )
+            db.add(failed_analysis)
+            db.commit()
+
+        pdf_res = self.client.get(f"/api/claims/{cid}/document-report")
+        self.assertEqual(pdf_res.status_code, 200)
+
+        import fitz
+        with fitz.open(stream=pdf_res.data, filetype="pdf") as doc:
+            p5 = doc[4].get_text()
+            self.assertIn("Page 5: Vehicle Damage Detection Analysis", p5)
+            self.assertIn("Failed", p5)
+            self.assertIn("Vehicle damage analysis failed during execution", p5)
+            self.assertNotIn("Pending (Automated vehicle damage analysis has not yet been executed", p5)
+
+    def test_pdf_page5_cross_claim_isolation(self):
+        """Verifies Page 5 strictly isolates claims and never displays another claim's analysis results."""
+        real_img = self.cardd_dir / "test" / "images" / "000023.jpg"
+        cid_a = self._create_test_claim(real_img)
+        cid_b = self._create_test_claim(real_img)
+
+        # Clear Claim B analysis so it has no analysis executed
+        self._clear_claim_damage_analysis(cid_b)
+
+        # Run analysis ONLY for Claim A
+        res_a = self.client.post(f"/api/claims/{cid_a}/analyze-damage", json={"conf_threshold": 0.10})
+        self.assertEqual(res_a.status_code, 200)
+        da_a = res_a.get_json()["analysis"]
+        self.assertGreater(da_a["total_detections"], 0)
+
+        # Claim B has no analysis executed: PDF for Claim B must display Pending
+        pdf_res_b = self.client.get(f"/api/claims/{cid_b}/document-report")
+        self.assertEqual(pdf_res_b.status_code, 200)
+
+        import fitz
+        with fitz.open(stream=pdf_res_b.data, filetype="pdf") as doc:
+            p5_b = doc[4].get_text()
+            self.assertIn("Pending", p5_b)
+            self.assertNotIn("Completed", p5_b)
+            self.assertNotIn(f"{da_a['total_detections']} detections", p5_b)
+
+        # Also test direct report generation with a poisoned/cross-claim dictionary
+        poisoned_claim_dict = {
+            "claim_id": cid_b,
+            "damage_analysis": {
+                "claim_id": cid_a,
+                "total_detections": 999,
+                "analysis_status": "completed",
+                "damage_categories": ["dent", "scratch"],
+            }
+        }
+        poisoned_pdf_bytes = generate_document_intelligence_report_pdf(
+            claim_dict=poisoned_claim_dict,
+            extracted_rows=[],
+            upload_root=self.upload_dir,
+        )
+        with fitz.open(stream=poisoned_pdf_bytes, filetype="pdf") as doc:
+            p5_poisoned = doc[4].get_text()
+            # Must reject Claim A's analysis and display Pending for Claim B
+            self.assertIn("Pending", p5_poisoned)
+            self.assertNotIn("999", p5_poisoned)
+            self.assertNotIn("Completed", p5_poisoned)
+
+    def test_pdf_page5_regenerating_pdf_after_inference_updates_page5(self):
+        """Verifies generating a PDF before inference shows Pending, and regenerating after inference shows Completed."""
+        real_img = self.cardd_dir / "test" / "images" / "000023.jpg"
+        cid = self._create_test_claim(real_img)
+
+        # Clear initial auto-analysis to test pre-inference Pending state
+        self._clear_claim_damage_analysis(cid)
+
+        import fitz
+
+        # 1. First PDF generation before inference: must show Pending
+        pdf_res_pre = self.client.get(f"/api/claims/{cid}/document-report")
+        self.assertEqual(pdf_res_pre.status_code, 200)
+        with fitz.open(stream=pdf_res_pre.data, filetype="pdf") as doc:
+            p5_pre = doc[4].get_text()
+            self.assertIn("Pending", p5_pre)
+            self.assertNotIn("Completed", p5_pre)
+
+        # 2. Run damage inference
+        res = self.client.post(f"/api/claims/{cid}/analyze-damage", json={"conf_threshold": 0.10})
+        self.assertEqual(res.status_code, 200)
+        da = res.get_json()["analysis"]
+        total_det = da["total_detections"]
+
+        # 3. Regenerate PDF report: must dynamically update Page 5 to Completed
+        pdf_res_post = self.client.get(f"/api/claims/{cid}/document-report")
+        self.assertEqual(pdf_res_post.status_code, 200)
+        with fitz.open(stream=pdf_res_post.data, filetype="pdf") as doc:
+            p5_post = doc[4].get_text()
+            self.assertIn("Completed", p5_post)
+            self.assertIn(str(total_det), p5_post)
+            self.assertNotIn("Automated vehicle damage analysis has not yet been executed", p5_post)
+
+    # -------------------------------------------------------------
+    # 10. Automated Lifecycle & Concurrency Verification Tests
+    # -------------------------------------------------------------
+    def test_auto_execution_on_new_claim_submission(self):
+        """Verifies submitting a new claim with valid photo immediately triggers Phase 5 without manual intervention."""
+        real_img = self.cardd_dir / "test" / "images" / "000023.jpg"
+        cid = self._create_test_claim(real_img)
+
+        # 1. Verify VehicleDamageAnalysis was automatically created in DB on claim submission
+        with get_db_session() as db:
+            analyses = db.query(VehicleDamageAnalysis).filter_by(claim_id=cid).all()
+            self.assertEqual(len(analyses), 1, "Exactly one analysis must be created automatically on claim submission.")
+            analysis = analyses[0]
+            self.assertEqual(analysis.analysis_status, "completed")
+            self.assertGreaterEqual(analysis.total_detections, 1)
+            self.assertIsNotNone(analysis.annotated_image_path)
+            self.assertIsNotNone(analysis.image_hash)
+
+            # Check detection records
+            detections = db.query(VehicleDamageDetection).filter_by(analysis_id=analysis.id).all()
+            self.assertEqual(len(detections), analysis.total_detections)
+            for d in detections:
+                self.assertIn(d.category, CARDD_CLASS_NAMES.values())
+                self.assertGreater(d.confidence, 0.0)
+            total_det = analysis.total_detections
+
+        # 2. Verify Page 5 of consolidated PDF immediately reflects Completed status
+        pdf_res = self.client.get(f"/api/claims/{cid}/document-report")
+        self.assertEqual(pdf_res.status_code, 200)
+
+        import fitz
+        with fitz.open(stream=pdf_res.data, filetype="pdf") as doc:
+            p5 = doc[4].get_text()
+            self.assertIn("Page 5: Vehicle Damage Detection Analysis", p5)
+            self.assertIn("Completed", p5)
+            self.assertIn(str(total_det), p5)
+            self.assertNotIn("Pending (Automated vehicle damage analysis has not yet been executed", p5)
+
+    def test_auto_execution_skipped_for_synthetic_graphic(self):
+        """Verifies new claim with synthetic graphic skips damage detection and PDF Page 5 shows awaiting evidence."""
+        synth_img = Image.new("RGB", (900, 600), color=(248, 250, 252))
+        synth_path = self.tmp / "test_policy_schedule_graphic.jpg"
+        synth_img.save(synth_path, format="JPEG")
+        cid = self._create_test_claim(synth_path)
+
+        # 1. Verify no VehicleDamageAnalysis record was created
+        with get_db_session() as db:
+            analyses = db.query(VehicleDamageAnalysis).filter_by(claim_id=cid).all()
+            self.assertEqual(len(analyses), 0, "No damage analysis should be created for synthetic graphic.")
+
+        # 2. Verify PDF Page 5 displays Awaiting Valid Vehicle Evidence
+        pdf_res = self.client.get(f"/api/claims/{cid}/document-report")
+        self.assertEqual(pdf_res.status_code, 200)
+
+        import fitz
+        with fitz.open(stream=pdf_res.data, filetype="pdf") as doc:
+            p5 = doc[4].get_text()
+            self.assertIn("Page 5: Vehicle Damage Detection Analysis", p5)
+            self.assertTrue("AWAITING" in p5.upper() or "PENDING" in p5.upper())
+            self.assertIn("Not analyzed", p5)
+            self.assertNotIn("Completed", p5)
+
+    def test_replacement_photo_auto_triggers_fresh_analysis(self):
+        """Verifies uploading replacement photo for a flagged claim automatically executes fresh analysis."""
+        # 1. Initial claim with synthetic graphic
+        synth_img = Image.new("RGB", (900, 600), color=(248, 250, 252))
+        synth_path = self.tmp / "flagged_initial.jpg"
+        synth_img.save(synth_path, format="JPEG")
+        cid = self._create_test_claim(synth_path)
+
+        with get_db_session() as db:
+            self.assertEqual(db.query(VehicleDamageAnalysis).filter_by(claim_id=cid).count(), 0)
+
+        # 2. Upload authentic replacement photo
+        real_img_path = self.cardd_dir / "test" / "images" / "000023.jpg"
+        with open(real_img_path, "rb") as f:
+            real_bytes = f.read()
+
+        rep_res = self.client.post(
+            f"/api/claims/{cid}/replace-image",
+            data={"vehicle_image": (io.BytesIO(real_bytes), "replacement_car.jpg")},
+            content_type="multipart/form-data",
+        )
+        self.assertEqual(rep_res.status_code, 200)
+        rep_data = rep_res.get_json()
+        self.assertIsNotNone(rep_data.get("damage_analysis"))
+
+        # 3. Verify analysis was persisted in DB
+        with get_db_session() as db:
+            analyses = db.query(VehicleDamageAnalysis).filter_by(claim_id=cid).all()
+            self.assertEqual(len(analyses), 1)
+            analysis = analyses[0]
+            self.assertEqual(analysis.analysis_status, "completed")
+            self.assertGreater(analysis.total_detections, 0)
+            total_det = analysis.total_detections
+
+        # 4. Verify PDF report immediately reflects Completed status
+        pdf_res = self.client.get(f"/api/claims/{cid}/document-report")
+        self.assertEqual(pdf_res.status_code, 200)
+
+        import fitz
+        with fitz.open(stream=pdf_res.data, filetype="pdf") as doc:
+            p5 = doc[4].get_text()
+            self.assertIn("Completed", p5)
+            self.assertIn(str(total_det), p5)
+
+    def test_pdf_download_idempotency_no_duplicate_inference(self):
+        """Verifies repeated PDF generation does not re-run YOLO or create duplicate database records."""
+        real_img = self.cardd_dir / "test" / "images" / "000023.jpg"
+        cid = self._create_test_claim(real_img)
+
+        # Initial analysis count
+        with get_db_session() as db:
+            initial_count = db.query(VehicleDamageAnalysis).filter_by(claim_id=cid).count()
+            initial_det_count = db.query(VehicleDamageDetection).count()
+            self.assertEqual(initial_count, 1)
+
+        # Download PDF multiple times
+        for _ in range(3):
+            pdf_res = self.client.get(f"/api/claims/{cid}/document-report")
+            self.assertEqual(pdf_res.status_code, 200)
+
+        # Ensure no new records were added
+        with get_db_session() as db:
+            after_count = db.query(VehicleDamageAnalysis).filter_by(claim_id=cid).count()
+            after_det_count = db.query(VehicleDamageDetection).count()
+            self.assertEqual(initial_count, after_count)
+            self.assertEqual(initial_det_count, after_det_count)
+
+    def test_two_new_claims_isolated_auto_execution(self):
+        """Verifies two different new claims execute inference independently and never mix results."""
+        img1 = self.cardd_dir / "test" / "images" / "000023.jpg"
+        img2 = self.cardd_dir / "test" / "images" / "000042.jpg"
+        cid1 = self._create_test_claim(img1)
+        cid2 = self._create_test_claim(img2)
+
+        with get_db_session() as db:
+            da1 = db.query(VehicleDamageAnalysis).filter_by(claim_id=cid1).first()
+            da2 = db.query(VehicleDamageAnalysis).filter_by(claim_id=cid2).first()
+            self.assertIsNotNone(da1)
+            self.assertIsNotNone(da2)
+            self.assertNotEqual(da1.id, da2.id)
+            self.assertEqual(da1.claim_id, cid1)
+            self.assertEqual(da2.claim_id, cid2)
+            det1_count = da1.total_detections
+            det2_count = da2.total_detections
+
+        # Fetch PDFs for both claims
+        import fitz
+        pdf1 = self.client.get(f"/api/claims/{cid1}/document-report")
+        with fitz.open(stream=pdf1.data, filetype="pdf") as doc:
+            p5_1 = doc[4].get_text()
+            self.assertIn("Completed", p5_1)
+            self.assertIn(str(det1_count), p5_1)
+
+        pdf2 = self.client.get(f"/api/claims/{cid2}/document-report")
+        with fitz.open(stream=pdf2.data, filetype="pdf") as doc:
+            p5_2 = doc[4].get_text()
+            self.assertIn("Completed", p5_2)
+            self.assertIn(str(det2_count), p5_2)
+
+    def test_concurrent_claim_damage_detection_thread_safety(self):
+        """Verifies thread-locking prevents concurrent duplicate inference on the same claim."""
+        import threading
+        real_img = self.cardd_dir / "test" / "images" / "000023.jpg"
+        cid = self._create_test_claim(real_img)
+
+        # Clear to test concurrency from unanalyzed state
+        self._clear_claim_damage_analysis(cid)
+
+        from backend.services.vision import process_claim_damage_detection
+
+        results = []
+        errors = []
+
+        def worker():
+            try:
+                res = process_claim_damage_detection(claim_id=cid, upload_base=self.upload_dir)
+                results.append(res)
+            except Exception as e:
+                errors.append(e)
+
+        threads = [threading.Thread(target=worker) for _ in range(4)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        self.assertEqual(len(errors), 0, f"Concurrent workers encountered errors: {errors}")
+        self.assertEqual(len(results), 4)
+
+        # Verify only one analysis record exists in DB due to mutex and idempotency
+        with get_db_session() as db:
+            count = db.query(VehicleDamageAnalysis).filter_by(claim_id=cid).count()
+            self.assertEqual(count, 1, "Thread safety must prevent duplicate analysis creation.")
+
+    def test_kcm0_history_and_integrity_preserved(self):
+        """Verifies previous claim CLM-20261116-KCM0 records and YOLOv8 detections are preserved in production database."""
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import sessionmaker
+        prod_engine = create_engine(f"sqlite:///{self.repo_root / 'backend' / 'database' / 'claimsense.db'}")
+        ProdSession = sessionmaker(bind=prod_engine)
+        with ProdSession() as prod_db:
+            kcm0_claim = prod_db.query(Claim).filter_by(claim_id="CLM-20261116-KCM0").first()
+            self.assertIsNotNone(kcm0_claim, "CLM-20261116-KCM0 must exist in database.")
+            analyses = prod_db.query(VehicleDamageAnalysis).filter_by(claim_id="CLM-20261116-KCM0").all()
+            self.assertGreater(len(analyses), 0)
+            latest = sorted(analyses, key=lambda a: a.id)[-1]
+            self.assertEqual(latest.analysis_status, "completed")
+            self.assertEqual(latest.detection_method, "yolov8_cardd")
+            self.assertGreater(latest.total_detections, 0)
+            detections = prod_db.query(VehicleDamageDetection).filter_by(analysis_id=latest.id).all()
+            self.assertEqual(len(detections), latest.total_detections)
 
 
 if __name__ == "__main__":

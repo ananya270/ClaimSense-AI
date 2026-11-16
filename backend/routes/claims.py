@@ -30,6 +30,7 @@ from backend.services.vision import (
     VehicleDamageDetector,
     create_annotated_image,
     get_model_evaluation_metrics,
+    process_claim_damage_detection,
 )
 from backend.services.nlp import ClaimNLPService
 from backend.extensions import csrf
@@ -232,6 +233,8 @@ def submit_claim():
                 created_at=submission_time,
             )
             db.add(img_record)
+            db.flush()
+            image_record_id = img_record.image_id
 
         # 8. Phase 4 document intelligence pipeline (best-effort extraction)
         processed_documents = []
@@ -246,6 +249,24 @@ def submit_claim():
         except Exception as exc:
             logger.warning(f"Best-effort Phase 4 extraction storage skipped for claim {claim_id}: {exc}")
 
+        # 9. Phase 5 automated vehicle damage detection pipeline
+        auto_damage_analysis = None
+        try:
+            auto_damage_analysis = process_claim_damage_detection(
+                claim_id=claim_id,
+                image_id=image_record_id,
+                upload_base=upload_base,
+            )
+            if auto_damage_analysis and auto_damage_analysis.get("analysis_status") == "completed":
+                logger.info(
+                    f"Automated Phase 5 damage detection succeeded for new claim {claim_id}: "
+                    f"{auto_damage_analysis.get('total_detections', 0)} detections"
+                )
+            elif auto_damage_analysis and auto_damage_analysis.get("requires_replacement"):
+                logger.info(f"Phase 5 skipped for new claim {claim_id}: Non-photographic/synthetic graphic uploaded")
+        except Exception as exc:
+            logger.warning(f"Automated Phase 5 damage detection failed/skipped for claim {claim_id}: {exc}")
+
         logger.info(f"Successfully processed and stored claim in disk and SQLite: {claim_id}")
 
         return jsonify({
@@ -253,6 +274,7 @@ def submit_claim():
             "claim_id": claim_id,
             "message": "Claim submitted successfully",
             "receipt_url": f"/api/claims/{claim_id}/receipt",
+            "damage_analysis": auto_damage_analysis,
             "data": {
                 "claim_id": claim_id,
                 "user_id": current_user_id,
@@ -870,6 +892,24 @@ def replace_claim_image(claim_id: str):
         )
         db.add(new_img_rec)
         db.commit()
+        new_image_id = new_img_rec.image_id
+
+        # Automatically execute Phase 5 damage detection for authentic replacement photograph
+        auto_damage_analysis = None
+        if validation.get("is_valid_vehicle_photo"):
+            try:
+                auto_damage_analysis = process_claim_damage_detection(
+                    claim_id=claim_id,
+                    image_id=new_image_id,
+                    upload_base=upload_base,
+                )
+                if auto_damage_analysis and auto_damage_analysis.get("analysis_status") == "completed":
+                    logger.info(
+                        f"Automated Phase 5 damage detection succeeded for replacement image on {claim_id}: "
+                        f"{auto_damage_analysis.get('total_detections', 0)} detections"
+                    )
+            except Exception as exc:
+                logger.warning(f"Automated Phase 5 damage detection failed for replacement photo on {claim_id}: {exc}")
 
         # Update metadata.json while preserving previous files in history
         metadata_path = claim_dir / "metadata.json"
@@ -910,6 +950,7 @@ def replace_claim_image(claim_id: str):
                 "file_size": img_size_bytes,
             },
             "validation": validation,
+            "damage_analysis": auto_damage_analysis,
         }), 200
 
 
@@ -1014,118 +1055,54 @@ def analyze_claim_vehicle_damage(claim_id: str):
             conf_thresh = 0.15
 
         force_fallback = bool(req_json.get("force_opencv") or req_json.get("fallback") or request.args.get("fallback") == "true")
+        force_recompute = bool(
+            req_json.get("force")
+            or req_json.get("force_recompute")
+            or request.args.get("force") == "true"
+            or force_fallback
+        )
 
-        # Run damage detection
-        try:
-            detector = VehicleDamageDetector.get_instance()
-            analysis_result = detector.detect_damage(
-                target_img_path,
-                conf_threshold=conf_thresh,
-                force_opencv_fallback=force_fallback,
-            )
-        except Exception as exc:
-            logger.error(f"Damage detection failed for claim {claim_id}: {exc}", exc_info=True)
+        # Execute unified damage detection pipeline
+        analysis_dict = process_claim_damage_detection(
+            claim_id=claim_id,
+            image_id=claim_image_rec.image_id if claim_image_rec else None,
+            conf_threshold=conf_thresh,
+            force_opencv=force_fallback,
+            force_recompute=force_recompute,
+            upload_base=upload_base,
+        )
+
+        if analysis_dict.get("requires_replacement"):
+            return jsonify({
+                "success": False,
+                "error": "Invalid Vehicle Evidence",
+                "message": (
+                    f"Uploaded file '{target_img_path.name}' is flagged as {img_validation.get('status', 'invalid')} "
+                    f"({img_validation.get('reason')}). Damage inspection cannot be performed on synthetic graphics or document renders. "
+                    f"Please upload an authentic replacement vehicle photograph before running AI damage analysis."
+                ),
+                "validation": analysis_dict.get("validation", img_validation),
+                "requires_replacement": True,
+            }), 400
+
+        if analysis_dict.get("analysis_status") == "failed" and analysis_dict.get("error"):
             return jsonify({
                 "success": False,
                 "error": "Inference Error",
-                "message": f"Computer vision analysis failed: {str(exc)}",
+                "message": f"Computer vision analysis failed: {analysis_dict.get('error')}",
+                "analysis": analysis_dict,
             }), 500
-
-        # Generate annotated or OpenCV visual analysis image
-        is_fallback = analysis_result.get("detection_method") == "opencv_traditional_cv"
-        annotated_filename = f"opencv_analysis_{target_img_path.name}" if is_fallback else f"annotated_{target_img_path.name}"
-        annotated_target_path = images_dir / annotated_filename
-        rel_annotated_path = None
-        try:
-            create_annotated_image(
-                target_img_path,
-                analysis_result["detections"],
-                output_path=annotated_target_path,
-                opencv_observations=analysis_result.get("opencv_observations"),
-            )
-            rel_annotated_path = str(annotated_target_path.relative_to(upload_base))
-        except Exception as exc:
-            logger.warning(f"Could not save annotated/visual image for claim {claim_id}: {exc}")
-
-        rel_img_path = str(target_img_path.relative_to(upload_base))
-
-        # Store in SQLite database
-        avg_conf = 0.0
-        if analysis_result["detections"]:
-            avg_conf = sum(d["confidence"] for d in analysis_result["detections"]) / len(analysis_result["detections"])
-
-        now_utc = datetime.now(timezone.utc)
-        obs_json = json.dumps(analysis_result.get("opencv_observations")) if analysis_result.get("opencv_observations") else None
-
-        analysis_record = VehicleDamageAnalysis(
-            claim_id=claim_id,
-            image_id=claim_image_rec.image_id if claim_image_rec else None,
-            image_path=rel_img_path,
-            original_image_path=rel_img_path,
-            annotated_image_path=rel_annotated_path,
-            model_name=analysis_result["model_name"],
-            model_version=analysis_result["model_version"],
-            detection_method=analysis_result.get("detection_method", "yolov8_cardd"),
-            model_available=analysis_result.get("model_available", True),
-            opencv_observations=obs_json,
-            total_detections=analysis_result["total_detections"],
-            total_damages_detected=analysis_result["total_detections"],
-            damage_categories=json.dumps(analysis_result["damage_categories"]),
-            detected_categories=json.dumps(analysis_result["damage_categories"]),
-            highest_confidence=analysis_result["highest_confidence"],
-            max_confidence=analysis_result["highest_confidence"],
-            average_confidence=round(avg_conf, 4),
-            analysis_status="completed",
-            processing_time_ms=analysis_result["processing_time_ms"],
-            inference_time_ms=analysis_result["processing_time_ms"],
-            device=analysis_result["device"],
-            created_at=now_utc,
-            updated_at=now_utc,
-        )
-        db.add(analysis_record)
-        db.flush()
-
-        # Add individual detection records
-        for det in analysis_result["detections"]:
-            bbox = det.get("bbox", [0, 0, 0, 0])
-            detection_rec = VehicleDamageDetection(
-                analysis_id=analysis_record.id,
-                detection_index=det.get("detection_index", 1),
-                category=det.get("category", "damage"),
-                confidence=det.get("confidence", 0.0),
-                bbox_x1=bbox[0],
-                bbox_y1=bbox[1],
-                bbox_x2=bbox[2],
-                bbox_y2=bbox[3],
-                location_region=det.get("location_region", "center"),
-                created_at=datetime.now(timezone.utc),
-            )
-            db.add(detection_rec)
-
-        db.commit()
-
-        # Update metadata.json if present
-        meta_file = claim_dir / "metadata.json"
-        if meta_file.exists():
-            try:
-                with open(meta_file, "r", encoding="utf-8") as f:
-                    meta = json.load(f)
-                meta["latest_damage_analysis"] = analysis_record.to_dict()
-                with open(meta_file, "w", encoding="utf-8") as f:
-                    json.dump(meta, f, indent=2)
-            except Exception as exc:
-                logger.warning(f"Failed to update metadata.json with damage analysis: {exc}")
 
         logger.info(
             f"Successfully completed vehicle damage analysis for {claim_id}: "
-            f"{analysis_result['total_detections']} detections ({', '.join(analysis_result['damage_categories']) or 'None'}) "
-            f"in {analysis_result['processing_time_ms']}ms"
+            f"{analysis_dict.get('total_detections', 0)} detections ({', '.join(analysis_dict.get('damage_categories', [])) or 'None'}) "
+            f"in {analysis_dict.get('processing_time_ms', 0)}ms"
         )
 
         return jsonify({
             "success": True,
             "claim_id": claim_id,
-            "analysis": analysis_record.to_dict(),
+            "analysis": analysis_dict,
         }), 200
 
 

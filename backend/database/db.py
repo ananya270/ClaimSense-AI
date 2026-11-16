@@ -91,6 +91,7 @@ def _ensure_schema_migrations(engine: Engine) -> None:
         if "vehicle_damage_analyses" in table_names:
             v_cols = {col["name"] for col in inspector.get_columns("vehicle_damage_analyses")}
             v_migrations = {
+                "image_hash": "VARCHAR(64)",
                 "image_path": "VARCHAR(512)",
                 "original_image_path": "VARCHAR(512) DEFAULT ''",
                 "annotated_image_path": "VARCHAR(512)",
