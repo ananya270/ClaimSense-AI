@@ -352,6 +352,7 @@ def generate_document_intelligence_report_pdf(
     claim_dict: Dict[str, Any],
     extracted_rows: list[Dict[str, Any]] | None = None,
     upload_root: str | os.PathLike[str] | None = None,
+    include_phase7: bool | None = None,
 ) -> bytes:
     """Generate the consolidated academic document-intelligence PDF for a claim.
 
@@ -1534,6 +1535,107 @@ def generate_document_intelligence_report_pdf(
 
     story.append(PageBreak())
 
+    # =========================================================================
+    # Phase 7: Cross-Source Verification and Intelligent Claim Validation
+    # =========================================================================
+    has_verif = (include_phase7 is True) or bool(claim_dict.get("verification")) or bool(claim_dict.get("cross_source_verification"))
+    verif_data = claim_dict.get("verification") or claim_dict.get("cross_source_verification")
+    if has_verif and not verif_data:
+        try:
+            from backend.services.verification import ClaimVerificationService
+            verif_data = ClaimVerificationService.execute_cross_source_verification(
+                claim_id=claim_id,
+                claim_record=claim_dict,
+                extracted_doc_rows=standardized,
+                nlp_analysis=nlp_data,
+                vision_analysis=damage_analysis,
+            )
+        except Exception as exc:
+            logger.warning(f"Failed dynamic verification execution for report: {exc}")
+            verif_data = None
+
+    if has_verif and verif_data:
+        story.append(Paragraph("Page 7: Cross-Source Verification and Intelligent Claim Validation", section_heading))
+        story.append(Paragraph("Multi-Source Evidentiary Corroboration, Discrepancy Analysis & Decision Support", subtitle_style))
+        story.append(Spacer(1, 6))
+
+        overall_st = verif_data.get("overall_status", "CONSISTENT")
+        score = verif_data.get("consistency_score", 100.0)
+        total_checks = verif_data.get("total_comparisons", 0)
+        matches = verif_data.get("matched_comparisons", 0)
+        mismatches = verif_data.get("mismatched_comparisons", 0)
+        missing_count = verif_data.get("missing_evidence_count", 0)
+        latency = verif_data.get("processing_time_ms", 0.0)
+
+        if overall_st == "CONSISTENT":
+            st_color = "#059669"
+        elif overall_st == "REVIEW_REQUIRED":
+            st_color = "#dc2626"
+        else:
+            st_color = "#d97706"
+
+        st_badge = ParagraphStyle("VerifStatusBadge", parent=badge_style, textColor=colors.HexColor(st_color), fontSize=10, leading=12)
+
+        cov_pct = verif_data.get("evidence_coverage_percentage")
+        cov_str = f" &bull; Coverage: {cov_pct:.1f}%" if cov_pct is not None else ""
+        inconcl_cnt = verif_data.get("inconclusive_count", 0)
+
+        verif_summary_rows = [
+            [Paragraph("<b>Overall Assessment</b>", table_header_style), Paragraph(f"<b>{overall_st}</b>", st_badge)],
+            [Paragraph("<b>Consistency Score</b>", table_header_style), Paragraph(f"<b>{score:.1f}%</b> (Empirically Weighted{cov_str})", meta_val)],
+            [Paragraph("<b>Comparison Statistics</b>", table_header_style), Paragraph(f"Total Checks: {total_checks} &bull; Matched: {matches} &bull; Inconclusive: {inconcl_cnt} &bull; Mismatched: {mismatches} &bull; Missing: {missing_count}", meta_val)],
+            [Paragraph("<b>Validation Engine</b>", table_header_style), Paragraph(f"ClaimSense Verification Engine v{verif_data.get('engine_version', '1.0.0')} &bull; Status: Completed ({latency:.1f} ms)", meta_val)],
+        ]
+        verif_summary_table = Table(verif_summary_rows, colWidths=[160, 380])
+        verif_summary_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f8fafc")),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+            ("PADDING", (0, 0), (-1, -1), 4),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ]))
+        story.append(verif_summary_table)
+        story.append(Spacer(1, 8))
+
+        findings = verif_data.get("findings", [])
+        if findings:
+            story.append(Paragraph("<b>Cross-Source Evaluation Findings:</b>", meta_label))
+            finding_table_rows = [[
+                Paragraph("<b>Comparison / Field</b>", table_hdr_white),
+                Paragraph("<b>Source A (Observed)</b>", table_hdr_white),
+                Paragraph("<b>Source B (Observed)</b>", table_hdr_white),
+                Paragraph("<b>Result Status</b>", table_hdr_white),
+            ]]
+            for f in findings[:8]:
+                f_st = f.get("comparison_status", "INCONCLUSIVE")
+                badge_c = "#059669" if f_st == "MATCH" else ("#dc2626" if f_st == "MISMATCH" else "#d97706")
+                cell_badge = ParagraphStyle(f"FBadge_{f.get('comparison_id')}", parent=badge_style, textColor=colors.HexColor(badge_c), fontSize=8, leading=10)
+                finding_table_rows.append([
+                    Paragraph(f"<b>{f.get('field_name')}</b><br/><font size=6 color='#64748b'>{f.get('comparison_id')}</font>", table_cell_style),
+                    Paragraph(f"{f.get('original_value_a') or '—'}<br/><font size=6 color='#64748b'>[{f.get('source_a')}]</font>", table_cell_style),
+                    Paragraph(f"{f.get('original_value_b') or '—'}<br/><font size=6 color='#64748b'>[{f.get('source_b')}]</font>", table_cell_style),
+                    Paragraph(f"<b>{f_st}</b><br/><font size=6 color='#64748b'>{f.get('severity')}</font>", cell_badge),
+                ])
+            ftable = Table(finding_table_rows, colWidths=[130, 160, 160, 90], repeatRows=1)
+            ftable.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1e3a8a")),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+                ("PADDING", (0, 0), (-1, -1), 3),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ]))
+            story.append(ftable)
+            story.append(Spacer(1, 6))
+
+        recs = verif_data.get("recommendations", [])
+        if recs:
+            story.append(Paragraph("<b>Assessor Review Recommendations:</b>", meta_label))
+            rec_text = "<br/>".join([f"&bull; {r}" for r in recs])
+            story.append(Paragraph(rec_text, meta_val))
+
+        story.append(PageBreak())
+        final_page_num = "Page 8"
+    else:
+        final_page_num = "Page 7"
+
     error_messages = sorted({str(row.get("error_message") or "").strip() for row in standardized if row.get("error_message")})
     evaluation_notes = sorted({str(row.get("evaluation_metadata") or "").strip() for row in standardized if row.get("evaluation_metadata")})
 
@@ -1554,8 +1656,8 @@ def generate_document_intelligence_report_pdf(
 
     eval_display = f"{', '.join(evaluation_notes)}; {model_eval_summary}" if evaluation_notes else model_eval_summary
 
-    # Page 7: Processing Errors, Dataset Evaluation and Academic Disclaimer
-    story.append(Paragraph("Page 7: Processing Errors, Dataset Evaluation and Academic Disclaimer", section_heading))
+    # Final Page: Processing Errors, Dataset Evaluation and Academic Disclaimer
+    story.append(Paragraph(f"{final_page_num}: Processing Errors, Dataset Evaluation and Academic Disclaimer", section_heading))
     story.append(Paragraph(f"Extraction errors: {', '.join(error_messages) if error_messages else 'None recorded for the current claim snapshot.'}", meta_val))
     story.append(Paragraph(f"Evaluation metadata: {eval_display}", meta_val))
     story.append(Spacer(1, 12))

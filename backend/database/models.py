@@ -93,6 +93,8 @@ class Claim(Base):
     vehicle_damage_analyses = relationship("VehicleDamageAnalysis", back_populates="claim", cascade="all, delete-orphan", lazy="select")
     nlp_analyses = relationship("ClaimNLPAnalysis", back_populates="claim", cascade="all, delete-orphan", lazy="select")
     verification_results = relationship("VerificationResult", back_populates="claim", cascade="all, delete-orphan", lazy="select")
+    verification_runs = relationship("ClaimVerificationRun", back_populates="claim", cascade="all, delete-orphan", lazy="select")
+    verification_findings = relationship("VerificationFinding", back_populates="claim", cascade="all, delete-orphan", lazy="select")
     risk_assessments = relationship("RiskAssessment", back_populates="claim", cascade="all, delete-orphan", lazy="select")
     reports = relationship("Report", back_populates="claim", cascade="all, delete-orphan", lazy="select")
 
@@ -157,6 +159,12 @@ class Claim(Base):
                 data["nlp_analysis"] = latest_nlp.to_dict()
             else:
                 data["nlp_analysis"] = None
+
+            if self.verification_runs:
+                latest_verif = sorted(self.verification_runs, key=lambda r: r.id)[-1]
+                data["verification"] = latest_verif.to_dict(include_findings=True)
+            else:
+                data["verification"] = None
 
         return data
 
@@ -485,6 +493,128 @@ class VerificationResult(Base):
             "result": self.result,
             "explanation": self.explanation,
             "severity": self.severity,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class ClaimVerificationRun(Base):
+    """Phase 7: Master verification run recording overall consistency score, summary, and status."""
+    __tablename__ = "claim_verification_runs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    claim_id = Column(String(32), ForeignKey("claims.claim_id"), nullable=False, index=True)
+    engine_version = Column(String(32), default="1.0.0", nullable=False)
+    overall_status = Column(String(32), default="CONSISTENT", nullable=False)  # CONSISTENT, REVIEW_REQUIRED, INSUFFICIENT_EVIDENCE
+    consistency_score = Column(Float, default=100.0, nullable=False)
+    total_comparisons = Column(Integer, default=0, nullable=False)
+    matched_comparisons = Column(Integer, default=0, nullable=False)
+    mismatched_comparisons = Column(Integer, default=0, nullable=False)
+    missing_evidence_count = Column(Integer, default=0, nullable=False)
+    inconclusive_count = Column(Integer, default=0, nullable=False)
+    high_severity_count = Column(Integer, default=0, nullable=False)
+    critical_severity_count = Column(Integer, default=0, nullable=False)
+    summary = Column(Text, nullable=True)  # JSON summary
+    recommendations = Column(Text, nullable=True)  # JSON list of recommendations
+    processing_status = Column(String(32), default="completed", nullable=False)
+    processing_time_ms = Column(Float, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=True)
+
+    claim = relationship("Claim", back_populates="verification_runs")
+    findings = relationship("VerificationFinding", back_populates="run", cascade="all, delete-orphan", lazy="select")
+
+    def to_dict(self, include_findings: bool = True) -> Dict[str, Any]:
+        def safe_json(val, default):
+            if not val:
+                return default
+            try:
+                return json.loads(val)
+            except Exception:
+                return default
+
+        summary_obj = safe_json(self.summary, {})
+        cov_pct = summary_obj.get("evidence_coverage_percentage")
+        if cov_pct is None and self.total_comparisons:
+            evaluated_count = (self.matched_comparisons or 0) + (self.mismatched_comparisons or 0)
+            cov_pct = round((evaluated_count / self.total_comparisons) * 100.0, 1)
+
+        data = {
+            "id": self.id,
+            "claim_id": self.claim_id,
+            "engine_version": self.engine_version,
+            "overall_status": self.overall_status,
+            "consistency_score": round(self.consistency_score, 1) if self.consistency_score is not None else 0.0,
+            "evidence_coverage_percentage": cov_pct if cov_pct is not None else 100.0,
+            "total_comparisons": self.total_comparisons,
+            "matched_comparisons": self.matched_comparisons,
+            "mismatched_comparisons": self.mismatched_comparisons,
+            "missing_evidence_count": self.missing_evidence_count,
+            "inconclusive_count": self.inconclusive_count,
+            "high_severity_count": self.high_severity_count,
+            "critical_severity_count": self.critical_severity_count,
+            "summary": summary_obj,
+            "recommendations": safe_json(self.recommendations, []),
+            "processing_status": self.processing_status,
+            "processing_time_ms": round(self.processing_time_ms, 2) if self.processing_time_ms is not None else 0.0,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+        if include_findings:
+            data["findings"] = [f.to_dict() for f in self.findings] if self.findings else []
+        return data
+
+
+class VerificationFinding(Base):
+    """Phase 7: Individual structured comparison finding between evidence sources."""
+    __tablename__ = "verification_findings"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    run_id = Column(Integer, ForeignKey("claim_verification_runs.id"), nullable=True, index=True)
+    claim_id = Column(String(32), ForeignKey("claims.claim_id"), nullable=False, index=True)
+    comparison_id = Column(String(64), nullable=False, index=True)
+    source_a = Column(String(64), nullable=False)
+    source_b = Column(String(64), nullable=False)
+    field_name = Column(String(128), nullable=False)
+    original_value_a = Column(Text, nullable=True)
+    original_value_b = Column(Text, nullable=True)
+    normalized_value_a = Column(Text, nullable=True)
+    normalized_value_b = Column(Text, nullable=True)
+    comparison_status = Column(String(32), nullable=False)  # MATCH, MISMATCH, MISSING_IN_SOURCE, INCONCLUSIVE, NOT_VISUALLY_CONFIRMED, VISUAL_ONLY_FINDING, POTENTIAL_DISCREPANCY
+    severity = Column(String(32), nullable=False, default="LOW")  # LOW, MEDIUM, HIGH, CRITICAL
+    confidence = Column(Float, nullable=False, default=1.0)
+    explanation = Column(Text, nullable=True)
+    evidence_references = Column(Text, nullable=True)  # JSON string
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    run = relationship("ClaimVerificationRun", back_populates="findings")
+    claim = relationship("Claim", back_populates="verification_findings")
+
+    def to_dict(self) -> Dict[str, Any]:
+        def safe_json(val, default):
+            if not val:
+                return default
+            try:
+                return json.loads(val)
+            except Exception:
+                return default
+
+        return {
+            "id": self.id,
+            "run_id": self.run_id,
+            "claim_id": self.claim_id,
+            "comparison_id": self.comparison_id,
+            "source_a": self.source_a,
+            "source_b": self.source_b,
+            "field_name": self.field_name,
+            "original_value_a": self.original_value_a,
+            "original_value_b": self.original_value_b,
+            "normalized_value_a": self.normalized_value_a,
+            "normalized_value_b": self.normalized_value_b,
+            "comparison_status": self.comparison_status,
+            "severity": self.severity,
+            "confidence": round(self.confidence, 2) if self.confidence is not None else 1.0,
+            "explanation": self.explanation,
+            "evidence_references": safe_json(self.evidence_references, {}),
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
