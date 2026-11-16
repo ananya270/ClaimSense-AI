@@ -8,7 +8,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
-import pyarrow.parquet as pq
+try:
+    import pyarrow.parquet as pq
+except ImportError:
+    pq = None
+
+try:
+    import polars as pl
+except ImportError:
+    pl = None
 
 
 def normalize_text(value: Any) -> str:
@@ -219,8 +227,14 @@ def evaluate_sroie_dataset(dataset_path: str | Path) -> Dict[str, Any]:
     if not parquet_path.exists():
         raise FileNotFoundError(f"SROIE parquet not found at {parquet_path}")
 
-    table = pq.read_table(str(parquet_path))
-    rows = table.to_pylist()
+    if pq is not None:
+        table = pq.read_table(str(parquet_path))
+        rows = table.to_pylist()
+    elif pl is not None:
+        df = pl.read_parquet(parquet_path)
+        rows = df.to_dicts()
+    else:
+        raise ImportError("Neither pyarrow nor polars is available to read parquet files.")
     char_errors: List[float] = []
     word_errors: List[float] = []
     field_names = ["company", "date", "address", "total"]

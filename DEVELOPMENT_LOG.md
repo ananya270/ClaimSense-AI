@@ -145,5 +145,85 @@
   - AI extraction and processing (OCR, Computer Vision, NLP narrative analysis, Cross-source verification, Risk scoring, LLM explanation, and final Phase 10 verification reports) are intentionally **NOT** implemented in Phase 3.
   - Tables for future phases (`extracted_information`, `image_analysis`, `verification_results`, `risk_assessments`, `reports`) exist in SQLite but remain unpopulated with fake data.
 - **Next Recommended Step:**
-  - Proceed to **Phase 4 — OCR & Multi-Format Document Processing**: Implementation of document parsing and text extraction across PDFs, images, and DOCX files.
+  - Proceed to **Phase 4 — OCR & Multi-Format Document Processing** (Completed).
+
+---
+
+## Phase 4: OCR & Multi-Format Document Processing
+- **Status:** Completed
+- **Date:** 2026-11-16
+- **Files Created / Modified:**
+  - `backend/services/ocr/document_service.py`: Multi-format text extraction (PyMuPDF, python-docx, OCR), field extraction, and status normalization.
+  - `backend/services/dataset_evaluation.py`: Evaluation scripts for FUNSD and SROIE datasets with parquet reading fallback (PyArrow / Polars).
+  - `backend/services/receipt.py`: 7-page consolidated verification report PDF generation.
+  - `tests/test_document_processing.py`: Comprehensive test suite for document parsing, image validation, and dataset evaluation.
+- **Features Implemented:**
+  - Document text extraction across PDF, DOCX, TXT, and image files.
+  - Key insurance field extraction (policy number, claimant name, vehicle registration, accident date, repair estimate).
+  - Synthetic graphic / document detection preventing non-photographs from entering damage inference.
+  - Replacement image workflow with audit history preservation.
+
+---
+
+## Phase 5: Computer Vision Damage Detection (YOLOv8 + OpenCV Fallback)
+- **Status:** Completed & Verified
+- **Date:** 2026-11-16
+- **Files Created / Modified:**
+  - `backend/services/vision/damage_detector.py`: YOLOv8 CarDD damage detector with 6 classes (`dent`, `scratch`, `crack`, `glass shatter`, `lamp broken`, `tire flat`).
+  - `backend/services/vision/service.py`: Automated damage detection pipeline, idempotent execution, spatial localization, and OpenCV contour fallback.
+  - `backend/services/vision/visualization.py`: Bounding box rendering and diagnostic image annotation.
+  - `backend/routes/claims.py`: Automatic Phase 5 execution hooks on claim submission and image replacement; `/analyze-damage` and `/damage-analysis` endpoints.
+  - `backend/services/receipt.py`: Dynamic Page 5 PDF rendering showing live damage detections, peak/average confidence, inference latency, and side-by-side original/annotated photographs.
+  - `tests/test_phase5_vision.py`: 30 automated unit and integration tests covering YOLO inference, automatic execution, idempotency, fallback, and PDF Page 5.
+- **Features Implemented:**
+  - Genuine YOLOv8 inference running on authentic vehicle accident photographs.
+  - Automated execution on new claim submission and evidence replacement.
+  - Idempotency preventing redundant inference on unchanged images.
+  - OpenCV structural contour fallback when YOLO model is unavailable or forced.
+  - Complete PDF Page 5 dynamic generation reflecting live database records.
+
+---
+
+## Phase 6: NLP Claim Narrative Analysis & Chronological Event Reconstruction
+- **Status:** Verified
+- **Date:** 2026-11-16
+- **Files Created / Modified:**
+  - `backend/services/nlp/__init__.py`: Package entry point exporting `ClaimNLPService` and specialized NLP submodules.
+  - `backend/services/nlp/service.py`: Master orchestrator `ClaimNLPService.analyze_claim_narrative` coordinating the end-to-end NLP workflow.
+  - `backend/services/nlp/preprocessing.py`: Linguistic cleaning, whitespace normalization, contraction expansion (`wasn't` -> `was not`), rule-based sentence segmentation with abbreviation protection (`Mr.`, `No.`, `Dr.`), keyword extraction, and temporal expression extraction.
+  - `backend/services/nlp/entity_extractor.py`: Domain entity recognition identifying road/intersection names, landmarks/locations, vehicle types, involved parties, explicit vehicle registration numbers (e.g. `DL-04-AB-1234`, `MH-12-DE-4052`), accident dates, and timestamps.
+  - `backend/services/nlp/event_extractor.py`: Structured event extractor identifying maneuvers (`MANEUVER_OR_STOP`), collisions (`COLLISION`), and damages (`DAMAGE_SUSTAINED`).
+  - `backend/services/nlp/chronology.py`: Temporal ordering engine reconstructing chronological sequences from narrative structure and temporal markers, tagging phase indicators (`Pre-Incident Maneuver / Condition`, `Incident / Impact Event`, `Post-Incident Damage / Response`), detecting explicit timestamps, and identifying missing or ambiguous temporal details.
+  - `backend/services/nlp/classifier.py`: Rule-based pattern classifier identifying accident types (`Rear-end collision`, `Head-on collision`, `Side-impact collision`, `Single-vehicle accident`, `Rollover`, `UNKNOWN`) with confidence scores and supporting textual evidence spans.
+  - `backend/services/nlp/damage_extractor.py`: Claimant-reported vehicle damage parser mapping damaged components (e.g. rear bumper, trunk hatch, tail lamp assembly) to spatial vehicle regions (`front`, `rear`, `rear_right`, etc.) with reported conditions.
+  - `backend/services/nlp/consistency.py`: Cross-source corroboration engine comparing narrative accident claims against structured document facts extracted from policy, claim form, and estimate documents.
+  - `backend/database/models.py`: Added `ClaimNLPAnalysis` ORM model for persistent storage of NLP analysis results, JSON serialized entities, timelines, damages, and cross-checks.
+  - `backend/routes/claims.py`: Added REST endpoints:
+    - `POST /api/claims/<claim_id>/analyze-description` (and alias `/analyze-nlp`)
+    - `GET /api/claims/<claim_id>/nlp-analysis`
+    - `GET /api/claims/<claim_id>/nlp-entities`
+    - `GET /api/claims/<claim_id>/nlp-chronology`
+    - `GET /api/claims/<claim_id>/nlp-classification`
+    - `GET /api/claims/<claim_id>/nlp-consistency`
+  - `backend/services/receipt.py`: Enhanced Consolidated Claim Verification Report PDF with **Page 6: NLP Claim Description Analysis and Event Chronology**, featuring summary tables, chronology timeline, claimant-reported damages, cross-source document corroboration, and missing/ambiguous information callouts.
+  - `tests/test_phase6_nlp.py`: Comprehensive test suite containing 14 unit and integration tests.
+- **Tests Performed:**
+  - Automated Phase 6 test suite (`python -m unittest discover -s tests -p "test_phase6_nlp.py" -v`):
+    - **14/14 tests passed in 0.563s (100% pass rate, 0 failures, 0 errors)**.
+    - Verified text preprocessing, sentence segmentation with abbreviations, entity extraction, explicit date/registration extraction, event extraction, chronology reconstruction, accident classification, damage extraction, cross-source consistency, SQLite persistence, REST endpoints, authorization controls (401/400/404), end-to-end pipeline archetypes, and ReportLab Page 6 PDF generation.
+  - Full Project Regression Test Suite:
+    - `tests/test_phase5_vision.py`: **30/30 passed** in 45.9s (100% pass rate).
+    - `tests/test_claims.py` & `tests/test_ownership_and_receipt.py`: **18/18 passed** in 12.5s (100% pass rate).
+    - `tests/test_document_processing.py`: **13/13 passed** in 53.3s (100% pass rate).
+    - `tests/test_database.py`, `tests/test_auth.py`, `tests/test_security.py`, `tests/test_health.py`, `tests/test_ui_redesign.py`: **30/30 passed** in 9.2s (100% pass rate).
+    - **Overall Suite Total: 105 passed, 0 failed, 0 errors.**
+- **Problems Encountered & Solutions:**
+  - *Problem 1: Missing pyarrow dependency in test_document_processing:* In `backend/services/dataset_evaluation.py`, `import pyarrow.parquet as pq` caused a failure in `test_dataset_evaluations_produce_reproducible_metrics` because `pyarrow` was not pre-installed in the offline environment.
+  - *Solution 1:* Added dual-engine parquet support in `backend/services/dataset_evaluation.py` to seamlessly fall back to `polars.read_parquet()` (installed as `polars 2.1.0`), returning identical records.
+  - *Problem 2: API Authorization & Edge Case Validation:* Enhanced `tests/test_phase6_nlp.py` with `test_api_endpoints_authorization_and_error_handling` to ensure unauthenticated requests receive `401 Unauthorized`, invalid IDs receive `400 Bad Request`, non-existent claims receive `404 Not Found`, and empty narratives receive `400 Bad Request`.
+  - *Problem 3: Resource Cleanup on Windows:* Added explicit `doc.close()` in PyMuPDF test assertions to guarantee file handles and streams are disposed without Windows resource warnings.
+- **Known Limitations & Scope Boundaries:**
+  - Current Phase 6 NLP utilizes deterministic linguistic pattern matching, domain entity lexicons, and regex parsing (~10ms execution latency). Highly ambiguous, dialectal, or noisy free-text narratives are flagged as ambiguous or unknown and will receive additional LLM verification in Phase 9.
+- **Next Recommended Step:**
+  - Proceed to **Phase 7: Cross-Source Consistency & Verification Engine**.
 

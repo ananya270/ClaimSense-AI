@@ -341,6 +341,104 @@ class TestPhase6NLP(unittest.TestCase):
         self.assertIn("NLP Claim Description Analysis", page6_text)
         self.assertIn("Rear-end collision", page6_text)
         self.assertIn("Reconstructed Chronological Event Timeline", page6_text)
+        doc.close()
+
+    def test_api_endpoints_authorization_and_error_handling(self):
+        """Verify API authorization controls, invalid formats, non-existent claims, and empty narratives."""
+        claim_id = "CLM-20261116-AUTH"
+        empty_claim_id = "CLM-20261116-EMPT"
+        now_utc = datetime.now(timezone.utc)
+
+        with get_db_session() as db:
+            claim = Claim(
+                claim_id=claim_id,
+                claimant_name="Rohit Verma",
+                policy_number="POL-2026-555",
+                vehicle_number="DL-01-XY-9999",
+                accident_date="2026-11-05",
+                claim_description="Vehicle hit by another car while stationary.",
+                status="SUBMITTED",
+                created_at=now_utc,
+            )
+            empty_claim = Claim(
+                claim_id=empty_claim_id,
+                claimant_name="Sunil Mehta",
+                policy_number="POL-2026-666",
+                vehicle_number="MH-02-ZZ-1111",
+                accident_date="2026-11-06",
+                claim_description="",
+                status="SUBMITTED",
+                created_at=now_utc,
+            )
+            db.add_all([claim, empty_claim])
+            db.commit()
+
+        # 1. Unauthenticated access returns 401
+        with self.client.session_transaction() as sess:
+            sess.clear()
+
+        unauth_post = self.client.post(f"/api/claims/{claim_id}/analyze-description")
+        self.assertEqual(unauth_post.status_code, 401)
+        self.assertFalse(unauth_post.get_json()["success"])
+
+        unauth_get = self.client.get(f"/api/claims/{claim_id}/nlp-analysis")
+        self.assertEqual(unauth_get.status_code, 401)
+        self.assertFalse(unauth_get.get_json()["success"])
+
+        # Authenticate as admin
+        with self.client.session_transaction() as sess:
+            sess["user_id"] = 1
+            sess["username"] = "admin"
+            sess["role"] = "admin"
+
+        # 2. Invalid claim ID format returns 400
+        inv_res = self.client.post("/api/claims/INVALID-ID/analyze-description")
+        self.assertEqual(inv_res.status_code, 400)
+        self.assertIn("Invalid Claim ID format", inv_res.get_json()["error"])
+
+        # 3. Non-existent claim returns 404
+        non_res = self.client.post("/api/claims/CLM-20261116-NONX/analyze-description")
+        self.assertEqual(non_res.status_code, 404)
+        self.assertEqual(non_res.get_json()["error"], "Not Found")
+
+        # 4. Empty narrative returns 400
+        empty_res = self.client.post(f"/api/claims/{empty_claim_id}/analyze-description")
+        self.assertEqual(empty_res.status_code, 400)
+        self.assertEqual(empty_res.get_json()["error"], "Empty Narrative")
+
+    def test_nlp_service_pipeline_end_to_end(self):
+        """Verify ClaimNLPService end-to-end analysis on multiple incident statement archetypes."""
+        # Multi-sentence complex accident narrative
+        narrative = (
+            "On 2026-10-12 at 08:45 AM, while driving vehicle DL-04-AB-1234 on Ring Road near Mayur Vihar, "
+            "an oncoming car suddenly crossed the median divider and collided head-on with my front bumper. "
+            "Severe frontal damage observed on radiator grill and both headlamp assemblies."
+        )
+        res = ClaimNLPService.analyze_claim_narrative(
+            text=narrative,
+            claim_id="CLM-20261116-E2E1",
+            claimant_name="Sanjay Gupta",
+        )
+
+        self.assertEqual(res["processing_status"], "completed")
+        self.assertGreater(res["processing_time_ms"], 0.0)
+        self.assertEqual(res["accident_type"], "Head-on collision")
+        self.assertGreaterEqual(res["accident_type_confidence"], 0.8)
+        self.assertGreaterEqual(len(res["entities"]), 3)
+        self.assertGreaterEqual(len(res["reported_damages"]), 1)
+        self.assertGreaterEqual(len(res["timeline"]), 2)
+
+        # Single vehicle loss-of-control
+        res_single = ClaimNLPService.analyze_claim_narrative(
+            text="Car lost control on a sharp bend due to oil spill and crashed into concrete guardrail.",
+            claim_id="CLM-20261116-E2E2",
+        )
+        self.assertEqual(res_single["accident_type"], "Single-vehicle accident")
+
+        # Empty / whitespace statement gracefully handled
+        res_empty = ClaimNLPService.analyze_claim_narrative(text="   ")
+        self.assertEqual(res_empty["accident_type"], "UNKNOWN")
+        self.assertEqual(res_empty["total_sentences"], 0)
 
 
 if __name__ == "__main__":
