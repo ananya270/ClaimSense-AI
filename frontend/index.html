@@ -761,6 +761,78 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- PHASE 7: CROSS-SOURCE VERIFICATION & INTELLIGENT VALIDATION -->
+                <div class="mt-4" id="modal-verification-section">
+                    <div class="damage-section-header">
+                        <div>
+                            <h3 class="damage-title">Phase 7: Cross-Source Verification & Intelligent Validation</h3>
+                            <p class="damage-subtitle">Multi-source documentary corroboration across policy, claim form, OCR, NLP narrative, and YOLOv8 computer vision</p>
+                        </div>
+                        <button type="button" id="btn-run-verification" class="btn btn-secondary btn-sm">
+                            <span class="btn-icon">⚡</span> Run Verification
+                        </button>
+                    </div>
+
+                    <!-- Verification Pending / Empty State Banner -->
+                    <div id="verif-pending-banner" class="damage-banner banner-info mt-2">
+                        <span>ℹ️ Automated cross-source verification has not yet been executed for this claim. Click <strong>Run Verification</strong> to cross-examine all multi-source evidence.</span>
+                    </div>
+
+                    <!-- Verification Content Container -->
+                    <div id="verif-content-container" style="display: none;" class="mt-2">
+                        <!-- Metric Summary Cards -->
+                        <div class="damage-metrics-grid mb-3">
+                            <div class="metric-card">
+                                <span class="metric-val" id="verif-metric-status" style="color: var(--primary);">CONSISTENT</span>
+                                <span class="metric-title">Overall Assessment</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-num" id="verif-metric-score" style="color: var(--success);">100%</span>
+                                <span class="metric-title">Consistency Score</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-num" id="verif-metric-matched">0</span>
+                                <span class="metric-title">Confirmed Matches</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-num" id="verif-metric-mismatched" style="color: var(--danger);">0</span>
+                                <span class="metric-title">Discrepancies</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-num" id="verif-metric-missing">0</span>
+                                <span class="metric-title">Missing / Unlisted</span>
+                            </div>
+                        </div>
+
+                        <!-- Source-to-Source Findings Table -->
+                        <div class="card mb-3" style="background: var(--bg-card-subtle); padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                            <span class="detail-label" style="display: block; margin-bottom: 6px;">Cross-Source Comparison Findings</span>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Comparison</th>
+                                            <th>Field</th>
+                                            <th>Source A Value</th>
+                                            <th>Source B Value</th>
+                                            <th>Status</th>
+                                            <th>Severity</th>
+                                            <th>Explanation</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="verif-findings-rows"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Recommendations Card -->
+                        <div id="verif-recommendations-container" class="damage-banner banner-warning mt-2">
+                            <strong>Assessor Decision-Support Recommendations:</strong>
+                            <ul id="verif-recommendations-list" style="margin-left: 18px; margin-top: 4px; font-size: 0.8rem;"></ul>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <a id="btn-modal-receipt" href="#" target="_blank" class="btn btn-secondary btn-sm">📄 Download Receipt</a>
