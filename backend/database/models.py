@@ -91,6 +91,7 @@ class Claim(Base):
     extracted_info = relationship("ExtractedInformation", back_populates="claim", cascade="all, delete-orphan", lazy="select")
     image_analyses = relationship("ImageAnalysis", back_populates="claim", cascade="all, delete-orphan", lazy="select")
     vehicle_damage_analyses = relationship("VehicleDamageAnalysis", back_populates="claim", cascade="all, delete-orphan", lazy="select")
+    nlp_analyses = relationship("ClaimNLPAnalysis", back_populates="claim", cascade="all, delete-orphan", lazy="select")
     verification_results = relationship("VerificationResult", back_populates="claim", cascade="all, delete-orphan", lazy="select")
     risk_assessments = relationship("RiskAssessment", back_populates="claim", cascade="all, delete-orphan", lazy="select")
     reports = relationship("Report", back_populates="claim", cascade="all, delete-orphan", lazy="select")
@@ -150,6 +151,12 @@ class Claim(Base):
                 data["damage_analysis"] = latest_analysis.to_dict()
             else:
                 data["damage_analysis"] = None
+
+            if self.nlp_analyses:
+                latest_nlp = sorted(self.nlp_analyses, key=lambda a: a.id)[-1]
+                data["nlp_analysis"] = latest_nlp.to_dict()
+            else:
+                data["nlp_analysis"] = None
 
         return data
 
@@ -367,6 +374,65 @@ class VehicleDamageDetection(Base):
             ],
             "location_region": self.location_region or "unspecified",
             "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+
+class ClaimNLPAnalysis(Base):
+    """Phase 6 Claimant Narrative NLP Analysis, Entity Extraction, and Chronology."""
+    __tablename__ = "claim_nlp_analyses"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    claim_id = Column(String(32), ForeignKey("claims.claim_id"), nullable=False, index=True)
+    original_narrative = Column(Text, nullable=False)
+    normalized_narrative = Column(Text, nullable=True)
+    accident_type = Column(String(64), nullable=False)
+    accident_type_confidence = Column(Float, nullable=False, default=0.0)
+    classification_method = Column(String(64), nullable=False, default="Linguistic Pattern Matching")
+    classification_supporting_text = Column(Text, nullable=True)
+    extracted_entities = Column(Text, nullable=True)
+    events_timeline = Column(Text, nullable=True)
+    damage_descriptions = Column(Text, nullable=True)
+    cross_consistency_findings = Column(Text, nullable=True)
+    missing_information = Column(Text, nullable=True)
+    ambiguous_information = Column(Text, nullable=True)
+    nlp_engine_version = Column(String(32), default="1.0.0", nullable=False)
+    processing_status = Column(String(32), default="completed", nullable=False)
+    processing_time_ms = Column(Float, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=True)
+
+    claim = relationship("Claim", back_populates="nlp_analyses")
+
+    def to_dict(self) -> Dict[str, Any]:
+        def safe_json(val, default):
+            if not val:
+                return default
+            try:
+                return json.loads(val)
+            except Exception:
+                return default
+
+        return {
+            "id": self.id,
+            "claim_id": self.claim_id,
+            "original_narrative": self.original_narrative,
+            "normalized_narrative": self.normalized_narrative,
+            "accident_type": self.accident_type,
+            "accident_type_confidence": round(self.accident_type_confidence, 2) if self.accident_type_confidence is not None else 0.0,
+            "classification_method": self.classification_method,
+            "classification_supporting_text": self.classification_supporting_text,
+            "entities": safe_json(self.extracted_entities, []),
+            "timeline": safe_json(self.events_timeline, []),
+            "reported_damages": safe_json(self.damage_descriptions, []),
+            "consistency": safe_json(self.cross_consistency_findings, {}),
+            "missing_information": safe_json(self.missing_information, []),
+            "ambiguous_information": safe_json(self.ambiguous_information, []),
+            "engine_version": self.nlp_engine_version,
+            "processing_status": self.processing_status,
+            "processing_time_ms": round(self.processing_time_ms, 2) if self.processing_time_ms is not None else 0.0,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 
 

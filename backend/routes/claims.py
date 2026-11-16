@@ -18,6 +18,7 @@ from backend.database.models import (
     ExtractedInformation,
     VehicleDamageAnalysis,
     VehicleDamageDetection,
+    ClaimNLPAnalysis,
 )
 from backend.services.ocr.document_service import ingest_extracted_claim_data, process_document
 from backend.services.receipt import (
@@ -30,6 +31,7 @@ from backend.services.vision import (
     create_annotated_image,
     get_model_evaluation_metrics,
 )
+from backend.services.nlp import ClaimNLPService
 from backend.extensions import csrf
 from backend.utils.auth import get_current_user_id, can_user_access_claim
 from backend.utils.logger import setup_logger
@@ -1323,5 +1325,310 @@ def get_vision_status():
             "status": "error",
             "message": str(exc),
         }), 500
+
+
+# =========================================================================
+# Phase 6: NLP Claim Description Analysis & Chronological Extraction Routes
+# =========================================================================
+
+@claims_bp.route("/claims/<claim_id>/analyze-description", methods=["POST"])
+@claims_bp.route("/claims/<claim_id>/analyze-nlp", methods=["POST"])
+@csrf.exempt
+def analyze_claim_description(claim_id: str):
+    """Executes Phase 6 NLP analysis on the claimant accident narrative."""
+    if not is_valid_claim_id_format(claim_id):
+        return jsonify({
+            "success": False,
+            "error": "Invalid Claim ID format",
+            "message": "Claim ID must follow format CLM-YYYYMMDD-XXXX.",
+        }), 400
+
+    user_id = session.get("user_id")
+    user_role = session.get("role")
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim:
+            return jsonify({
+                "success": False,
+                "error": "Not Found",
+                "message": f"Claim with ID '{claim_id}' was not found.",
+            }), 404
+
+        if not can_user_access_claim(claim, user_id, user_role):
+            if not user_id:
+                return jsonify({
+                    "success": False,
+                    "error": "Unauthorized",
+                    "message": "Authentication required to analyze claim description.",
+                }), 401
+            return jsonify({
+                "success": False,
+                "error": "Forbidden",
+                "message": "You do not have permission to analyze description for this claim.",
+            }), 403
+
+        raw_desc = claim.claim_description or ""
+        if not raw_desc.strip():
+            return jsonify({
+                "success": False,
+                "error": "Empty Narrative",
+                "message": "No claimant accident description has been provided for this claim.",
+            }), 400
+
+        # Gather extracted documents for cross-source consistency
+        extracted_doc_rows = [
+            r.to_dict() for r in db.query(ExtractedInformation).filter_by(claim_id=claim_id).all()
+        ]
+        claim_dict = claim.to_dict()
+
+        # Run NLP analysis
+        nlp_res = ClaimNLPService.analyze_claim_narrative(
+            text=raw_desc,
+            claim_id=claim_id,
+            claimant_name=claim.claimant_name,
+            extracted_doc_rows=extracted_doc_rows,
+            claim_record=claim_dict,
+        )
+
+        # Store in database
+        now_utc = datetime.now(timezone.utc)
+        analysis_rec = ClaimNLPAnalysis(
+            claim_id=claim_id,
+            original_narrative=nlp_res["original_narrative"],
+            normalized_narrative=nlp_res["normalized_narrative"],
+            accident_type=nlp_res["accident_type"],
+            accident_type_confidence=nlp_res["accident_type_confidence"],
+            classification_method=nlp_res["classification_method"],
+            classification_supporting_text=nlp_res["classification_supporting_text"],
+            extracted_entities=json.dumps(nlp_res["entities"]),
+            events_timeline=json.dumps(nlp_res["timeline"]),
+            damage_descriptions=json.dumps(nlp_res["reported_damages"]),
+            cross_consistency_findings=json.dumps(nlp_res["consistency"]),
+            missing_information=json.dumps(nlp_res["missing_information"]),
+            ambiguous_information=json.dumps(nlp_res["ambiguous_information"]),
+            nlp_engine_version=nlp_res["engine_version"],
+            processing_status=nlp_res["processing_status"],
+            processing_time_ms=nlp_res["processing_time_ms"],
+            created_at=now_utc,
+            updated_at=now_utc,
+        )
+        db.add(analysis_rec)
+        db.commit()
+
+        # Update metadata.json if present
+        upload_base = Path(current_app.config["UPLOAD_FOLDER"])
+        claim_dir = upload_base / claim_id
+        meta_file = claim_dir / "metadata.json"
+        if meta_file.exists():
+            try:
+                with open(meta_file, "r", encoding="utf-8") as f:
+                    meta = json.load(f)
+                meta["latest_nlp_analysis"] = analysis_rec.to_dict()
+                with open(meta_file, "w", encoding="utf-8") as f:
+                    json.dump(meta, f, indent=2)
+            except Exception as exc:
+                logger.warning(f"Failed to update metadata.json with NLP analysis: {exc}")
+
+        logger.info(
+            f"Successfully completed NLP narrative analysis for {claim_id}: "
+            f"Type={nlp_res['accident_type']} ({nlp_res['accident_type_confidence']:.2f}), "
+            f"{nlp_res['total_entities']} entities, {nlp_res['total_events']} events, "
+            f"{nlp_res['total_reported_damages']} damage items in {nlp_res['processing_time_ms']}ms"
+        )
+
+        return jsonify({
+            "success": True,
+            "claim_id": claim_id,
+            "analysis": analysis_rec.to_dict(),
+        }), 200
+
+
+@claims_bp.route("/claims/<claim_id>/nlp-analysis", methods=["GET"])
+def get_claim_nlp_analysis(claim_id: str):
+    """Retrieves the latest NLP claim description analysis for a claim."""
+    if not is_valid_claim_id_format(claim_id):
+        return jsonify({
+            "success": False,
+            "error": "Invalid Claim ID format",
+            "message": "Claim ID must follow format CLM-YYYYMMDD-XXXX.",
+        }), 400
+
+    user_id = session.get("user_id")
+    user_role = session.get("role")
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim:
+            return jsonify({
+                "success": False,
+                "error": "Not Found",
+                "message": f"Claim with ID '{claim_id}' was not found.",
+            }), 404
+
+        if not can_user_access_claim(claim, user_id, user_role):
+            if not user_id:
+                return jsonify({
+                    "success": False,
+                    "error": "Unauthorized",
+                    "message": "Authentication required to access NLP analysis.",
+                }), 401
+            return jsonify({
+                "success": False,
+                "error": "Forbidden",
+                "message": "You do not have permission to access NLP analysis for this claim.",
+            }), 403
+
+        latest_analysis = (
+            db.query(ClaimNLPAnalysis)
+            .filter_by(claim_id=claim_id)
+            .order_by(desc(ClaimNLPAnalysis.id))
+            .first()
+        )
+
+        if not latest_analysis:
+            return jsonify({
+                "success": False,
+                "error": "Not Analyzed",
+                "message": "No NLP narrative analysis has been executed for this claim yet.",
+                "analyzed": False,
+            }), 404
+
+        return jsonify({
+            "success": True,
+            "claim_id": claim_id,
+            "analyzed": True,
+            "analysis": latest_analysis.to_dict(),
+        }), 200
+
+
+@claims_bp.route("/claims/<claim_id>/nlp-entities", methods=["GET"])
+def get_claim_nlp_entities(claim_id: str):
+    """Retrieves extracted domain entities from the claim narrative."""
+    if not is_valid_claim_id_format(claim_id):
+        return jsonify({"success": False, "error": "Invalid Claim ID format"}), 400
+
+    user_id = session.get("user_id")
+    user_role = session.get("role")
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim or not can_user_access_claim(claim, user_id, user_role):
+            return jsonify({"success": False, "error": "Unauthorized / Not Found"}), 404
+
+        latest = (
+            db.query(ClaimNLPAnalysis)
+            .filter_by(claim_id=claim_id)
+            .order_by(desc(ClaimNLPAnalysis.id))
+            .first()
+        )
+        if not latest:
+            return jsonify({"success": False, "error": "Not Analyzed", "entities": []}), 404
+
+        data = latest.to_dict()
+        return jsonify({
+            "success": True,
+            "claim_id": claim_id,
+            "total_entities": len(data.get("entities", [])),
+            "entities": data.get("entities", []),
+        }), 200
+
+
+@claims_bp.route("/claims/<claim_id>/nlp-chronology", methods=["GET"])
+def get_claim_nlp_chronology(claim_id: str):
+    """Retrieves reconstructed accident chronological timeline."""
+    if not is_valid_claim_id_format(claim_id):
+        return jsonify({"success": False, "error": "Invalid Claim ID format"}), 400
+
+    user_id = session.get("user_id")
+    user_role = session.get("role")
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim or not can_user_access_claim(claim, user_id, user_role):
+            return jsonify({"success": False, "error": "Unauthorized / Not Found"}), 404
+
+        latest = (
+            db.query(ClaimNLPAnalysis)
+            .filter_by(claim_id=claim_id)
+            .order_by(desc(ClaimNLPAnalysis.id))
+            .first()
+        )
+        if not latest:
+            return jsonify({"success": False, "error": "Not Analyzed", "timeline": []}), 404
+
+        data = latest.to_dict()
+        return jsonify({
+            "success": True,
+            "claim_id": claim_id,
+            "total_steps": len(data.get("timeline", [])),
+            "timeline": data.get("timeline", []),
+            "missing_temporal_info": data.get("missing_information", []),
+        }), 200
+
+
+@claims_bp.route("/claims/<claim_id>/nlp-classification", methods=["GET"])
+def get_claim_nlp_classification(claim_id: str):
+    """Retrieves accident classification details."""
+    if not is_valid_claim_id_format(claim_id):
+        return jsonify({"success": False, "error": "Invalid Claim ID format"}), 400
+
+    user_id = session.get("user_id")
+    user_role = session.get("role")
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim or not can_user_access_claim(claim, user_id, user_role):
+            return jsonify({"success": False, "error": "Unauthorized / Not Found"}), 404
+
+        latest = (
+            db.query(ClaimNLPAnalysis)
+            .filter_by(claim_id=claim_id)
+            .order_by(desc(ClaimNLPAnalysis.id))
+            .first()
+        )
+        if not latest:
+            return jsonify({"success": False, "error": "Not Analyzed"}), 404
+
+        data = latest.to_dict()
+        return jsonify({
+            "success": True,
+            "claim_id": claim_id,
+            "accident_type": data.get("accident_type"),
+            "confidence": data.get("accident_type_confidence"),
+            "classification_method": data.get("classification_method"),
+            "supporting_text": data.get("classification_supporting_text"),
+        }), 200
+
+
+@claims_bp.route("/claims/<claim_id>/nlp-consistency", methods=["GET"])
+def get_claim_nlp_consistency(claim_id: str):
+    """Retrieves cross-source consistency findings."""
+    if not is_valid_claim_id_format(claim_id):
+        return jsonify({"success": False, "error": "Invalid Claim ID format"}), 400
+
+    user_id = session.get("user_id")
+    user_role = session.get("role")
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim or not can_user_access_claim(claim, user_id, user_role):
+            return jsonify({"success": False, "error": "Unauthorized / Not Found"}), 404
+
+        latest = (
+            db.query(ClaimNLPAnalysis)
+            .filter_by(claim_id=claim_id)
+            .order_by(desc(ClaimNLPAnalysis.id))
+            .first()
+        )
+        if not latest:
+            return jsonify({"success": False, "error": "Not Analyzed"}), 404
+
+        data = latest.to_dict()
+        return jsonify({
+            "success": True,
+            "claim_id": claim_id,
+            "consistency": data.get("consistency", {}),
+        }), 200
 
 

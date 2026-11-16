@@ -647,6 +647,120 @@
                         <div id="damage-history-list" class="history-tags mt-1"></div>
                     </div>
                 </div>
+
+                <!-- AI Claim Description Analysis & Chronology (Phase 6) -->
+                <div class="mt-4" id="modal-nlp-section">
+                    <div class="damage-section-header">
+                        <div>
+                            <h4 class="subheading">📝 AI Claim Description Analysis & Chronology (Phase 6)</h4>
+                            <div class="model-info-subtitle" style="font-size: 0.82rem; color: var(--text-muted, #94a3b8); margin-top: 2px;">
+                                Engine: <b>ClaimSense NLP v1.0.0</b> &bull; Rule-based linguistic parsing, typed entity extraction & chronological event reconstruction
+                            </div>
+                        </div>
+                        <div class="damage-actions">
+                            <button type="button" id="btn-analyze-nlp" class="btn btn-primary btn-sm">
+                                <span id="btn-nlp-text">🔍 Analyze Narrative</span>
+                                <span id="btn-nlp-spinner" class="spinner-small" style="display: none;"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- NLP Status Notification / Banner -->
+                    <div id="nlp-status-banner" class="damage-banner mt-2" style="display: none;"></div>
+
+                    <!-- NLP Results Container -->
+                    <div id="nlp-results-container" class="mt-3" style="display: none;">
+                        <!-- Original Statement Box -->
+                        <div class="detail-box wide mb-3">
+                            <span class="detail-label">Claimant Statement Analyzed</span>
+                            <p id="nlp-narrative-text" class="narrative-text mt-1" style="font-style: italic; color: var(--text-primary);"></p>
+                        </div>
+
+                        <!-- Summary Metric Cards -->
+                        <div class="damage-metrics-grid mb-3">
+                            <div class="metric-card">
+                                <span class="metric-val" id="nlp-metric-type" style="color: var(--primary);">Unknown</span>
+                                <span class="metric-title">Accident Type</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-num" id="nlp-metric-confidence">0%</span>
+                                <span class="metric-title">Classification Conf.</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-num" id="nlp-metric-entities">0</span>
+                                <span class="metric-title">Entities Extracted</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-val" id="nlp-metric-consistency" style="color: var(--success);">0%</span>
+                                <span class="metric-title">Doc Corroboration</span>
+                            </div>
+                        </div>
+
+                        <!-- Extracted Entities Badges -->
+                        <div class="card mb-3" style="background: var(--bg-card-subtle); padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                            <span class="detail-label" style="display: block; margin-bottom: 8px;">Extracted Domain Entities</span>
+                            <div id="nlp-entities-list" class="history-tags"></div>
+                        </div>
+
+                        <!-- Chronological Event Timeline -->
+                        <div class="card mb-3" style="background: var(--bg-card-subtle); padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span class="detail-label">Chronological Event Timeline</span>
+                                <span id="nlp-chronology-badge" class="badge badge-secondary" style="font-size: 0.72rem;">Narrative Sequence</span>
+                            </div>
+                            <div id="nlp-timeline-container" class="timeline-stepper"></div>
+                        </div>
+
+                        <!-- Claimant-Reported Damage Descriptions -->
+                        <div class="card mb-3" style="background: var(--bg-card-subtle); padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <span class="detail-label">Claimant-Reported Damage Descriptions</span>
+                                <span class="badge badge-info" style="font-size: 0.7rem;">Narrative (Non-Visual)</span>
+                            </div>
+                            <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px;">
+                                Explicit physical damage statements provided in the claimant text. Distinct from Phase 5 computer-vision verified detections.
+                            </p>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Component</th>
+                                            <th>Stated Condition</th>
+                                            <th>Vehicle Region</th>
+                                            <th>Supporting Sentence</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="nlp-damages-rows"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Cross-Source Consistency Corroboration Table -->
+                        <div class="card mb-3" style="background: var(--bg-card-subtle); padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                            <span class="detail-label" style="display: block; margin-bottom: 6px;">Cross-Source Document Corroboration (Phase 4 vs Narrative)</span>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Field</th>
+                                            <th>Narrative Stated</th>
+                                            <th>Document Stated</th>
+                                            <th>Status</th>
+                                            <th>Explanation</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="nlp-consistency-rows"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Missing / Ambiguous Information -->
+                        <div id="nlp-missing-container" class="damage-banner banner-warning mt-2" style="display: none;">
+                            <strong>Note on Narrative Completeness:</strong>
+                            <ul id="nlp-missing-list" style="margin-left: 18px; margin-top: 4px; font-size: 0.8rem;"></ul>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <a id="btn-modal-receipt" href="#" target="_blank" class="btn btn-secondary btn-sm">📄 Download Receipt</a>
@@ -683,7 +797,7 @@
         </div>
     </footer>
 
-    <script src="app.js?v=10"></script>
+    <script src="app.js?v=11"></script>
 </body>
 
 </html>

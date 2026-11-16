@@ -1637,6 +1637,214 @@ function initClaimSenseApp() {
 
             loadDamageHistory();
 
+            // -------------------------------------------------------------
+            // Phase 6: Load and display AI Claim Description Analysis (NLP)
+            // -------------------------------------------------------------
+            const btnAnalyzeNlp = document.getElementById("btn-analyze-nlp");
+            const btnNlpText = document.getElementById("btn-nlp-text");
+            const btnNlpSpinner = document.getElementById("btn-nlp-spinner");
+            const nlpStatusBanner = document.getElementById("nlp-status-banner");
+            const nlpResultsContainer = document.getElementById("nlp-results-container");
+            const nlpNarrativeText = document.getElementById("nlp-narrative-text");
+            const nlpMetricType = document.getElementById("nlp-metric-type");
+            const nlpMetricConfidence = document.getElementById("nlp-metric-confidence");
+            const nlpMetricEntities = document.getElementById("nlp-metric-entities");
+            const nlpMetricConsistency = document.getElementById("nlp-metric-consistency");
+            const nlpEntitiesList = document.getElementById("nlp-entities-list");
+            const nlpChronologyBadge = document.getElementById("nlp-chronology-badge");
+            const nlpTimelineContainer = document.getElementById("nlp-timeline-container");
+            const nlpDamagesRows = document.getElementById("nlp-damages-rows");
+            const nlpConsistencyRows = document.getElementById("nlp-consistency-rows");
+            const nlpMissingContainer = document.getElementById("nlp-missing-container");
+            const nlpMissingList = document.getElementById("nlp-missing-list");
+
+            function displayNlpAnalysis(analysis) {
+                if (!nlpResultsContainer) return;
+
+                if (analysis && (analysis.accident_type || analysis.entities || analysis.timeline)) {
+                    if (nlpNarrativeText) {
+                        nlpNarrativeText.textContent = `"${analysis.original_narrative || claim.claim_description || ""}"`;
+                    }
+                    if (nlpMetricType) nlpMetricType.textContent = analysis.accident_type || "UNKNOWN";
+                    if (nlpMetricConfidence) {
+                        const confVal = (analysis.accident_type_confidence || 0) * 100;
+                        nlpMetricConfidence.textContent = `${confVal.toFixed(0)}%`;
+                    }
+                    if (nlpMetricEntities) {
+                        nlpMetricEntities.textContent = (analysis.entities ? analysis.entities.length : 0);
+                    }
+                    if (nlpMetricConsistency) {
+                        const consVal = analysis.consistency ? analysis.consistency.consistency_score : 0;
+                        nlpMetricConsistency.textContent = `${(consVal || 0)}%`;
+                    }
+
+                    // Render Entities
+                    if (nlpEntitiesList) {
+                        const ents = analysis.entities || [];
+                        if (ents.length > 0) {
+                            nlpEntitiesList.innerHTML = ents.map((e) => {
+                                const t = e.entity_type || "ENTITY";
+                                let badgeClass = "badge-location";
+                                if (t.includes("ROAD")) badgeClass = "badge-road";
+                                else if (t.includes("VEHICLE")) badgeClass = "badge-vehicle";
+                                else if (t.includes("OTHER")) badgeClass = "badge-other";
+                                else if (t.includes("CLAIMANT")) badgeClass = "badge-claimant";
+                                else if (t.includes("DATE") || t.includes("TIME")) badgeClass = "badge-date";
+                                else if (t.includes("WEATHER")) badgeClass = "badge-weather";
+                                return `<span class="entity-chip"><span class="entity-type-badge ${badgeClass}">${escapeHtml(t)}</span><strong>${escapeHtml(e.text)}</strong></span>`;
+                            }).join("");
+                        } else {
+                            nlpEntitiesList.innerHTML = `<span style="font-size: 0.8rem; color: var(--text-muted);">No distinct domain entities found in narrative.</span>`;
+                        }
+                    }
+
+                    // Render Chronology Timeline
+                    if (nlpTimelineContainer) {
+                        const steps = analysis.timeline || [];
+                        if (steps.length > 0) {
+                            nlpTimelineContainer.innerHTML = steps.map((s) => `
+                                <div class="timeline-item">
+                                    <div class="timeline-step-num">${s.step_number || 1}</div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-header">
+                                            <span class="badge badge-primary">${escapeHtml(s.event_type || "EVENT")}</span>
+                                            <span class="timeline-phase">${escapeHtml(s.phase || s.time_reference || "")}</span>
+                                        </div>
+                                        <div class="timeline-desc">${escapeHtml(s.description || "")}</div>
+                                        <div class="timeline-quote">"${escapeHtml(s.supporting_sentence || "")}"</div>
+                                    </div>
+                                </div>
+                            `).join("");
+                        } else {
+                            nlpTimelineContainer.innerHTML = `<span style="font-size: 0.8rem; color: var(--text-muted);">No sequential timeline events extracted.</span>`;
+                        }
+                    }
+
+                    // Render Claimant-Reported Damages
+                    if (nlpDamagesRows) {
+                        const dmgs = analysis.reported_damages || [];
+                        if (dmgs.length > 0) {
+                            nlpDamagesRows.innerHTML = dmgs.map((d) => `
+                                <tr>
+                                    <td><strong>${escapeHtml(d.component || "-")}</strong></td>
+                                    <td><span class="badge badge-info">${escapeHtml(d.reported_condition || "Damaged")}</span></td>
+                                    <td>${escapeHtml((d.spatial_region || "rear").replace(/_/g, " ").toUpperCase())}</td>
+                                    <td><i>"${escapeHtml(d.supporting_sentence || "-")}"</i></td>
+                                </tr>
+                            `).join("");
+                        } else {
+                            nlpDamagesRows.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No vehicle damage items mentioned in narrative statement.</td></tr>`;
+                        }
+                    }
+
+                    // Render Consistency Corroboration
+                    if (nlpConsistencyRows) {
+                        const comps = (analysis.consistency && analysis.consistency.comparisons) || [];
+                        if (comps.length > 0) {
+                            nlpConsistencyRows.innerHTML = comps.map((c) => {
+                                const st = c.status || "INFO";
+                                let pillCls = "status-ready";
+                                if (st === "MATCH") pillCls = "status-ready";
+                                else if (st === "CONTRADICTORY") pillCls = "status-failed";
+                                else if (st === "MISSING_IN_NARRATIVE") pillCls = "status-pending";
+                                return `
+                                    <tr>
+                                        <td><strong>${escapeHtml(c.field || "-")}</strong></td>
+                                        <td>${escapeHtml(c.narrative_value || "-")}</td>
+                                        <td>${escapeHtml(c.document_value || "-")}<br/><small style="color: var(--text-muted);">${escapeHtml(c.source_document || "")}</small></td>
+                                        <td><span class="status-pill ${pillCls}">${escapeHtml(st)}</span></td>
+                                        <td>${escapeHtml(c.explanation || "-")}</td>
+                                    </tr>
+                                `;
+                            }).join("");
+                        } else {
+                            nlpConsistencyRows.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No cross-source comparisons recorded.</td></tr>`;
+                        }
+                    }
+
+                    // Missing / Ambiguous Notes
+                    const missing = analysis.missing_information || [];
+                    if (missing.length > 0 && nlpMissingContainer && nlpMissingList) {
+                        nlpMissingList.innerHTML = missing.map((m) => `<li>${escapeHtml(m)}</li>`).join("");
+                        nlpMissingContainer.style.display = "block";
+                    } else if (nlpMissingContainer) {
+                        nlpMissingContainer.style.display = "none";
+                    }
+
+                    if (nlpStatusBanner) {
+                        nlpStatusBanner.className = "damage-banner success mt-2";
+                        nlpStatusBanner.textContent = `✓ NLP Claim Narrative Analysis complete: ${analysis.accident_type || 'Accident'} classified with ${analysis.entities ? analysis.entities.length : 0} entities and ${analysis.timeline ? analysis.timeline.length : 0} chronological events.`;
+                        nlpStatusBanner.style.display = "block";
+                    }
+
+                    nlpResultsContainer.style.display = "block";
+                } else {
+                    nlpResultsContainer.style.display = "none";
+                    if (nlpStatusBanner) {
+                        nlpStatusBanner.className = "damage-banner info mt-2";
+                        nlpStatusBanner.textContent = 'ℹ Claimant statement ready. Click "Analyze Narrative" to run NLP entity, chronology, and classification extraction.';
+                        nlpStatusBanner.style.display = "block";
+                    }
+                }
+            }
+
+            // Wire up NLP analyze button
+            if (btnAnalyzeNlp) {
+                btnAnalyzeNlp.onclick = async () => {
+                    btnAnalyzeNlp.disabled = true;
+                    if (btnNlpSpinner) btnNlpSpinner.style.display = "inline-block";
+                    if (btnNlpText) btnNlpText.textContent = "Analyzing Narrative...";
+                    if (nlpStatusBanner) {
+                        nlpStatusBanner.className = "damage-banner info mt-2";
+                        nlpStatusBanner.textContent = "Executing NLP entity extraction and event timeline reconstruction...";
+                        nlpStatusBanner.style.display = "block";
+                    }
+
+                    try {
+                        const anRes = await fetch(`/api/claims/${claimId}/analyze-description`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" }
+                        });
+                        const anData = await anRes.json();
+                        if (!anRes.ok || !anData.success) {
+                            throw new Error(anData.message || "Failed to analyze claim description.");
+                        }
+                        displayNlpAnalysis(anData.analysis);
+                    } catch (err) {
+                        if (nlpStatusBanner) {
+                            nlpStatusBanner.className = "damage-banner danger mt-2";
+                            nlpStatusBanner.textContent = `Error: ${err.message}`;
+                            nlpStatusBanner.style.display = "block";
+                        }
+                    } finally {
+                        btnAnalyzeNlp.disabled = false;
+                        if (btnNlpSpinner) btnNlpSpinner.style.display = "none";
+                        if (btnNlpText) btnNlpText.textContent = "🔍 Analyze Narrative";
+                    }
+                };
+            }
+
+            // Initial load of NLP analysis
+            if (claim.nlp_analysis) {
+                displayNlpAnalysis(claim.nlp_analysis);
+            } else {
+                try {
+                    const nlpRes = await fetch(`/api/claims/${claimId}/nlp-analysis`);
+                    if (nlpRes.ok) {
+                        const nlpData = await nlpRes.json();
+                        if (nlpData.analysis) {
+                            displayNlpAnalysis(nlpData.analysis);
+                        } else {
+                            displayNlpAnalysis(null);
+                        }
+                    } else {
+                        displayNlpAnalysis(null);
+                    }
+                } catch {
+                    displayNlpAnalysis(null);
+                }
+            }
+
         } catch (err) {
             document.getElementById("detail-description").textContent = `Error: ${err.message}`;
         }

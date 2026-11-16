@@ -436,6 +436,30 @@ def generate_document_intelligence_report_pdf(
         textColor=colors.HexColor("#94a3b8"),
         alignment=1,
     )
+    table_header_style = ParagraphStyle(
+        "TableHeaderStyle",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=8,
+        leading=10,
+        textColor=colors.HexColor("#0f172a"),
+    )
+    table_hdr_white = ParagraphStyle(
+        "TableHdrWhite",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=8,
+        leading=10,
+        textColor=colors.white,
+    )
+    table_cell_style = ParagraphStyle(
+        "TableCellStyle",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=7.5,
+        leading=9.5,
+        textColor=colors.HexColor("#1e293b"),
+    )
 
     extracted_rows = extracted_rows or []
     standardized: List[Dict[str, Any]] = []
@@ -1147,6 +1171,159 @@ def generate_document_intelligence_report_pdf(
     ))
     story.append(PageBreak())
 
+    # Page 6: NLP Claim Description Analysis and Event Chronology (Phase 6)
+    story.append(Paragraph("Page 6: NLP Claim Description Analysis and Event Chronology", section_heading))
+    story.append(Paragraph("AI-Powered Linguistic Extraction, Event Timeline, Classification & Cross-Source Consistency", subtitle_style))
+    story.append(Spacer(1, 6))
+
+    nlp_data = claim_dict.get("nlp_analysis") or claim_dict.get("latest_nlp_analysis")
+    if not nlp_data and claim_dict.get("claim_description"):
+        try:
+            from backend.services.nlp import ClaimNLPService
+            nlp_data = ClaimNLPService.analyze_claim_narrative(
+                text=claim_dict["claim_description"],
+                claim_id=claim_id,
+                claimant_name=claim_dict.get("claimant_name"),
+                extracted_doc_rows=standardized,
+                claim_record=claim_dict,
+            )
+        except Exception:
+            nlp_data = None
+
+    if nlp_data:
+        claim_desc_text = nlp_data.get("original_narrative") or claim_dict.get("claim_description", "")
+        # Narrative Box
+        story.append(Paragraph("<b>Original Claimant Statement:</b>", meta_label))
+        story.append(Paragraph(f'"{claim_desc_text}"', meta_val))
+        story.append(Spacer(1, 6))
+
+        # NLP Summary Table
+        acc_type = nlp_data.get("accident_type", "UNKNOWN")
+        acc_conf = nlp_data.get("accident_type_confidence", 0.0)
+        acc_method = nlp_data.get("classification_method", "Linguistic Pattern Matching")
+        entities_list = nlp_data.get("entities", [])
+        loc_entities = [e["text"] for e in entities_list if e.get("entity_type") in ("ROAD_INTERSECTION", "LOCATION")]
+        loc_str = ", ".join(loc_entities) if loc_entities else "Not specified"
+        time_ms = nlp_data.get("processing_time_ms", 0.0)
+
+        nlp_summary_data = [
+            [Paragraph("<b>Accident Classification</b>", table_header_style), Paragraph(f"<b>{acc_type}</b> ({acc_conf*100:.1f}% confidence)", meta_val)],
+            [Paragraph("<b>Classification Method</b>", table_header_style), Paragraph(acc_method, meta_val)],
+            [Paragraph("<b>Identified Accident Location</b>", table_header_style), Paragraph(loc_str, meta_val)],
+            [Paragraph("<b>Domain Entities Identified</b>", table_header_style), Paragraph(f"{len(entities_list)} typed entities (locations, vehicles, parties)", meta_val)],
+            [Paragraph("<b>Processing Engine & Status</b>", table_header_style), Paragraph(f"ClaimSense NLP v{nlp_data.get('engine_version', '1.0.0')} &bull; Status: {nlp_data.get('processing_status', 'completed').title()} ({time_ms:.1f} ms)", meta_val)],
+        ]
+        nlp_summary_table = Table(nlp_summary_data, colWidths=[160, 380])
+        nlp_summary_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f8fafc")),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+            ("PADDING", (0, 0), (-1, -1), 4),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ]))
+        story.append(nlp_summary_table)
+        story.append(Spacer(1, 8))
+
+        # Chronology Table
+        timeline_list = nlp_data.get("timeline", [])
+        if timeline_list:
+            story.append(Paragraph("<b>Reconstructed Chronological Event Timeline:</b>", meta_label))
+            chron_rows = [[
+                Paragraph("<b>#</b>", table_hdr_white),
+                Paragraph("<b>Event Type</b>", table_hdr_white),
+                Paragraph("<b>Phase / Time Reference</b>", table_hdr_white),
+                Paragraph("<b>Event Description</b>", table_hdr_white),
+                Paragraph("<b>Supporting Sentence</b>", table_hdr_white),
+            ]]
+            for step in timeline_list:
+                chron_rows.append([
+                    Paragraph(str(step.get("step_number", "")), table_cell_style),
+                    Paragraph(f"<b>{step.get('event_type', '')}</b>", table_cell_style),
+                    Paragraph(step.get("phase", step.get("time_reference", "")), table_cell_style),
+                    Paragraph(step.get("description", ""), table_cell_style),
+                    Paragraph(f"<i>\"{step.get('supporting_sentence', '')}\"</i>", table_cell_style),
+                ])
+            chron_table = Table(chron_rows, colWidths=[25, 90, 110, 155, 160])
+            chron_table.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f172a")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+                ("PADDING", (0, 0), (-1, -1), 4),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ]))
+            story.append(chron_table)
+            story.append(Spacer(1, 8))
+
+        # Reported Damages Table
+        reported_damages = nlp_data.get("reported_damages", [])
+        if reported_damages:
+            story.append(Paragraph("<b>Claimant-Reported Damage Descriptions (Narrative Statements):</b>", meta_label))
+            dmg_rows = [[
+                Paragraph("<b>Component</b>", table_hdr_white),
+                Paragraph("<b>Stated Condition</b>", table_hdr_white),
+                Paragraph("<b>Vehicle Region</b>", table_hdr_white),
+                Paragraph("<b>Supporting Sentence</b>", table_hdr_white),
+            ]]
+            for d in reported_damages:
+                dmg_rows.append([
+                    Paragraph(f"<b>{d.get('component', '')}</b>", table_cell_style),
+                    Paragraph(d.get("reported_condition", "Damaged"), table_cell_style),
+                    Paragraph((d.get("spatial_region", "rear")).replace("_", " ").title(), table_cell_style),
+                    Paragraph(f"<i>\"{d.get('supporting_sentence', '')}\"</i>", table_cell_style),
+                ])
+            dmg_table = Table(dmg_rows, colWidths=[120, 85, 75, 260])
+            dmg_table.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1e293b")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+                ("PADDING", (0, 0), (-1, -1), 4),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ]))
+            story.append(dmg_table)
+            story.append(Paragraph("<i>Note: Claimant-reported damages are textual statements from the narrative; non-visual and distinct from Phase 5 computer vision detections.</i>", warning_style))
+            story.append(Spacer(1, 8))
+
+        # Cross-Source Consistency Table
+        consistency = nlp_data.get("consistency", {})
+        comparisons = consistency.get("comparisons", [])
+        if comparisons:
+            story.append(Paragraph("<b>Cross-Source Document Consistency & Corroboration:</b>", meta_label))
+            comp_rows = [[
+                Paragraph("<b>Field</b>", table_hdr_white),
+                Paragraph("<b>Stated in Narrative</b>", table_hdr_white),
+                Paragraph("<b>Verified Document Record</b>", table_hdr_white),
+                Paragraph("<b>Status</b>", table_hdr_white),
+                Paragraph("<b>Explanation</b>", table_hdr_white),
+            ]]
+            for c in comparisons:
+                st = c.get("status", "")
+                st_color = "#16a34a" if st == "MATCH" else ("#2563eb" if st in ("CONSISTENT", "CORROBORATED") else ("#d97706" if st == "MISSING_IN_NARRATIVE" else "#dc2626"))
+                comp_rows.append([
+                    Paragraph(f"<b>{c.get('field', '')}</b>", table_cell_style),
+                    Paragraph(c.get("narrative_value", ""), table_cell_style),
+                    Paragraph(f"{c.get('document_value', '')}<br/><font size=6 color='#64748b'>Source: {c.get('source_document', '')}</font>", table_cell_style),
+                    Paragraph(f"<font color='{st_color}'><b>{st}</b></font>", table_cell_style),
+                    Paragraph(c.get("explanation", ""), table_cell_style),
+                ])
+            comp_table = Table(comp_rows, colWidths=[90, 105, 115, 65, 165])
+            comp_table.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f172a")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+                ("PADDING", (0, 0), (-1, -1), 3),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ]))
+            story.append(comp_table)
+            story.append(Spacer(1, 6))
+
+        # Missing & Ambiguous Info
+        missing_list = nlp_data.get("missing_information", [])
+        if missing_list:
+            story.append(Paragraph(f"<b>Missing / Ambiguous Information:</b> {'; '.join(missing_list)}", meta_val))
+    else:
+        story.append(Paragraph("<b>Claim Description Assessment:</b> No narrative statement provided or NLP analysis has not been executed yet.", warning_style))
+
+    story.append(PageBreak())
+
     error_messages = sorted({str(row.get("error_message") or "").strip() for row in standardized if row.get("error_message")})
     evaluation_notes = sorted({str(row.get("evaluation_metadata") or "").strip() for row in standardized if row.get("evaluation_metadata")})
 
@@ -1167,7 +1344,8 @@ def generate_document_intelligence_report_pdf(
 
     eval_display = f"{', '.join(evaluation_notes)}; {model_eval_summary}" if evaluation_notes else model_eval_summary
 
-    story.append(Paragraph("Page 6: Processing Errors, Dataset Evaluation and Academic Disclaimer", section_heading))
+    # Page 7: Processing Errors, Dataset Evaluation and Academic Disclaimer
+    story.append(Paragraph("Page 7: Processing Errors, Dataset Evaluation and Academic Disclaimer", section_heading))
     story.append(Paragraph(f"Extraction errors: {', '.join(error_messages) if error_messages else 'None recorded for the current claim snapshot.'}", meta_val))
     story.append(Paragraph(f"Evaluation metadata: {eval_display}", meta_val))
     story.append(Spacer(1, 12))
@@ -1263,6 +1441,30 @@ def generate_claim_receipt_pdf(claim_dict: Dict[str, Any]) -> bytes:
         leading=10,
         textColor=colors.HexColor("#94a3b8"),
         alignment=1,
+    )
+    table_header_style = ParagraphStyle(
+        "TableHeaderStyle",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=8,
+        leading=10,
+        textColor=colors.HexColor("#0f172a"),
+    )
+    table_hdr_white = ParagraphStyle(
+        "TableHdrWhite",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=8,
+        leading=10,
+        textColor=colors.white,
+    )
+    table_cell_style = ParagraphStyle(
+        "TableCellStyle",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=7.5,
+        leading=9.5,
+        textColor=colors.HexColor("#1e293b"),
     )
 
     story = []
