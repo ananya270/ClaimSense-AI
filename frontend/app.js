@@ -1,27 +1,23 @@
 /**
-<<<<<<< HEAD
- * ClaimSense AI - Frontend Controller (Hardened)
- * Phase 1, 2 & 3: Health Monitoring, Claim Submission, Authentication,
- *                 Policy Claim Lookup, CSRF Token Handling, XSS Sanitization,
- *                 and Official PDF Receipt Engine.
-=======
- * ClaimSense AI - Frontend Controller
- * Three-Section Architecture:
- *   1. Submit Claim Evidence (Form, multi-source uploads, real-time validation, receipt & report access)
- *   2. Policy Claim Lookup (Search by Claim ID or Policy Number, access control, details & evidence modals)
- *   3. My Submissions (User claim history, live filtering, sorting, empty states)
->>>>>>> 772aeb2 (Phase 4)
+ * ClaimSense AI - Unified Frontend Controller
+ * Complete Phase 1-5 Implementation:
+ *   - Phase 1 & 2: Health Monitoring, Multi-Source Evidence Upload, Real-Time Validation
+ *   - Phase 3: User Authentication, Session Rotation, CSRF Protection, XSS Sanitization, PDF Receipts
+ *   - Phase 4: Three-Section Dashboard, Policy & Claim Lookup, Replacement Vehicle Image Handling
+ *   - Phase 5: YOLOv8 Computer Vision Damage Detection & Automated Visual Inspection
  */
 
-document.addEventListener("DOMContentLoaded", () => {
+function initClaimSenseApp() {
     let currentUser = null;
-<<<<<<< HEAD
+    let currentActiveClaimId = null;
+    let activeSection = "submit";
+    let mySubmissionsData = [];
     let csrfToken = null;
 
     // -------------------------------------------------------------
     // Helper: HTML Entity Escaping (Prevent Stored & Reflected XSS)
     // -------------------------------------------------------------
-    function escapeHTML(str) {
+    function escapeHtml(str) {
         if (str === null || str === undefined) return "";
         return String(str)
             .replace(/&/g, "&amp;")
@@ -30,26 +26,76 @@ document.addEventListener("DOMContentLoaded", () => {
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
     }
+    const escapeHTML = escapeHtml;
 
     // -------------------------------------------------------------
-    // CSRF Token Management
+    // Helper: Format File Sizes
     // -------------------------------------------------------------
+    function formatBytes(bytes) {
+        if (!bytes || bytes === 0) return "0 Bytes";
+        const k = 1024;
+        const sizes = ["Bytes", "KB", "MB", "GB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+    }
+
+    // -------------------------------------------------------------
+    // Robust CSRF Token Management & Input Synchronization
+    // -------------------------------------------------------------
+    function getCsrfToken() {
+        if (csrfToken) return csrfToken;
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta && meta.content && meta.content.trim()) {
+            csrfToken = meta.content.trim();
+            return csrfToken;
+        }
+        const match = document.cookie.match(/(?:^|;\s*)claimsense_csrf_token=([^;]+)/);
+        if (match && match[1]) {
+            csrfToken = decodeURIComponent(match[1]).trim();
+            return csrfToken;
+        }
+        const input = document.querySelector('input[name="csrf_token"]');
+        if (input && input.value && input.value.trim()) {
+            csrfToken = input.value.trim();
+            return csrfToken;
+        }
+        return null;
+    }
+
+    function syncCsrfInputs(token) {
+        if (!token) return;
+        csrfToken = token;
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) meta.content = token;
+        document.querySelectorAll('input[name="csrf_token"]').forEach((input) => {
+            input.value = token;
+        });
+    }
+
     async function fetchCsrfToken() {
         try {
-            const res = await fetch("/api/auth/csrf-token");
+            const res = await fetch("/api/auth/csrf-token", { credentials: "same-origin" });
             if (res.ok) {
                 const data = await res.json();
-                csrfToken = data.csrf_token;
+                if (data && data.csrf_token) {
+                    syncCsrfInputs(data.csrf_token);
+                    return data.csrf_token;
+                }
             }
         } catch (err) {
-            console.warn("Could not retrieve CSRF token:", err);
+            console.warn("Could not retrieve CSRF token from endpoint:", err);
         }
+        const fallback = getCsrfToken();
+        if (fallback) syncCsrfInputs(fallback);
+        return fallback;
+    }
+
+    // Synchronize initial CSRF token immediately on page load
+    const initialCsrf = getCsrfToken();
+    if (initialCsrf) {
+        syncCsrfInputs(initialCsrf);
     }
     fetchCsrfToken();
-=======
-    let currentActiveClaimId = null;
-    let mySubmissionsData = [];
->>>>>>> 772aeb2 (Phase 4)
 
     // -------------------------------------------------------------
     // 1. Lightweight Backend Health Monitor (Header Status)
@@ -59,71 +105,62 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function checkBackendHealth() {
         if (statusIndicator) statusIndicator.className = "status-indicator";
-        if (statusBadge) statusBadge.textContent = "Checking...";
+        if (statusBadge) statusBadge.textContent = "Checking backend...";
 
         try {
-            const response = await fetch("/api/health");
-            if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
-            const data = await response.json();
+            const res = await fetch("/api/health");
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+
             if (statusIndicator) statusIndicator.className = "status-indicator connected";
             if (statusBadge) statusBadge.textContent = "Backend Connected";
-<<<<<<< HEAD
-            if (healthStatus) {
-                healthStatus.textContent = `${escapeHTML(data.status).toUpperCase()} (HTTP 200)`;
-                healthStatus.style.color = "var(--success)";
-            }
-            if (healthPhase) healthPhase.textContent = data.phase || "Active";
-            if (healthVersion) healthVersion.textContent = data.version || "1.0.0";
-            if (healthEnv) healthEnv.textContent = data.environment || "development";
-            if (healthTimestamp) healthTimestamp.textContent = new Date(data.timestamp).toLocaleString();
-=======
->>>>>>> 772aeb2 (Phase 4)
         } catch (err) {
             if (statusIndicator) statusIndicator.className = "status-indicator error";
-            if (statusBadge) statusBadge.textContent = "Backend Offline";
+            if (statusBadge) statusBadge.textContent = "Backend Disconnected";
         }
     }
     checkBackendHealth();
+    setInterval(checkBackendHealth, 30000);
 
     // -------------------------------------------------------------
-    // 2. Dual-Theme Switcher (Dark Navy Default & Light)
+    // 2. Theme Toggle (Dark / Light Theme Persistence)
     // -------------------------------------------------------------
     const themeToggleBtn = document.getElementById("theme-toggle");
 
     function getPreferredTheme() {
-        return localStorage.getItem("claimsense-theme") || "dark";
+        const saved = localStorage.getItem("claimsense-theme") || localStorage.getItem("claimsense_theme");
+        if (saved === "light" || saved === "dark") return saved;
+        const currentAttr = document.documentElement.getAttribute("data-theme");
+        if (currentAttr === "light" || currentAttr === "dark") return currentAttr;
+        return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
     }
 
     function applyTheme(theme) {
-        document.documentElement.setAttribute("data-theme", theme);
-        localStorage.setItem("claimsense-theme", theme);
-        updateThemeToggleUI(theme);
+        const targetTheme = theme === "light" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", targetTheme);
+        localStorage.setItem("claimsense-theme", targetTheme);
+        localStorage.setItem("claimsense_theme", targetTheme);
+        updateThemeToggleUI(targetTheme);
     }
 
     function updateThemeToggleUI(theme) {
         if (!themeToggleBtn) return;
-        const icon = themeToggleBtn.querySelector(".theme-icon");
         const label = themeToggleBtn.querySelector(".theme-label");
-        if (theme === "dark") {
+        const icon = themeToggleBtn.querySelector(".theme-icon");
+        if (theme === "light") {
             if (icon) {
                 icon.innerHTML = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
             }
             if (label) label.textContent = "Light";
-<<<<<<< HEAD
-            themeToggleBtn.setAttribute("aria-label", "Switch to Light Mode");
-=======
-            themeToggleBtn.setAttribute("title", "Switch to Light Theme");
->>>>>>> 772aeb2 (Phase 4)
+            themeToggleBtn.setAttribute("aria-label", "Switch to Dark Mode");
+            themeToggleBtn.setAttribute("title", "Switch to Dark Theme");
         } else {
             if (icon) {
                 icon.innerHTML = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
             }
             if (label) label.textContent = "Dark";
-<<<<<<< HEAD
-            themeToggleBtn.setAttribute("aria-label", "Switch to Dark Mode");
-=======
-            themeToggleBtn.setAttribute("title", "Switch to Dark Theme");
->>>>>>> 772aeb2 (Phase 4)
+            themeToggleBtn.setAttribute("aria-label", "Switch to Light Mode");
+            themeToggleBtn.setAttribute("title", "Switch to Light Theme");
         }
     }
 
@@ -131,113 +168,53 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (themeToggleBtn) {
         themeToggleBtn.addEventListener("click", () => {
-            const current = document.documentElement.getAttribute("data-theme") || "dark";
-            const next = current === "dark" ? "light" : "dark";
-            applyTheme(next);
+            const current = document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+            applyTheme(current === "light" ? "dark" : "light");
         });
     }
 
     // -------------------------------------------------------------
-<<<<<<< HEAD
-    // 2. Authentication & User Session Management (Phase 3)
-=======
     // 3. User Authentication & Session Management
->>>>>>> 772aeb2 (Phase 4)
     // -------------------------------------------------------------
-    const authLoggedOut = document.getElementById("auth-logged-out");
-    const authLoggedIn = document.getElementById("auth-logged-in");
-    const authUsernameSpan = document.getElementById("auth-username");
-    const authRoleBadge = document.getElementById("auth-role-badge");
-    const btnOpenLogin = document.getElementById("btn-open-login") || document.getElementById("btn-nav-login");
-    const btnOpenSignup = document.getElementById("btn-open-signup") || document.getElementById("btn-nav-signup");
-    const btnLogout = document.getElementById("btn-logout");
-    const authNotice = document.getElementById("auth-required-notice");
-    const linkSubmissionLogin = document.getElementById("link-submission-login");
-    const linkSubmissionSignup = document.getElementById("link-submission-signup");
-
-    // Modal elements
     const authModal = document.getElementById("auth-modal");
-    const authModalTitle = document.getElementById("auth-modal-title") || document.getElementById("modal-title");
-    const authModalClose = document.getElementById("auth-modal-close") || document.getElementById("btn-close-auth-modal");
-    const tabLogin = document.getElementById("tab-login") || document.getElementById("tab-btn-login");
-    const tabSignup = document.getElementById("tab-signup") || document.getElementById("tab-btn-signup");
-    const formLogin = document.getElementById("form-login") || document.getElementById("login-form");
-    const formSignup = document.getElementById("form-signup") || document.getElementById("signup-form");
-    const authModalError = document.getElementById("auth-modal-error") || document.getElementById("auth-alert");
-    const btnModalSwitchSignup = document.getElementById("btn-modal-switch-signup") || document.getElementById("link-switch-to-signup");
-    const btnModalSwitchLogin = document.getElementById("btn-modal-switch-login") || document.getElementById("link-switch-to-login");
+    const authModalClose = document.getElementById("btn-close-auth-modal") || document.getElementById("auth-modal-close");
+    const tabBtnLogin = document.getElementById("tab-btn-login");
+    const tabBtnSignup = document.getElementById("tab-btn-signup");
+    const loginForm = document.getElementById("login-form");
+    const signupForm = document.getElementById("signup-form");
+    const authAlert = document.getElementById("auth-alert");
+    const headerAuth = document.getElementById("header-auth");
 
-    function renderHeaderAuth(user) {
-        currentUser = user;
-        if (user) {
-            if (authLoggedOut) authLoggedOut.style.display = "none";
-            if (authLoggedIn) authLoggedIn.style.display = "flex";
-            if (authUsernameSpan) authUsernameSpan.textContent = escapeHTML(user.full_name || user.username);
-            if (authRoleBadge) {
-                authRoleBadge.textContent = escapeHTML((user.role || "user").toUpperCase());
-                authRoleBadge.className = "user-role-pill";
-            }
-            if (authNotice) authNotice.style.display = "none";
-        } else {
-            if (authLoggedOut) authLoggedOut.style.display = "flex";
-            if (authLoggedIn) authLoggedIn.style.display = "none";
-            if (authNotice) authNotice.style.display = "block";
-        }
+    const linkSwitchToSignup = document.getElementById("link-switch-to-signup");
+    const linkSwitchToLogin = document.getElementById("link-switch-to-login");
+
+    function showAuthAlert(msg) {
+        if (!authAlert) return;
+        authAlert.textContent = msg;
+        authAlert.style.display = "block";
     }
 
-    async function checkCurrentUserSession() {
-        try {
-            const res = await fetch("/api/auth/me");
-            if (res.ok) {
-                const data = await res.json();
-                renderHeaderAuth(data.user);
-            } else {
-                renderHeaderAuth(null);
-            }
-        } catch {
-            renderHeaderAuth(null);
-        }
+    function clearAuthAlert() {
+        if (!authAlert) return;
+        authAlert.textContent = "";
+        authAlert.style.display = "none";
     }
-    checkCurrentUserSession();
 
-    function showAuthModal(mode = "login") {
+    function openAuthModal(tab = "login") {
         if (!authModal) return;
+        clearAuthAlert();
+        switchAuthTab(tab);
         authModal.style.display = "flex";
-        if (authModalError) {
-            authModalError.style.display = "none";
-            authModalError.textContent = "";
-            authModalError.className = "alert alert-error";
-        }
-        if (mode === "login") {
-            if (tabLogin) tabLogin.classList.add("active");
-            if (tabSignup) tabSignup.classList.remove("active");
-            if (formLogin) formLogin.style.display = "block";
-            if (formSignup) formSignup.style.display = "none";
-            if (authModalTitle) authModalTitle.textContent = "Sign In to ClaimSense";
-            const idInput = document.getElementById("login-identifier");
-            if (idInput) idInput.focus();
-        } else {
-            if (tabSignup) tabSignup.classList.add("active");
-            if (tabLogin) tabLogin.classList.remove("active");
-            if (formSignup) formSignup.style.display = "block";
-            if (formLogin) formLogin.style.display = "none";
-            if (authModalTitle) authModalTitle.textContent = "Create an Account";
-            const nameInput = document.getElementById("signup-fullname");
-            if (nameInput) nameInput.focus();
-        }
+        fetchCsrfToken();
     }
+    const showAuthModal = openAuthModal;
 
     function closeAuthModal() {
         if (!authModal) return;
         authModal.style.display = "none";
-<<<<<<< HEAD
-        if (formLogin) formLogin.reset();
-        if (formSignup) formSignup.reset();
-        if (authModalError) {
-            authModalError.style.display = "none";
-            authModalError.textContent = "";
-=======
         clearAuthAlert();
+        if (loginForm) loginForm.reset();
+        if (signupForm) signupForm.reset();
     }
 
     function switchAuthTab(tab) {
@@ -256,31 +233,32 @@ document.addEventListener("DOMContentLoaded", () => {
             if (signupForm) signupForm.style.display = "block";
             const title = document.getElementById("modal-title");
             if (title) title.textContent = "Create New Account";
->>>>>>> 772aeb2 (Phase 4)
         }
     }
 
-    if (btnOpenLogin) btnOpenLogin.addEventListener("click", () => showAuthModal("login"));
-    if (btnOpenSignup) btnOpenSignup.addEventListener("click", () => showAuthModal("signup"));
     if (authModalClose) authModalClose.addEventListener("click", closeAuthModal);
-
-<<<<<<< HEAD
-    if (btnModalSwitchSignup) {
-        btnModalSwitchSignup.addEventListener("click", (e) => {
+    if (tabBtnLogin) tabBtnLogin.addEventListener("click", () => switchAuthTab("login"));
+    if (tabBtnSignup) tabBtnSignup.addEventListener("click", () => switchAuthTab("signup"));
+    if (linkSwitchToSignup) {
+        linkSwitchToSignup.addEventListener("click", (e) => {
             e.preventDefault();
-            showAuthModal("signup");
+            switchAuthTab("signup");
         });
     }
-    if (btnModalSwitchLogin) {
-        btnModalSwitchLogin.addEventListener("click", (e) => {
+    if (linkSwitchToLogin) {
+        linkSwitchToLogin.addEventListener("click", (e) => {
             e.preventDefault();
-            showAuthModal("login");
+            switchAuthTab("login");
         });
-=======
+    }
+
+    // Modal background click to close
     window.addEventListener("click", (e) => {
         if (e.target === authModal) closeAuthModal();
-        if (e.target === modalClaimDetails) closeClaimDetailsModal();
-        if (e.target === modalClaimEvidence) closeClaimEvidenceModal();
+        const modalClaimDetails = document.getElementById("modal-claim-details");
+        const modalClaimEvidence = document.getElementById("modal-claim-evidence");
+        if (e.target === modalClaimDetails && typeof closeClaimDetailsModal === "function") closeClaimDetailsModal();
+        if (e.target === modalClaimEvidence && typeof closeClaimEvidenceModal === "function") closeClaimEvidenceModal();
     });
 
     function renderHeaderAuth() {
@@ -299,109 +277,99 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         } else {
             headerAuth.innerHTML = `
-                <button type="button" id="btn-open-login" class="btn btn-secondary btn-sm">Sign In</button>
-                <button type="button" id="btn-open-signup" class="btn btn-primary btn-sm">Register</button>
+                <button type="button" id="btn-nav-login" class="btn btn-secondary btn-sm">Sign In</button>
+                <button type="button" id="btn-nav-signup" class="btn btn-primary btn-sm">Register</button>
             `;
-            const btnLogin = document.getElementById("btn-open-login");
-            const btnSignup = document.getElementById("btn-open-signup");
+            const btnLogin = document.getElementById("btn-nav-login");
+            const btnSignup = document.getElementById("btn-nav-signup");
             if (btnLogin) btnLogin.addEventListener("click", () => openAuthModal("login"));
             if (btnSignup) btnSignup.addEventListener("click", () => openAuthModal("signup"));
         }
->>>>>>> 772aeb2 (Phase 4)
     }
 
-    if (tabLogin) tabLogin.addEventListener("click", () => showAuthModal("login"));
-    if (tabSignup) tabSignup.addEventListener("click", () => showAuthModal("signup"));
-
-    if (authModal) {
-        authModal.addEventListener("click", (e) => {
-            if (e.target === authModal) closeAuthModal();
-        });
+    async function checkCurrentUserSession() {
+        try {
+            const res = await fetch("/api/auth/me", { credentials: "same-origin" });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.authenticated && data.user) {
+                    currentUser = data.user;
+                } else {
+                    currentUser = null;
+                }
+            } else {
+                currentUser = null;
+            }
+        } catch {
+            currentUser = null;
+        } finally {
+            renderHeaderAuth();
+        }
     }
+    checkCurrentUserSession();
 
-    if (linkSubmissionLogin) {
-        linkSubmissionLogin.addEventListener("click", (e) => {
-            e.preventDefault();
-            showAuthModal("login");
-        });
-    }
-    if (linkSubmissionSignup) {
-        linkSubmissionSignup.addEventListener("click", (e) => {
-            e.preventDefault();
-            showAuthModal("signup");
-        });
-    }
-
-<<<<<<< HEAD
     // Login Form Submit
-    if (formLogin) {
-        formLogin.addEventListener("submit", async (e) => {
-=======
     if (loginForm) {
         loginForm.addEventListener("submit", async (e) => {
->>>>>>> 772aeb2 (Phase 4)
             e.preventDefault();
+            clearAuthAlert();
             const idInput = document.getElementById("login-identifier");
-            const passInput = document.getElementById("login-password");
+            const pwdInput = document.getElementById("login-password");
             const identifier = idInput ? idInput.value.trim() : "";
-            const password = passInput ? passInput.value : "";
+            const password = pwdInput ? pwdInput.value : "";
 
             if (!identifier || !password) {
-                if (authModalError) {
-                    authModalError.textContent = "Please enter both identifier and password.";
-                    authModalError.className = "alert alert-error";
-                    authModalError.style.display = "block";
-                }
+                showAuthAlert("Please enter both identifier and password.");
                 return;
             }
 
-            if (!csrfToken) await fetchCsrfToken();
+            let token = getCsrfToken();
+            if (!token) token = await fetchCsrfToken();
+            if (token) syncCsrfInputs(token);
+
+            const headers = { "Content-Type": "application/json" };
+            if (token) {
+                headers["X-CSRFToken"] = token;
+                headers["X-CSRF-Token"] = token;
+            }
+
+            const payload = { identifier, password };
+            if (token) payload["csrf_token"] = token;
 
             try {
                 const res = await fetch("/api/auth/login", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        ...(csrfToken ? { "X-CSRFToken": csrfToken } : {}),
-                    },
-                    body: JSON.stringify({ identifier, password }),
+                    credentials: "same-origin",
+                    headers,
+                    body: JSON.stringify(payload),
                 });
-
                 const data = await res.json();
                 if (!res.ok || !data.success) {
-                    throw new Error(data.message || "Failed to log in.");
+                    showAuthAlert(data.message || "Invalid username or password.");
+                    return;
                 }
 
-                renderHeaderAuth(data.user);
+                currentUser = data.user;
+                renderHeaderAuth();
+                if (data.csrf_token) syncCsrfInputs(data.csrf_token);
                 closeAuthModal();
-                fetchCsrfToken(); // refresh token after session rotation
 
-<<<<<<< HEAD
-                if (activeView === "myclaims") {
-=======
-                if (activeSection === "myclaims") {
->>>>>>> 772aeb2 (Phase 4)
+                if (activeSection === "myclaims" && typeof loadMyClaims === "function") {
                     loadMyClaims();
                 }
             } catch (err) {
-                if (authModalError) {
-                    authModalError.textContent = err.message;
-                    authModalError.className = "alert alert-error";
-                    authModalError.style.display = "block";
-                }
+                showAuthAlert(`Login failed: ${err.message}`);
             }
         });
     }
 
-<<<<<<< HEAD
     // Signup Form Submit
-    if (formSignup) {
-        formSignup.addEventListener("submit", async (e) => {
-=======
+
     if (signupForm) {
         signupForm.addEventListener("submit", async (e) => {
->>>>>>> 772aeb2 (Phase 4)
             e.preventDefault();
+            clearAuthAlert();
+
             const fullNameInput = document.getElementById("signup-fullname");
             const usernameInput = document.getElementById("signup-username");
             const emailInput = document.getElementById("signup-email");
@@ -414,127 +382,121 @@ document.addEventListener("DOMContentLoaded", () => {
             const password = passwordInput ? passwordInput.value : "";
             const confirm_password = confirmInput ? confirmInput.value : "";
 
+            if (!full_name || !username || !email || !password || !confirm_password) {
+                showAuthAlert("All fields are required.");
+                return;
+            }
+
             if (password.length < 8 || !/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
-                if (authModalError) {
-                    authModalError.textContent = "Password must be at least 8 characters and include both letters and numbers.";
-                    authModalError.className = "alert alert-error";
-                    authModalError.style.display = "block";
-                }
+                showAuthAlert("Password must be at least 8 characters and include both letters and numbers.");
                 return;
             }
 
             if (password !== confirm_password) {
-                if (authModalError) {
-                    authModalError.textContent = "Passwords do not match.";
-                    authModalError.className = "alert alert-error";
-                    authModalError.style.display = "block";
-                }
+                showAuthAlert("Passwords do not match.");
                 return;
             }
 
-            if (!csrfToken) await fetchCsrfToken();
+            let token = getCsrfToken();
+            if (!token) token = await fetchCsrfToken();
+            if (token) syncCsrfInputs(token);
+
+            const headers = { "Content-Type": "application/json" };
+            if (token) {
+                headers["X-CSRFToken"] = token;
+                headers["X-CSRF-Token"] = token;
+            }
+
+            const payload = {
+                full_name,
+                username,
+                email,
+                password,
+                confirm_password,
+            };
+            if (token) payload["csrf_token"] = token;
 
             try {
                 const res = await fetch("/api/auth/signup", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        ...(csrfToken ? { "X-CSRFToken": csrfToken } : {}),
-                    },
-                    body: JSON.stringify({
-                        full_name,
-                        username,
-                        email,
-                        password,
-                        confirm_password,
-                    }),
+                    credentials: "same-origin",
+                    headers,
+                    body: JSON.stringify(payload),
                 });
-
                 const data = await res.json();
                 if (!res.ok || !data.success) {
-                    throw new Error(data.message || "Registration failed.");
+                    showAuthAlert(data.message || "Failed to create account.");
+                    return;
                 }
 
-                // Automatically attempt login
+                if (data.csrf_token) syncCsrfInputs(data.csrf_token);
+
+                // Auto login after successful signup
+                const loginToken = getCsrfToken();
+                const loginHeaders = { "Content-Type": "application/json" };
+                if (loginToken) {
+                    loginHeaders["X-CSRFToken"] = loginToken;
+                    loginHeaders["X-CSRF-Token"] = loginToken;
+                }
+                const loginPayload = { identifier: username, password };
+                if (loginToken) loginPayload["csrf_token"] = loginToken;
+
                 try {
                     const loginRes = await fetch("/api/auth/login", {
                         method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            ...(csrfToken ? { "X-CSRFToken": csrfToken } : {}),
-                        },
-                        body: JSON.stringify({ identifier: username, password }),
+                        credentials: "same-origin",
+                        headers: loginHeaders,
+                        body: JSON.stringify(loginPayload),
                     });
                     const loginData = await loginRes.json();
                     if (loginRes.ok && loginData.success) {
-                        renderHeaderAuth(loginData.user);
-                        closeAuthModal();
-                        fetchCsrfToken();
-                        if (activeView === "myclaims") {
-                            loadMyClaims();
-                        }
-                        return;
+                        currentUser = loginData.user;
+                        renderHeaderAuth();
+                        if (loginData.csrf_token) syncCsrfInputs(loginData.csrf_token);
                     }
                 } catch {
-                    // Fall back to login notice below
+                    // Fallback to switching tab
                 }
 
-                showAuthModal("login");
-                if (authModalError) {
-                    authModalError.textContent = "Registration successful! Please sign in with your credentials.";
-                    authModalError.className = "alert alert-success";
-                    authModalError.style.display = "block";
+                closeAuthModal();
+                if (activeSection === "myclaims" && typeof loadMyClaims === "function") {
+                    loadMyClaims();
                 }
-                fetchCsrfToken();
             } catch (err) {
-                if (authModalError) {
-                    authModalError.textContent = err.message;
-                    authModalError.className = "alert alert-error";
-                    authModalError.style.display = "block";
-                }
+                showAuthAlert(`Account registration failed: ${err.message}`);
             }
         });
     }
 
-<<<<<<< HEAD
-    // Logout
-    if (btnLogout) {
-        btnLogout.addEventListener("click", async () => {
-            try {
-                if (!csrfToken) await fetchCsrfToken();
-                await fetch("/api/auth/logout", {
-                    method: "POST",
-                    headers: {
-                        ...(csrfToken ? { "X-CSRFToken": csrfToken } : {}),
-                    },
-                });
-            } finally {
-                renderHeaderAuth(null);
-                fetchCsrfToken();
-                if (activeView === "myclaims") {
-                    switchView("submit");
-                }
-            }
-        });
-=======
     async function handleLogout() {
         try {
-            await fetch("/api/auth/logout", { method: "POST" });
+            let token = getCsrfToken();
+            if (!token) token = await fetchCsrfToken();
+            const headers = {};
+            if (token) {
+                headers["X-CSRFToken"] = token;
+                headers["X-CSRF-Token"] = token;
+            }
+            await fetch("/api/auth/logout", {
+                method: "POST",
+                credentials: "same-origin",
+                headers,
+            });
         } catch {
-            // ignore network err
+            // ignore network error on logout
+        } finally {
+            currentUser = null;
+            renderHeaderAuth();
+            fetchCsrfToken();
+            if (activeSection === "myclaims") {
+                switchView("submit");
+            }
         }
-        currentUser = null;
-        renderHeaderAuth();
-        if (activeSection === "myclaims") {
-            switchView("submit");
-        }
->>>>>>> 772aeb2 (Phase 4)
     }
 
     // -------------------------------------------------------------
-    // 4. Three Independent Navigation Sections
+    // 4. Three-Section Navigation Architecture
     // -------------------------------------------------------------
-    let activeSection = "submit";
     const pillSubmit = document.getElementById("pill-nav-submit");
     const pillSearch = document.getElementById("pill-nav-search");
     const pillMyClaims = document.getElementById("pill-nav-myclaims");
@@ -544,13 +506,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const sectionMyClaims = document.getElementById("section-myclaims");
 
     const submissionCard = document.getElementById("submission-card");
-<<<<<<< HEAD
-    const policyLookupCard = document.getElementById("policy-lookup-card");
-    const myClaimsCard = document.getElementById("my-claims-card");
-    const successCard = document.getElementById("submission-success-card") || document.getElementById("success-card");
-=======
     const successCard = document.getElementById("submission-success-card");
->>>>>>> 772aeb2 (Phase 4)
 
     function switchView(sectionName) {
         activeSection = sectionName;
@@ -586,7 +542,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 pillMyClaims.setAttribute("aria-selected", "true");
             }
             if (sectionMyClaims) sectionMyClaims.style.display = "block";
-            loadMyClaims();
+            if (typeof loadMyClaims === "function") loadMyClaims();
         }
     }
 
@@ -594,12 +550,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (pillSearch) pillSearch.addEventListener("click", () => switchView("search"));
     if (pillMyClaims) pillMyClaims.addEventListener("click", () => {
         if (!currentUser) {
-            showAuthModal("login");
-            if (authModalError) {
-                authModalError.textContent = "Please sign in to view your submitted claims.";
-                authModalError.className = "alert alert-error";
-                authModalError.style.display = "block";
-            }
+            openAuthModal("login");
+            showAuthAlert("Please sign in to view your submitted claims.");
             return;
         }
         switchView("myclaims");
@@ -608,59 +560,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // -------------------------------------------------------------
     // 5. Selected Filenames Badges & Size Formatting
     // -------------------------------------------------------------
-<<<<<<< HEAD
-    const formPolicySearch = document.getElementById("policy-search-form") || document.getElementById("form-policy-search");
-    const inputPolicySearch = document.getElementById("search-policy-input") || document.getElementById("input-policy-search");
-    const policySearchAlert = document.getElementById("policy-search-alert");
-    const policySearchResults = document.getElementById("policy-search-results");
-    const policyResultsList = document.getElementById("policy-results-list");
-    const resultsCount = document.getElementById("results-count");
-
-    if (formPolicySearch) {
-        formPolicySearch.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const policyNo = inputPolicySearch ? inputPolicySearch.value.trim() : "";
-            if (!policyNo) return;
-
-            if (policySearchAlert) policySearchAlert.style.display = "none";
-            if (policySearchResults) policySearchResults.style.display = "none";
-            if (policyResultsList) policyResultsList.innerHTML = `<div class="loading-spinner">Searching claims for policy '${escapeHTML(policyNo)}'...</div>`;
-
-            if (!currentUser) {
-                showAuthModal("login");
-                if (authModalError) {
-                    authModalError.textContent = "Authentication required to search claims by policy number.";
-                    authModalError.className = "alert alert-error";
-                    authModalError.style.display = "block";
-                }
-                return;
-            }
-
-            try {
-                const res = await fetch(`/api/claims/policy/${encodeURIComponent(policyNo)}`);
-                const data = await res.json();
-
-                if (!res.ok || !data.success) {
-                    throw new Error(data.message || `No claims found for policy '${policyNo}'`);
-                }
-
-                if (resultsCount) resultsCount.textContent = data.count || (data.claims ? data.claims.length : 0);
-                renderClaimResults(data.claims, policyResultsList);
-                if (policySearchResults) policySearchResults.style.display = "block";
-            } catch (err) {
-                if (policySearchAlert) {
-                    policySearchAlert.textContent = err.message;
-                    policySearchAlert.style.display = "block";
-                }
-=======
-    function formatBytes(bytes) {
-        if (!bytes || bytes === 0) return "0 Bytes";
-        const k = 1024;
-        const sizes = ["Bytes", "KB", "MB", "GB"];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
-    }
-
     function setupFileBadge(inputId, badgeId) {
         const input = document.getElementById(inputId);
         const badge = document.getElementById(badgeId);
@@ -676,156 +575,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 badge.style.display = "inline-flex";
             } else {
                 badge.style.display = "none";
->>>>>>> 772aeb2 (Phase 4)
             }
         });
     }
 
-<<<<<<< HEAD
-    // -------------------------------------------------------------
-    // 5. My Registered Claims (Phase 3)
-    // -------------------------------------------------------------
-    const myClaimsList = document.getElementById("my-claims-list");
-    const myClaimsAlert = document.getElementById("my-claims-alert");
-    const btnRefreshMyClaims = document.getElementById("btn-refresh-my-claims");
-
-    async function loadMyClaims() {
-        if (!myClaimsList) return;
-        if (!currentUser) {
-            myClaimsList.innerHTML = `<p class="empty-state">Please <a href="#" id="link-login-now">sign in</a> to view your registered claims.</p>`;
-            const linkLoginNow = document.getElementById("link-login-now");
-            if (linkLoginNow) {
-                linkLoginNow.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    showAuthModal("login");
-                });
-            }
-            return;
-        }
-
-        myClaimsList.innerHTML = `<div class="loading-spinner">Loading your registered claims...</div>`;
-        if (myClaimsAlert) myClaimsAlert.style.display = "none";
-
-        try {
-            const res = await fetch("/api/my-claims");
-            const data = await res.json();
-            if (!res.ok || !data.success) {
-                throw new Error(data.message || "Failed to load claim history.");
-            }
-
-            renderClaimResults(data.claims, myClaimsList);
-        } catch (err) {
-            if (myClaimsAlert) {
-                myClaimsAlert.textContent = `Error loading claims: ${err.message}`;
-                myClaimsAlert.style.display = "block";
-            }
-            myClaimsList.innerHTML = `<p class="empty-state">Could not fetch claims.</p>`;
-        }
-    }
-
-    if (btnRefreshMyClaims) {
-        btnRefreshMyClaims.addEventListener("click", loadMyClaims);
-    }
-
-    function renderClaimResults(claims, container) {
-        if (!container) return;
-        if (!claims || claims.length === 0) {
-            container.innerHTML = `
-                <div class="search-empty-state">
-                    <span class="empty-icon">📂</span>
-                    <p>No claims found under this record.</p>
-                </div>
-            `;
-            return;
-        }
-
-        let html = "";
-        claims.forEach((claim) => {
-            const dateStr = claim.created_at ? new Date(claim.created_at).toLocaleDateString() : "-";
-            const docCount = claim.files_count || (claim.documents ? claim.documents.length + (claim.images ? claim.images.length : 0) : (claim.files ? Object.keys(claim.files).length : 4));
-            html += `
-                <div class="claim-result-card">
-                    <div class="result-info">
-                        <div class="result-title-line">
-                            <span class="result-claim-id">${escapeHTML(claim.claim_id)}</span>
-                            <span class="status-pill status-ready">${escapeHTML(claim.status || "SUBMITTED")}</span>
-                        </div>
-                        <div class="result-meta-line">
-                            <span><strong>Policy:</strong> ${escapeHTML(claim.policy_number)}</span>
-                            <span><strong>Claimant:</strong> ${escapeHTML(claim.claimant_name)}</span>
-                            <span><strong>Vehicle:</strong> ${escapeHTML(claim.vehicle_number)}</span>
-                            <span><strong>Accident Date:</strong> ${escapeHTML(claim.accident_date)}</span>
-                            <span><strong>Submitted:</strong> ${escapeHTML(dateStr)}</span>
-                            <span><strong>Evidence:</strong> ${docCount} files</span>
-                        </div>
-                        ${claim.claim_description ? `<div class="claim-card-desc" style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">${escapeHTML(claim.claim_description)}</div>` : ""}
-                    </div>
-                    <div class="result-actions" style="margin-top: 10px; display: flex; gap: 8px; align-items: center;">
-                        <a href="/api/claims/${encodeURIComponent(claim.claim_id)}/receipt" target="_blank" class="btn btn-secondary btn-sm" title="Download Official Submission Receipt (PDF)">
-                            📄 Download Receipt (PDF)
-                        </a>
-                    </div>
-                </div>
-            `;
-        });
-
-        container.innerHTML = html;
-    }
-
-    // -------------------------------------------------------------
-    // 6. File Upload Previews & Drag-and-Drop
-    // -------------------------------------------------------------
-    const fileDropZones = document.querySelectorAll(".file-drop-zone");
-
-    fileDropZones.forEach((zone) => {
-        const input = zone.querySelector("input[type='file']");
-        const preview = zone.querySelector(".file-preview");
-
-        if (!input || !preview) return;
-
-        zone.addEventListener("click", (e) => {
-            if (e.target !== input) input.click();
-        });
-
-        zone.addEventListener("dragover", (e) => {
-            e.preventDefault();
-            zone.classList.add("drag-over");
-        });
-
-        zone.addEventListener("dragleave", () => {
-            zone.classList.remove("drag-over");
-        });
-
-        zone.addEventListener("drop", (e) => {
-            e.preventDefault();
-            zone.classList.remove("drag-over");
-            if (e.dataTransfer.files.length > 0) {
-                input.files = e.dataTransfer.files;
-                updateFilePreview(input, preview);
-            }
-        });
-
-        input.addEventListener("change", () => {
-            updateFilePreview(input, preview);
-        });
-    });
-
-    function updateFilePreview(input, previewElement) {
-        if (!input.files || input.files.length === 0) {
-            previewElement.textContent = "";
-            previewElement.style.display = "none";
-            return;
-        }
-
-        const file = input.files[0];
-        const sizeKb = (file.size / 1024).toFixed(1);
-        previewElement.textContent = `✓ Selected: ${file.name} (${sizeKb} KB)`;
-        previewElement.style.display = "block";
-    }
-
-    // -------------------------------------------------------------
-    // 7. Claim Submission Form (Phase 2 & 3)
-=======
     setupFileBadge("policy_document", "badge-policy_document");
     setupFileBadge("claim_form_file", "badge-claim_form_file");
     setupFileBadge("invoice_document", "badge-invoice_document");
@@ -850,10 +603,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // -------------------------------------------------------------
     // 6. Section 1: Submit Claim Evidence
->>>>>>> 772aeb2 (Phase 4)
     // -------------------------------------------------------------
     const claimForm = document.getElementById("claim-form");
-    const btnSubmit = document.getElementById("btn-submit-claim");
+    const btnSubmitClaim = document.getElementById("btn-submit-claim");
     const errorAlert = document.getElementById("form-error-alert") || document.getElementById("error-alert");
     const errorMessage = document.getElementById("error-message");
 
@@ -868,6 +620,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const resTimestamp = document.getElementById("res-timestamp");
     const btnDownloadReceipt = document.getElementById("btn-download-receipt");
     const btnDownloadDocumentReport = document.getElementById("btn-download-document-report");
+    const btnViewClaimModal = document.getElementById("btn-view-claim-modal");
 
     const btnNewClaim = document.getElementById("btn-new-claim");
     const btnCopyClaimId = document.getElementById("btn-copy-claim-id");
@@ -892,21 +645,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setSubmittingState(isSubmitting) {
-<<<<<<< HEAD
-        if (!btnSubmit) return;
-        btnSubmit.disabled = isSubmitting;
-        const btnText = btnSubmit.querySelector(".btn-text");
-        const btnSpinner = btnSubmit.querySelector(".btn-spinner");
-        if (btnText) btnText.textContent = isSubmitting ? "Validating & Submitting..." : "Submit Claim for Verification";
-        if (btnSpinner) btnSpinner.style.display = isSubmitting ? "inline-block" : "none";
-=======
         if (!btnSubmitClaim) return;
         btnSubmitClaim.disabled = isSubmitting;
+        const btnText = btnSubmitClaim.querySelector(".btn-text");
+        const btnSpinner = btnSubmitClaim.querySelector(".btn-spinner");
         if (btnText && btnSpinner) {
             btnText.style.display = isSubmitting ? "none" : "inline";
             btnSpinner.style.display = isSubmitting ? "inline-flex" : "none";
         }
->>>>>>> 772aeb2 (Phase 4)
     }
 
     if (claimForm) {
@@ -916,26 +662,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Client-side authentication check
             if (!currentUser) {
-                showError("Authentication required: Please sign in or create an account before submitting a claim.");
-                showAuthModal("login");
+                showError("Authentication required: Please sign in or create an account before submitting claim evidence.");
+                openAuthModal("login");
                 return;
             }
 
-<<<<<<< HEAD
-            // Client-side validation
-            const claimantName = document.getElementById("claimant_name")?.value.trim();
-            const policyNumber = document.getElementById("policy_number")?.value.trim();
-            const vehicleNumber = document.getElementById("vehicle_number")?.value.trim();
-            const accidentDate = document.getElementById("accident_date")?.value.trim();
-            const claimDesc = document.getElementById("claim_description")?.value.trim();
-=======
-            // Client-side required fields check
-            const claimantName = formData.get("claimant_name");
-            const policyNumber = formData.get("policy_number");
-            const vehicleNumber = formData.get("vehicle_number");
-            const accidentDate = formData.get("accident_date");
-            const claimDesc = formData.get("claim_description");
->>>>>>> 772aeb2 (Phase 4)
+            const formData = new FormData(claimForm);
+            const claimantName = formData.get("claimant_name")?.trim();
+            const policyNumber = formData.get("policy_number")?.trim();
+            const vehicleNumber = formData.get("vehicle_number")?.trim();
+            const accidentDate = formData.get("accident_date")?.trim();
+            const claimDesc = formData.get("claim_description")?.trim();
 
             if (!claimantName || !policyNumber || !vehicleNumber || !accidentDate || !claimDesc) {
                 showError("Please fill out all required text fields.");
@@ -959,26 +696,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
             setSubmittingState(true);
 
-            const formData = new FormData();
-            formData.append("claimant_name", claimantName);
-            formData.append("policy_number", policyNumber);
-            formData.append("vehicle_number", vehicleNumber);
-            formData.append("accident_date", accidentDate);
-            formData.append("claim_description", claimDesc);
+            let token = getCsrfToken();
+            if (!token) token = await fetchCsrfToken();
+            if (token) {
+                syncCsrfInputs(token);
+                formData.set("csrf_token", token);
+            }
 
-            formData.append("policy_document", document.getElementById("policy_document").files[0]);
-            formData.append("claim_form", document.getElementById("claim_form_file").files[0]);
-            formData.append("invoice_document", document.getElementById("invoice_document").files[0]);
-            formData.append("vehicle_image", document.getElementById("vehicle_image").files[0]);
-
-            if (!csrfToken) await fetchCsrfToken();
+            const headers = {};
+            if (token) {
+                headers["X-CSRFToken"] = token;
+                headers["X-CSRF-Token"] = token;
+            }
 
             try {
                 const response = await fetch("/api/claims", {
                     method: "POST",
-                    headers: {
-                        ...(csrfToken ? { "X-CSRFToken": csrfToken } : {}),
-                    },
+                    credentials: "same-origin",
+                    headers,
                     body: formData,
                 });
 
@@ -992,30 +727,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     throw new Error(errMsg);
                 }
 
-<<<<<<< HEAD
-                // Render success details
-                if (resClaimId) resClaimId.textContent = result.claim_id;
-                if (resClaimantName) resClaimantName.textContent = result.data.claimant_name;
-                if (resPolicyNumber) resPolicyNumber.textContent = result.data.policy_number;
-                if (resVehicleNumber) resVehicleNumber.textContent = result.data.vehicle_number;
-                if (resAccidentDate) resAccidentDate.textContent = result.data.accident_date;
-                if (resClaimDescription) resClaimDescription.textContent = result.data.claim_description;
-                if (resFileCount) resFileCount.textContent = `${result.data.files_count || 4} evidence files safely saved`;
-                if (resTimestamp) resTimestamp.textContent = new Date(result.data.created_at).toLocaleString();
-=======
                 // Populate success summary
-                resClaimId.textContent = result.claim_id;
-                resClaimantName.textContent = result.data.claimant_name || "-";
-                resPolicyNumber.textContent = result.data.policy_number || "-";
-                resVehicleNumber.textContent = result.data.vehicle_number || "-";
-                resAccidentDate.textContent = result.data.accident_date || "-";
+                if (resClaimId) resClaimId.textContent = result.claim_id;
+                if (resClaimantName) resClaimantName.textContent = result.data.claimant_name || "-";
+                if (resPolicyNumber) resPolicyNumber.textContent = result.data.policy_number || "-";
+                if (resVehicleNumber) resVehicleNumber.textContent = result.data.vehicle_number || "-";
+                if (resAccidentDate) resAccidentDate.textContent = result.data.accident_date || "-";
                 if (resIncidentLocation) {
                     resIncidentLocation.textContent = result.data.incident_location || "Not specified";
                 }
-                resClaimDescription.textContent = result.data.claim_description || "-";
-                resFileCount.textContent = `${result.data.files_count || 4} evidence files safely saved`;
-                resTimestamp.textContent = new Date(result.data.created_at).toLocaleString();
->>>>>>> 772aeb2 (Phase 4)
+                if (resClaimDescription) resClaimDescription.textContent = result.data.claim_description || "-";
+                if (resFileCount) resFileCount.textContent = `${result.data.files_count || 4} evidence files safely saved`;
+                if (resTimestamp) resTimestamp.textContent = new Date(result.data.created_at).toLocaleString();
 
                 // Download buttons
                 if (btnDownloadReceipt) {
@@ -1026,9 +749,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 currentActiveClaimId = result.claim_id;
 
-<<<<<<< HEAD
-                // Switch views
-=======
                 // Reset replacement photo box status
                 const replaceStatus = document.getElementById("replace-image-status");
                 if (replaceStatus) {
@@ -1037,7 +757,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 // Switch views within Section 1
->>>>>>> 772aeb2 (Phase 4)
                 if (submissionCard) submissionCard.style.display = "none";
                 if (successCard) {
                     successCard.style.display = "block";
@@ -1052,20 +771,21 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-<<<<<<< HEAD
-    // -------------------------------------------------------------
-    // 8. Reset / Submit Another Claim
-    // -------------------------------------------------------------
-=======
->>>>>>> 772aeb2 (Phase 4)
+    if (btnViewClaimModal) {
+        btnViewClaimModal.addEventListener("click", () => {
+            if (currentActiveClaimId && typeof openClaimDetailsModal === "function") {
+                openClaimDetailsModal(currentActiveClaimId);
+            }
+        });
+    }
+
+
+
     if (btnNewClaim) {
         btnNewClaim.addEventListener("click", () => {
             if (claimForm) claimForm.reset();
             clearError();
-<<<<<<< HEAD
-=======
             refreshFileBadges();
->>>>>>> 772aeb2 (Phase 4)
             if (successCard) successCard.style.display = "none";
             if (submissionCard) {
                 submissionCard.style.display = "block";
@@ -1074,19 +794,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-<<<<<<< HEAD
-    // -------------------------------------------------------------
-    // 9. Copy Claim ID to Clipboard
-    // -------------------------------------------------------------
-    if (btnCopyClaimId) {
-        btnCopyClaimId.addEventListener("click", async () => {
-            const cid = resClaimId ? resClaimId.textContent : "";
-=======
     if (btnCopyClaimId) {
         btnCopyClaimId.addEventListener("click", async () => {
             const cid = resClaimId ? resClaimId.textContent : "";
             if (!cid) return;
->>>>>>> 772aeb2 (Phase 4)
             try {
                 await navigator.clipboard.writeText(cid);
                 const originalText = btnCopyClaimId.textContent;
@@ -1100,36 +811,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-<<<<<<< HEAD
-    // -------------------------------------------------------------
-    // 10. Fill Sample Demo Data
-    // -------------------------------------------------------------
-    if (btnFillSample) {
-        btnFillSample.addEventListener("click", () => {
-            const elName = document.getElementById("claimant_name");
-            const elPolicy = document.getElementById("policy_number");
-            const elVehicle = document.getElementById("vehicle_number");
-            const elDate = document.getElementById("accident_date");
-            const elDesc = document.getElementById("claim_description");
-
-            if (elName) elName.value = "Rajesh Sharma";
-            if (elPolicy) elPolicy.value = "POL-2024-88391";
-            if (elVehicle) elVehicle.value = "MH-12-DE-4052";
-            if (elDate) elDate.value = "2026-09-28";
-            if (elDesc) {
-                elDesc.value = "While halting at an intersection signal on MG Road, vehicle was rear-ended by a commercial pickup truck. Damage observed on the rear bumper, trunk hatch, and right tail lamp assembly.";
-            }
-
-            // Helper to create synthetic files with valid magic signatures for file inputs
-            const createDummyFile = (name, type, headerBytes, contentStr) => {
-                const enc = new TextEncoder();
-                const textBytes = enc.encode(contentStr);
-                const combined = new Uint8Array(headerBytes.length + textBytes.length);
-                combined.set(headerBytes, 0);
-                combined.set(textBytes, headerBytes.length);
-                const blob = new Blob([combined], { type: type });
-                return new File([blob], name, { type: type });
-=======
     // Replacement Vehicle Photograph Upload
     const formReplaceImage = document.getElementById("form-replace-image");
     const inputReplaceImage = document.getElementById("input-replace-image");
@@ -1151,6 +832,19 @@ document.addEventListener("DOMContentLoaded", () => {
             const formData = new FormData();
             formData.append("vehicle_image", inputReplaceImage.files[0]);
 
+            let token = getCsrfToken();
+            if (!token) token = await fetchCsrfToken();
+            if (token) {
+                syncCsrfInputs(token);
+                formData.set("csrf_token", token);
+            }
+
+            const headers = {};
+            if (token) {
+                headers["X-CSRFToken"] = token;
+                headers["X-CSRF-Token"] = token;
+            }
+
             if (btnSubmitReplaceImage) btnSubmitReplaceImage.disabled = true;
             if (replaceImageStatus) {
                 replaceImageStatus.style.display = "block";
@@ -1161,6 +855,8 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 const res = await fetch(`/api/claims/${currentActiveClaimId}/replace-image`, {
                     method: "POST",
+                    credentials: "same-origin",
+                    headers,
                     body: formData,
                 });
                 const data = await res.json();
@@ -1171,10 +867,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (replaceImageStatus) {
                     if (data.validation && data.validation.is_valid_vehicle_photo) {
                         replaceImageStatus.className = "alert alert-success mt-2";
-                        replaceImageStatus.textContent = `✓ Replacement photograph verified as authentic vehicle damage evidence (${data.new_image.original_filename}). Original file preserved in audit log.`;
+                        replaceImageStatus.textContent = `✓ Replacement photograph verified as authentic vehicle damage photograph! (${data.validation.resolution || ""})`;
                     } else {
                         replaceImageStatus.className = "alert alert-error mt-2";
-                        replaceImageStatus.textContent = `⚠ Uploaded replacement image flagged: ${data.validation ? data.validation.reason : "Invalid vehicle photo"}. Original file remains preserved.`;
+                        replaceImageStatus.textContent = `⚠ Uploaded replacement image flagged: ${data.validation ? data.validation.reason : "Invalid photograph format"}`;
                     }
                 }
             } catch (err) {
@@ -1191,14 +887,21 @@ document.addEventListener("DOMContentLoaded", () => {
     // Fill Sample Demo Data
     if (btnFillSample) {
         btnFillSample.addEventListener("click", () => {
-            document.getElementById("claimant_name").value = "Rajesh Sharma";
-            document.getElementById("policy_number").value = "POL-2024-88391";
-            document.getElementById("vehicle_number").value = "MH-12-DE-4052";
-            document.getElementById("accident_date").value = "2026-09-28";
+            const elName = document.getElementById("claimant_name");
+            const elPolicy = document.getElementById("policy_number");
+            const elVehicle = document.getElementById("vehicle_number");
+            const elDate = document.getElementById("accident_date");
+            const elDesc = document.getElementById("claim_description");
             const locInput = document.getElementById("incident_location");
+
+            if (elName) elName.value = "Rajesh Sharma";
+            if (elPolicy) elPolicy.value = "POL-2024-88391";
+            if (elVehicle) elVehicle.value = "MH-12-DE-4052";
+            if (elDate) elDate.value = "2026-09-28";
             if (locInput) locInput.value = "MG Road, Pune, Maharashtra";
-            document.getElementById("claim_description").value =
-                "While halting at an intersection signal on MG Road, vehicle was rear-ended by a commercial pickup truck. Damage observed on the rear bumper, trunk hatch, and right tail lamp assembly.";
+            if (elDesc) {
+                elDesc.value = "While halting at an intersection signal on MG Road, vehicle was rear-ended by a commercial pickup truck. Damage observed on the rear bumper, trunk hatch, and right tail lamp assembly.";
+            }
 
             const escapePdfText = (text) => text.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
 
@@ -1253,7 +956,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     bytes[i] = binary.charCodeAt(i);
                 }
                 return new File([bytes], name, { type: "image/jpeg" });
->>>>>>> 772aeb2 (Phase 4)
             };
 
             const setFileInput = (id, file) => {
@@ -1265,21 +967,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             };
 
-<<<<<<< HEAD
-            // Valid signatures: PDF (%PDF), JPEG (\xff\xd8\xff)
-            const pdfSig = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34]); // %PDF-1.4
-            const jpgSig = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0]);
-
-            setFileInput("policy_document", createDummyFile("policy_schedule_88391.pdf", "application/pdf", pdfSig, " sample policy"));
-            setFileInput("claim_form_file", createDummyFile("signed_claim_form.pdf", "application/pdf", pdfSig, " claim application"));
-            setFileInput("invoice_document", createDummyFile("garage_estimate_4052.pdf", "application/pdf", pdfSig, " itemized estimate"));
-            setFileInput("vehicle_image", createDummyFile("rear_bumper_damage.jpg", "image/jpeg", jpgSig, " sample image bytes"));
-=======
             setFileInput("policy_document", createSyntheticPdfFile("policy_schedule_88391.pdf", ["CLAIMSENSE AI", "Policy Number: POL-2024-88391", "Vehicle Registration: MH-12-DE-4052", "Accident Date: 2026-09-28"]));
             setFileInput("claim_form_file", createSyntheticPdfFile("signed_claim_form.pdf", ["Claimant: Rajesh Sharma", "Policy Number: POL-2024-88391", "Claim Description: Rear-end collision at MG Road intersection.", "Accident Date: 2026-09-28"]));
             setFileInput("invoice_document", createSyntheticPdfFile("garage_estimate_4052.pdf", ["Garage Estimate", "Claim Amount: INR 84500", "Bodywork and paint: 38500", "Tail lamp replacement: 16000", "Labor and miscellaneous: 30000"]));
             setFileInput("vehicle_image", createSyntheticImageFile("rear_bumper_damage.jpg"));
->>>>>>> 772aeb2 (Phase 4)
 
             refreshFileBadges();
             clearError();
@@ -1754,6 +1445,198 @@ document.addEventListener("DOMContentLoaded", () => {
                 // optional
             }
 
+            // Phase 5: Load and display AI Vehicle Damage Inspection (CarDD)
+            const damageSection = document.getElementById("modal-damage-section");
+            const btnAnalyzeDamage = document.getElementById("btn-analyze-damage");
+            const btnDamageText = document.getElementById("btn-damage-text");
+            const btnDamageSpinner = document.getElementById("btn-damage-spinner");
+            const damageStatusBanner = document.getElementById("damage-status-banner");
+            const damageVisualContainer = document.getElementById("damage-visual-container");
+            const damageOriginalImg = document.getElementById("damage-original-img");
+            const damageAnnotatedImg = document.getElementById("damage-annotated-img");
+            const damageAnnotatedPlaceholder = document.getElementById("damage-annotated-placeholder");
+            const btnDownloadAnnotated = document.getElementById("btn-download-annotated");
+            const damageMetricsContainer = document.getElementById("damage-metrics-container");
+            const metricDamageCount = document.getElementById("metric-damage-count");
+            const metricDamagePeakConf = document.getElementById("metric-damage-peak-conf");
+            const metricDamageLatency = document.getElementById("metric-damage-latency");
+            const metricDamageModel = document.getElementById("metric-damage-model");
+            const damageTableContainer = document.getElementById("damage-table-container");
+            const damageDetectionsRows = document.getElementById("damage-detections-rows");
+            const damageHistoryContainer = document.getElementById("damage-history-container");
+            const damageHistoryList = document.getElementById("damage-history-list");
+            const modelBenchmarkSubtitle = document.getElementById("model-benchmark-subtitle");
+
+            if (modelBenchmarkSubtitle) {
+                modelBenchmarkSubtitle.innerHTML = "Model: <b>YOLOv8n-CarDD</b> (v1.0) &bull; Dataset: <b>CarDD-300</b> &bull; Precision: <b>31.4%</b> &bull; Recall: <b>34.6%</b> &bull; mAP@50: <b>19.3%</b> &bull; mAP@50-95: <b>12.2%</b>";
+            }
+
+            function getPillClass(cat) {
+                const c = (cat || "").toLowerCase();
+                if (c.includes("dent")) return "damage-dent";
+                if (c.includes("scratch")) return "damage-scratch";
+                if (c.includes("crack")) return "damage-crack";
+                if (c.includes("glass")) return "damage-glass";
+                if (c.includes("lamp")) return "damage-lamp";
+                if (c.includes("tire")) return "damage-tire";
+                return "damage-dent";
+            }
+
+            function displayDamageAnalysis(analysis) {
+                if (!damageVisualContainer) return;
+
+                if (damageOriginalImg) {
+                    damageOriginalImg.src = `/api/claims/${claimId}/evidence/image?t=${Date.now()}`;
+                }
+
+                if (analysis && (analysis.total_detections !== undefined || analysis.detections)) {
+                    const count = analysis.total_detections !== undefined ? analysis.total_detections : (analysis.detections ? analysis.detections.length : 0);
+                    const peak = (analysis.highest_confidence !== undefined ? analysis.highest_confidence : (analysis.max_confidence || 0)) * 100;
+                    const latency = analysis.processing_time_ms || analysis.inference_time_ms || 0;
+
+                    if (damageAnnotatedImg) {
+                        damageAnnotatedImg.src = `/api/claims/${claimId}/annotated-image?t=${Date.now()}`;
+                        damageAnnotatedImg.style.display = "block";
+                    }
+                    if (damageAnnotatedPlaceholder) damageAnnotatedPlaceholder.style.display = "none";
+                    if (btnDownloadAnnotated) {
+                        btnDownloadAnnotated.href = `/api/claims/${claimId}/annotated-image?download=1`;
+                        btnDownloadAnnotated.style.display = "inline-flex";
+                    }
+
+                    if (metricDamageCount) metricDamageCount.textContent = count;
+                    if (metricDamagePeakConf) metricDamagePeakConf.textContent = peak.toFixed(1) + "%";
+                    if (metricDamageLatency) metricDamageLatency.textContent = latency > 0 ? latency.toFixed(0) + " ms" : "-";
+                    if (metricDamageModel) metricDamageModel.textContent = analysis.model_name || "YOLOv8n-CarDD";
+
+                    damageVisualContainer.style.display = "grid";
+                    if (damageMetricsContainer) damageMetricsContainer.style.display = "grid";
+
+                    const detections = analysis.detections || [];
+                    if (detections.length > 0 && damageDetectionsRows && damageTableContainer) {
+                        damageDetectionsRows.innerHTML = detections.map((d, idx) => {
+                            const conf = d.confidence ? (d.confidence * 100).toFixed(1) + "%" : "-";
+                            const bbox = d.bbox || (d.bbox_x1 !== undefined ? [d.bbox_x1, d.bbox_y1, d.bbox_x2, d.bbox_y2] : null);
+                            const bboxStr = bbox ? `[${bbox.map(v => Math.round(v)).join(", ")}]` : "-";
+                            const reg = (d.location_region || d.region || "center").replace(/_/g, " ").toUpperCase();
+                            const cat = (d.category || "damage").toUpperCase();
+                            const pillCls = getPillClass(d.category);
+                            return `
+                                <tr>
+                                    <td><strong>${d.detection_index || (idx + 1)}</strong></td>
+                                    <td><span class="damage-pill ${pillCls}">${escapeHtml(cat)}</span></td>
+                                    <td><strong>${escapeHtml(conf)}</strong></td>
+                                    <td>${escapeHtml(reg)}</td>
+                                    <td><code>${escapeHtml(bboxStr)}</code></td>
+                                </tr>
+                            `;
+                        }).join("");
+                        damageTableContainer.style.display = "block";
+                    } else if (damageTableContainer) {
+                        damageTableContainer.style.display = "none";
+                    }
+
+                    if (damageStatusBanner) {
+                        damageStatusBanner.className = "damage-banner success mt-2";
+                        damageStatusBanner.textContent = `✓ AI Damage Analysis completed: ${count} damage regions localized with YOLOv8n-CarDD (Peak: ${peak.toFixed(1)}%).`;
+                        damageStatusBanner.style.display = "block";
+                    }
+                } else {
+                    if (damageAnnotatedImg) damageAnnotatedImg.style.display = "none";
+                    if (damageAnnotatedPlaceholder) damageAnnotatedPlaceholder.style.display = "flex";
+                    if (btnDownloadAnnotated) btnDownloadAnnotated.style.display = "none";
+                    if (damageMetricsContainer) damageMetricsContainer.style.display = "none";
+                    if (damageTableContainer) damageTableContainer.style.display = "none";
+                    damageVisualContainer.style.display = "grid";
+
+                    if (damageStatusBanner) {
+                        damageStatusBanner.className = "damage-banner info mt-2";
+                        damageStatusBanner.textContent = 'ℹ Vehicle photograph loaded. Click "Analyze Vehicle Damage" to execute YOLOv8 detection.';
+                        damageStatusBanner.style.display = "block";
+                    }
+                }
+            }
+
+            // Wire up analyze button
+            if (btnAnalyzeDamage) {
+                btnAnalyzeDamage.onclick = async () => {
+                    btnAnalyzeDamage.disabled = true;
+                    if (btnDamageSpinner) btnDamageSpinner.style.display = "inline-block";
+                    if (btnDamageText) btnDamageText.textContent = "Analyzing Damage...";
+                    if (damageStatusBanner) {
+                        damageStatusBanner.className = "damage-banner info mt-2";
+                        damageStatusBanner.textContent = "Running YOLOv8n-CarDD computer vision inference...";
+                        damageStatusBanner.style.display = "block";
+                    }
+
+                    try {
+                        const anRes = await fetch(`/api/claims/${claimId}/analyze-damage`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" }
+                        });
+                        const anData = await anRes.json();
+                        if (!anRes.ok || !anData.success) {
+                            throw new Error(anData.message || "Failed to analyze damage.");
+                        }
+                        displayDamageAnalysis(anData.analysis);
+                        loadDamageHistory();
+                    } catch (err) {
+                        if (damageStatusBanner) {
+                            damageStatusBanner.className = "damage-banner danger mt-2";
+                            damageStatusBanner.textContent = `Error: ${err.message}`;
+                            damageStatusBanner.style.display = "block";
+                        }
+                    } finally {
+                        btnAnalyzeDamage.disabled = false;
+                        if (btnDamageSpinner) btnDamageSpinner.style.display = "none";
+                        if (btnDamageText) btnDamageText.textContent = "🔍 Analyze Vehicle Damage";
+                    }
+                };
+            }
+
+            async function loadDamageHistory() {
+                if (!damageHistoryContainer || !damageHistoryList) return;
+                try {
+                    const hRes = await fetch(`/api/claims/${claimId}/damage-history`);
+                    if (hRes.ok) {
+                        const hData = await hRes.json();
+                        if (hData.analyses && hData.analyses.length > 0) {
+                            damageHistoryList.innerHTML = hData.analyses.map((a, i) => `
+                                <span class="history-tag">Run #${hData.analyses.length - i} &bull; ${a.total_detections || 0} damages &bull; ${(a.highest_confidence * 100 || 0).toFixed(1)}% conf &bull; ${Math.round(a.processing_time_ms || 0)}ms</span>
+                            `).join("");
+                            damageHistoryContainer.style.display = "block";
+                        } else {
+                            damageHistoryContainer.style.display = "none";
+                        }
+                    }
+                } catch {
+                    // optional
+                }
+            }
+
+            // Initial load of damage analysis
+            if (claim.damage_analysis) {
+                displayDamageAnalysis(claim.damage_analysis);
+            } else {
+                try {
+                    const daRes = await fetch(`/api/claims/${claimId}/damage-analysis`);
+                    if (daRes.ok) {
+                        const daData = await daRes.json();
+                        if (daData.analysis) {
+                            displayDamageAnalysis(daData.analysis);
+                        } else {
+                            displayDamageAnalysis(null);
+                        }
+                    } else {
+                        displayDamageAnalysis(null);
+                    }
+                } catch {
+                    displayDamageAnalysis(null);
+                }
+            }
+
+            loadDamageHistory();
+
         } catch (err) {
             document.getElementById("detail-description").textContent = `Error: ${err.message}`;
         }
@@ -1887,4 +1770,12 @@ document.addEventListener("DOMContentLoaded", () => {
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
     }
-});
+}
+
+if (typeof document !== "undefined") {
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initClaimSenseApp);
+    } else {
+        initClaimSenseApp();
+    }
+}

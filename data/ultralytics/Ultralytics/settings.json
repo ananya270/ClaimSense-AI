@@ -1,0 +1,19 @@
+{
+  "settings_version": "0.0.8",
+  "datasets_dir": "C:\\Users\\ydvan\\Desktop\\ClaimSense Ai\\datasets",
+  "weights_dir": "C:\\Users\\ydvan\\Desktop\\ClaimSense Ai\\ClaimSense-AI\\weights",
+  "runs_dir": "C:\\Users\\ydvan\\Desktop\\ClaimSense Ai\\ClaimSense-AI\\runs",
+  "uuid": "89496c0a4fa08727793dd7c04ebd169d266be1a91e26ac60dcf257c593360c6b",
+  "sync": true,
+  "api_key": "",
+  "openai_api_key": "",
+  "clearml": true,
+  "comet": true,
+  "dvc": true,
+  "mlflow": true,
+  "raytune": true,
+  "tensorboard": false,
+  "wandb": false,
+  "vscode_msg": true,
+  "openvino_msg": true
+}

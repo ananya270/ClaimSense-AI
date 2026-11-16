@@ -16,6 +16,8 @@ from backend.database.models import (
     Claim,
     Document,
     ClaimImage,
+    VehicleDamageAnalysis,
+    VehicleDamageDetection,
 )
 from backend.utils.logger import setup_logger
 
@@ -69,24 +71,40 @@ def _ensure_schema_migrations(engine: Engine) -> None:
                 with engine.begin() as conn:
                     conn.execute(text("ALTER TABLE claims ADD COLUMN incident_location VARCHAR(256)"))
 
-        if "extracted_information" not in table_names:
-            return
+        if "extracted_information" in table_names:
+            columns = {column["name"] for column in inspector.get_columns("extracted_information")}
+            migrations = {
+                "field_status": "VARCHAR(32)",
+                "source_filename": "VARCHAR(255)",
+                "page_number": "INTEGER",
+                "extraction_method": "VARCHAR(64)",
+                "supporting_text": "TEXT",
+                "confidence_score": "FLOAT",
+                "error_message": "TEXT",
+                "evaluation_metadata": "TEXT",
+            }
+            for name, ddl in migrations.items():
+                if name not in columns:
+                    with engine.begin() as conn:
+                        conn.execute(text(f"ALTER TABLE extracted_information ADD COLUMN {name} {ddl}"))
 
-        columns = {column["name"] for column in inspector.get_columns("extracted_information")}
-        migrations = {
-            "field_status": "VARCHAR(32)",
-            "source_filename": "VARCHAR(255)",
-            "page_number": "INTEGER",
-            "extraction_method": "VARCHAR(64)",
-            "supporting_text": "TEXT",
-            "confidence_score": "FLOAT",
-            "error_message": "TEXT",
-            "evaluation_metadata": "TEXT",
-        }
-        for name, ddl in migrations.items():
-            if name not in columns:
-                with engine.begin() as conn:
-                    conn.execute(text(f"ALTER TABLE extracted_information ADD COLUMN {name} {ddl}"))
+        if "vehicle_damage_analyses" in table_names:
+            v_cols = {col["name"] for col in inspector.get_columns("vehicle_damage_analyses")}
+            v_migrations = {
+                "image_path": "VARCHAR(512)",
+                "model_name": "VARCHAR(64) DEFAULT 'YOLOv8n-CarDD'",
+                "model_version": "VARCHAR(32) DEFAULT 'v1.0'",
+                "total_detections": "INTEGER DEFAULT 0",
+                "damage_categories": "TEXT",
+                "highest_confidence": "FLOAT",
+                "processing_time_ms": "FLOAT",
+                "device": "VARCHAR(32) DEFAULT 'cpu'",
+            }
+            for col_name, ddl in v_migrations.items():
+                if col_name not in v_cols:
+                    with engine.begin() as conn:
+                        conn.execute(text(f"ALTER TABLE vehicle_damage_analyses ADD COLUMN {col_name} {ddl}"))
+
     except Exception as exc:
         logger.warning(f"Schema migration check skipped or failed: {exc}")
 

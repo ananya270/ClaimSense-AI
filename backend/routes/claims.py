@@ -10,24 +10,28 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import desc
 
 from backend.database.db import get_db_session
-<<<<<<< HEAD
-from backend.database.models import User, Claim, Document, ClaimImage
-from backend.services.receipt import generate_claim_receipt_pdf
-from backend.utils.auth import (
-    get_current_user_id,
-    can_user_access_claim,
-    can_user_access_claim_dict,
+from backend.database.models import (
+    User,
+    Claim,
+    Document,
+    ClaimImage,
+    ExtractedInformation,
+    VehicleDamageAnalysis,
+    VehicleDamageDetection,
 )
-=======
-from backend.database.models import Claim, Document, ClaimImage, ExtractedInformation
 from backend.services.ocr.document_service import ingest_extracted_claim_data, process_document
 from backend.services.receipt import (
     generate_claim_receipt_pdf,
     generate_document_intelligence_report_pdf,
     validate_vehicle_image,
 )
+from backend.services.vision import (
+    VehicleDamageDetector,
+    create_annotated_image,
+    get_model_evaluation_metrics,
+)
+from backend.extensions import csrf
 from backend.utils.auth import get_current_user_id, can_user_access_claim
->>>>>>> 772aeb2 (Phase 4)
 from backend.utils.logger import setup_logger
 from backend.utils.validators import (
     generate_claim_id,
@@ -227,9 +231,6 @@ def submit_claim():
             )
             db.add(img_record)
 
-<<<<<<< HEAD
-        logger.info(f"User {current_user_id} successfully submitted claim {claim_id}")
-=======
         # 8. Phase 4 document intelligence pipeline (best-effort extraction)
         processed_documents = []
         for field in doc_fields:
@@ -244,7 +245,6 @@ def submit_claim():
             logger.warning(f"Best-effort Phase 4 extraction storage skipped for claim {claim_id}: {exc}")
 
         logger.info(f"Successfully processed and stored claim in disk and SQLite: {claim_id}")
->>>>>>> 772aeb2 (Phase 4)
 
         return jsonify({
             "success": True,
@@ -311,9 +311,25 @@ def get_claim(claim_id: str):
                     "message": "You do not have permission to view this claim.",
                 }), 403
 
+            claim_data = claim.to_dict(include_evidence=True)
+            upload_base = Path(current_app.config["UPLOAD_FOLDER"])
+            metadata_path = upload_base / claim_id / "metadata.json"
+            if metadata_path.exists():
+                try:
+                    with open(metadata_path, "r", encoding="utf-8") as f:
+                        meta = json.load(f)
+                    if "vehicle_image_validation" in meta:
+                        claim_data["vehicle_image_validation"] = meta["vehicle_image_validation"]
+                        if "vehicle_image" in claim_data.get("files", {}):
+                            claim_data["files"]["vehicle_image"]["validation_status"] = meta["vehicle_image_validation"].get("status")
+                    if "archived_images" in meta:
+                        claim_data["archived_images"] = meta["archived_images"]
+                except Exception:
+                    pass
+
             return jsonify({
                 "success": True,
-                "data": claim.to_dict(include_evidence=True),
+                "data": claim_data,
             }), 200
 
     # Fallback to metadata.json on disk if database record is missing
@@ -836,30 +852,21 @@ def replace_claim_image(claim_id: str):
         # Forensic image validation
         validation = validate_vehicle_image(target_img_path)
 
-        # Update database record (preserve original in history)
+        # Record replacement image in database while preserving original flagged file in audit history
         existing_img = db.query(ClaimImage).filter_by(claim_id=claim_id).order_by(ClaimImage.created_at.desc()).first()
         prev_filename = existing_img.original_filename if existing_img else "unknown"
 
-        if existing_img:
-            existing_img.original_filename = img_file.filename
-            existing_img.stored_filename = dest_img_name
-            existing_img.file_path = img_rel_path
-            existing_img.file_extension = ext
-            existing_img.file_size = img_size_bytes
-            existing_img.created_at = datetime.now(timezone.utc)
-        else:
-            new_img_rec = ClaimImage(
-                claim_id=claim_id,
-                image_type="VEHICLE_ACCIDENT",
-                file_path=img_rel_path,
-                original_filename=img_file.filename,
-                stored_filename=dest_img_name,
-                file_extension=ext,
-                file_size=img_size_bytes,
-                created_at=datetime.now(timezone.utc),
-            )
-            db.add(new_img_rec)
-
+        new_img_rec = ClaimImage(
+            claim_id=claim_id,
+            image_type="REPLACEMENT_VEHICLE_ACCIDENT",
+            file_path=img_rel_path,
+            original_filename=img_file.filename,
+            stored_filename=dest_img_name,
+            file_extension=ext,
+            file_size=img_size_bytes,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(new_img_rec)
         db.commit()
 
         # Update metadata.json while preserving previous files in history
@@ -902,4 +909,419 @@ def replace_claim_image(claim_id: str):
             },
             "validation": validation,
         }), 200
+
+
+@claims_bp.route("/claims/<claim_id>/analyze-damage", methods=["POST"])
+@csrf.exempt
+def analyze_claim_vehicle_damage(claim_id: str):
+    """Executes AI vehicle damage detection using YOLOv8 fine-tuned on CarDD.
+
+    Localizes damages, identifies categories, generates annotated image,
+    and stores results in SQLite database.
+    """
+    if not is_valid_claim_id_format(claim_id):
+        return jsonify({
+            "success": False,
+            "error": "Invalid Claim ID format",
+            "message": "Claim ID must follow format CLM-YYYYMMDD-XXXX.",
+        }), 400
+
+    user_id = session.get("user_id")
+    user_role = session.get("role")
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim:
+            return jsonify({
+                "success": False,
+                "error": "Not Found",
+                "message": f"Claim with ID '{claim_id}' was not found.",
+            }), 404
+
+        if not can_user_access_claim(claim, user_id, user_role):
+            if not user_id:
+                return jsonify({
+                    "success": False,
+                    "error": "Unauthorized",
+                    "message": "Authentication required to analyze damage for this claim.",
+                }), 401
+            return jsonify({
+                "success": False,
+                "error": "Forbidden",
+                "message": "You do not have permission to analyze damage for this claim.",
+            }), 403
+
+        # Locate vehicle photograph
+        upload_base = Path(current_app.config["UPLOAD_FOLDER"])
+        claim_dir = upload_base / claim_id
+        images_dir = claim_dir / "images"
+
+        target_img_path = None
+        claim_image_rec = None
+
+        # Prioritize latest ClaimImage in DB
+        db_img = (
+            db.query(ClaimImage)
+            .filter_by(claim_id=claim_id)
+            .order_by(desc(ClaimImage.created_at))
+            .first()
+        )
+        if db_img and db_img.file_path:
+            candidate = upload_base / db_img.file_path
+            if candidate.exists():
+                target_img_path = candidate
+                claim_image_rec = db_img
+
+        # Fallback to inspecting images directory on disk
+        if not target_img_path and images_dir.exists():
+            replacements = list(images_dir.glob("replacement_vehicle_image_*"))
+            if replacements:
+                target_img_path = replacements[-1]
+            else:
+                vehicle_imgs = list(images_dir.glob("vehicle_image_*"))
+                if vehicle_imgs:
+                    target_img_path = vehicle_imgs[-1]
+
+        if not target_img_path or not target_img_path.exists():
+            return jsonify({
+                "success": False,
+                "error": "Missing Evidence",
+                "message": "No vehicle accident photograph found for this claim.",
+            }), 400
+
+        # Forensic authenticity verification: prevent running inference on synthetic graphics/document cards
+        img_validation = validate_vehicle_image(target_img_path)
+        if not img_validation.get("is_valid_vehicle_photo"):
+            return jsonify({
+                "success": False,
+                "error": "Invalid Vehicle Evidence",
+                "message": (
+                    f"Uploaded file '{target_img_path.name}' is flagged as {img_validation.get('status', 'invalid')} "
+                    f"({img_validation.get('reason')}). Damage inspection cannot be performed on synthetic graphics or document renders. "
+                    f"Please upload an authentic replacement vehicle photograph before running AI damage analysis."
+                ),
+                "validation": img_validation,
+                "requires_replacement": True,
+            }), 400
+
+        # Allow confidence threshold override from JSON or query params
+        req_json = request.get_json(silent=True) or {}
+        try:
+            conf_thresh = float(req_json.get("conf_threshold") or request.args.get("conf", 0.15))
+        except (TypeError, ValueError):
+            conf_thresh = 0.15
+
+        # Run damage detection
+        try:
+            detector = VehicleDamageDetector.get_instance()
+            analysis_result = detector.detect_damage(target_img_path, conf_threshold=conf_thresh)
+        except Exception as exc:
+            logger.error(f"Damage detection failed for claim {claim_id}: {exc}", exc_info=True)
+            return jsonify({
+                "success": False,
+                "error": "Inference Error",
+                "message": f"Computer vision analysis failed: {str(exc)}",
+            }), 500
+
+        # Generate annotated image
+        annotated_filename = f"annotated_{target_img_path.name}"
+        annotated_target_path = images_dir / annotated_filename
+        rel_annotated_path = None
+        try:
+            create_annotated_image(
+                target_img_path,
+                analysis_result["detections"],
+                output_path=annotated_target_path,
+            )
+            rel_annotated_path = str(annotated_target_path.relative_to(upload_base))
+        except Exception as exc:
+            logger.warning(f"Could not save annotated image for claim {claim_id}: {exc}")
+
+        rel_img_path = str(target_img_path.relative_to(upload_base))
+
+        # Store in SQLite database
+        avg_conf = 0.0
+        if analysis_result["detections"]:
+            avg_conf = sum(d["confidence"] for d in analysis_result["detections"]) / len(analysis_result["detections"])
+
+        now_utc = datetime.now(timezone.utc)
+        analysis_record = VehicleDamageAnalysis(
+            claim_id=claim_id,
+            image_id=claim_image_rec.image_id if claim_image_rec else None,
+            image_path=rel_img_path,
+            original_image_path=rel_img_path,
+            annotated_image_path=rel_annotated_path,
+            model_name=analysis_result["model_name"],
+            model_version=analysis_result["model_version"],
+            total_detections=analysis_result["total_detections"],
+            total_damages_detected=analysis_result["total_detections"],
+            damage_categories=json.dumps(analysis_result["damage_categories"]),
+            detected_categories=json.dumps(analysis_result["damage_categories"]),
+            highest_confidence=analysis_result["highest_confidence"],
+            max_confidence=analysis_result["highest_confidence"],
+            average_confidence=round(avg_conf, 4),
+            analysis_status="completed",
+            processing_time_ms=analysis_result["processing_time_ms"],
+            inference_time_ms=analysis_result["processing_time_ms"],
+            device=analysis_result["device"],
+            created_at=now_utc,
+            updated_at=now_utc,
+        )
+        db.add(analysis_record)
+        db.flush()
+
+        # Add individual detection records
+        for det in analysis_result["detections"]:
+            bbox = det.get("bbox", [0, 0, 0, 0])
+            detection_rec = VehicleDamageDetection(
+                analysis_id=analysis_record.id,
+                detection_index=det.get("detection_index", 1),
+                category=det.get("category", "damage"),
+                confidence=det.get("confidence", 0.0),
+                bbox_x1=bbox[0],
+                bbox_y1=bbox[1],
+                bbox_x2=bbox[2],
+                bbox_y2=bbox[3],
+                location_region=det.get("location_region", "center"),
+                created_at=datetime.now(timezone.utc),
+            )
+            db.add(detection_rec)
+
+        db.commit()
+
+        # Update metadata.json if present
+        meta_file = claim_dir / "metadata.json"
+        if meta_file.exists():
+            try:
+                with open(meta_file, "r", encoding="utf-8") as f:
+                    meta = json.load(f)
+                meta["latest_damage_analysis"] = analysis_record.to_dict()
+                with open(meta_file, "w", encoding="utf-8") as f:
+                    json.dump(meta, f, indent=2)
+            except Exception as exc:
+                logger.warning(f"Failed to update metadata.json with damage analysis: {exc}")
+
+        logger.info(
+            f"Successfully completed vehicle damage analysis for {claim_id}: "
+            f"{analysis_result['total_detections']} detections ({', '.join(analysis_result['damage_categories']) or 'None'}) "
+            f"in {analysis_result['processing_time_ms']}ms"
+        )
+
+        return jsonify({
+            "success": True,
+            "claim_id": claim_id,
+            "analysis": analysis_record.to_dict(),
+        }), 200
+
+
+@claims_bp.route("/claims/<claim_id>/damage-analysis", methods=["GET"])
+def get_claim_damage_analysis(claim_id: str):
+    """Retrieves the latest vehicle damage analysis for a claim."""
+    if not is_valid_claim_id_format(claim_id):
+        return jsonify({
+            "success": False,
+            "error": "Invalid Claim ID format",
+            "message": "Claim ID must follow format CLM-YYYYMMDD-XXXX.",
+        }), 400
+
+    user_id = session.get("user_id")
+    user_role = session.get("role")
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim:
+            return jsonify({
+                "success": False,
+                "error": "Not Found",
+                "message": f"Claim with ID '{claim_id}' was not found.",
+            }), 404
+
+        if not can_user_access_claim(claim, user_id, user_role):
+            if not user_id:
+                return jsonify({
+                    "success": False,
+                    "error": "Unauthorized",
+                    "message": "Authentication required to access damage analysis.",
+                }), 401
+            return jsonify({
+                "success": False,
+                "error": "Forbidden",
+                "message": "You do not have permission to access damage analysis for this claim.",
+            }), 403
+
+        latest_analysis = (
+            db.query(VehicleDamageAnalysis)
+            .filter_by(claim_id=claim_id)
+            .order_by(desc(VehicleDamageAnalysis.id))
+            .first()
+        )
+
+        if not latest_analysis:
+            return jsonify({
+                "success": False,
+                "error": "Not Analyzed",
+                "message": "No vehicle damage analysis has been executed for this claim yet.",
+                "analyzed": False,
+            }), 404
+
+        return jsonify({
+            "success": True,
+            "claim_id": claim_id,
+            "analyzed": True,
+            "analysis": latest_analysis.to_dict(),
+        }), 200
+
+
+@claims_bp.route("/claims/<claim_id>/damage-history", methods=["GET"])
+def get_claim_damage_history(claim_id: str):
+    """Retrieves all vehicle damage analysis runs for a claim."""
+    if not is_valid_claim_id_format(claim_id):
+        return jsonify({
+            "success": False,
+            "error": "Invalid Claim ID format",
+            "message": "Claim ID must follow format CLM-YYYYMMDD-XXXX.",
+        }), 400
+
+    user_id = session.get("user_id")
+    user_role = session.get("role")
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim:
+            return jsonify({
+                "success": False,
+                "error": "Not Found",
+                "message": f"Claim with ID '{claim_id}' was not found.",
+            }), 404
+
+        if not can_user_access_claim(claim, user_id, user_role):
+            if not user_id:
+                return jsonify({
+                    "success": False,
+                    "error": "Unauthorized",
+                    "message": "Authentication required to view damage history.",
+                }), 401
+            return jsonify({
+                "success": False,
+                "error": "Forbidden",
+                "message": "You do not have permission to view damage history for this claim.",
+            }), 403
+
+        analyses = (
+            db.query(VehicleDamageAnalysis)
+            .filter_by(claim_id=claim_id)
+            .order_by(desc(VehicleDamageAnalysis.id))
+            .all()
+        )
+
+        return jsonify({
+            "success": True,
+            "claim_id": claim_id,
+            "total_runs": len(analyses),
+            "history": [a.to_dict() for a in analyses],
+        }), 200
+
+
+@claims_bp.route("/claims/<claim_id>/annotated-image", methods=["GET"])
+def get_claim_annotated_image(claim_id: str):
+    """Streams the AI-annotated vehicle damage photograph."""
+    if not is_valid_claim_id_format(claim_id):
+        return jsonify({
+            "success": False,
+            "error": "Invalid Claim ID format",
+            "message": "Claim ID must follow format CLM-YYYYMMDD-XXXX.",
+        }), 400
+
+    user_id = session.get("user_id")
+    user_role = session.get("role")
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim:
+            return jsonify({
+                "success": False,
+                "error": "Not Found",
+                "message": f"Claim with ID '{claim_id}' was not found.",
+            }), 404
+
+        if not can_user_access_claim(claim, user_id, user_role):
+            if not user_id:
+                return jsonify({
+                    "success": False,
+                    "error": "Unauthorized",
+                    "message": "Authentication required to access annotated image.",
+                }), 401
+            return jsonify({
+                "success": False,
+                "error": "Forbidden",
+                "message": "You do not have permission to access annotated image.",
+            }), 403
+
+        upload_base = Path(current_app.config["UPLOAD_FOLDER"])
+        latest = (
+            db.query(VehicleDamageAnalysis)
+            .filter_by(claim_id=claim_id)
+            .order_by(desc(VehicleDamageAnalysis.id))
+            .first()
+        )
+
+        annotated_path = None
+        if latest and latest.annotated_image_path:
+            candidate = upload_base / latest.annotated_image_path
+            if candidate.exists():
+                annotated_path = candidate
+
+        if not annotated_path:
+            # Check images directory on disk
+            images_dir = upload_base / claim_id / "images"
+            if images_dir.exists():
+                annotated_files = list(images_dir.glob("annotated_*"))
+                if annotated_files:
+                    annotated_path = annotated_files[-1]
+
+        if not annotated_path or not annotated_path.exists():
+            return jsonify({
+                "success": False,
+                "error": "Not Found",
+                "message": "Annotated damage image not found. Please run damage analysis first.",
+            }), 404
+
+        return send_file(
+            str(annotated_path),
+            mimetype="image/jpeg",
+            as_attachment=request.args.get("download") == "true",
+            download_name=annotated_path.name,
+        )
+
+
+@claims_bp.route("/vision/status", methods=["GET"])
+@claims_bp.route("/vision/metrics", methods=["GET"])
+@claims_bp.route("/model/status", methods=["GET"])
+@claims_bp.route("/phase5/metrics", methods=["GET"])
+def get_vision_status():
+    """Returns the operational status of the vehicle damage detection model and CarDD benchmark."""
+    try:
+        detector = VehicleDamageDetector.get_instance()
+        eval_metrics = get_model_evaluation_metrics()
+        return jsonify({
+            "success": True,
+            "status": "ready",
+            "model_name": detector.model_name,
+            "model_version": detector.model_version,
+            "model_path": str(detector.model_path),
+            "device": detector.device,
+            "dataset": "CarDD",
+            "classes": detector.model.names if hasattr(detector.model, "names") else {},
+            "evaluation_metrics": eval_metrics.get("overall_metrics"),
+            "per_class_metrics": eval_metrics.get("per_class_metrics"),
+            "latency_metrics": eval_metrics.get("latency_metrics"),
+            "full_evaluation": eval_metrics,
+        }), 200
+    except Exception as exc:
+        return jsonify({
+            "success": False,
+            "status": "error",
+            "message": str(exc),
+        }), 500
+
 

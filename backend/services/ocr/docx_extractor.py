@@ -7,25 +7,7 @@ from pathlib import Path
 from typing import List
 from zipfile import BadZipFile, ZipFile
 
-<<<<<<< HEAD
-
-class DocumentExtractionError(Exception):
-    """Raised when an evidentiary document cannot be parsed or exceeds limits."""
-    pass
-
-
-# Guarded import for python-docx
-try:
-    from docx import Document as WordDocument
-    from docx.opc.exceptions import PackageNotFoundError
-    HAS_DOCX = True
-except ImportError:
-    HAS_DOCX = False
-    WordDocument = None
-    PackageNotFoundError = Exception
-=======
 from backend.services.ocr.pdf_extractor import DocumentExtractionError
->>>>>>> 772aeb2 (Phase 4)
 
 try:
     from docx import Document as WordDocument
@@ -37,16 +19,8 @@ except ImportError:  # pragma: no cover - dependency may be optional at runtime.
 
 def extract_docx(path: Path) -> str:
     """Extract text from paragraphs, tables, and section headers/footers."""
-<<<<<<< HEAD
-    if not HAS_DOCX:
-        raise DocumentExtractionError(
-            "python-docx is not installed in the environment. "
-            "Full DOCX extraction is scheduled for implementation in Phase 4."
-        )
-=======
     if WordDocument is None:
         raise DocumentExtractionError("python-docx is not installed; DOCX extraction is unavailable.")
->>>>>>> 772aeb2 (Phase 4)
 
     try:
         with ZipFile(path) as archive:

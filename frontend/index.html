@@ -4,14 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="">
     <title>ClaimSense AI - Claim Verification Decision-Support System</title>
-    <link rel="stylesheet" href="style.css?v=14">
+    <link rel="stylesheet" href="style.css?v=3">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         (function() {
-            const saved = localStorage.getItem("claimsense-theme") || "dark";
+            const saved = localStorage.getItem("claimsense-theme") || localStorage.getItem("claimsense_theme") || "dark";
             document.documentElement.setAttribute("data-theme", saved);
         })();
     </script>
@@ -39,17 +40,8 @@
                     <span class="theme-label">Theme</span>
                 </button>
                 <div class="header-auth" id="header-auth">
-                    <div id="auth-logged-out" class="auth-logged-out" style="display: flex; align-items: center; gap: 8px;">
-                        <button type="button" id="btn-open-login" class="btn btn-secondary btn-sm">Sign In</button>
-                        <button type="button" id="btn-open-signup" class="btn btn-primary btn-sm">Register</button>
-                    </div>
-                    <div id="auth-logged-in" class="auth-logged-in" style="display: none; align-items: center; gap: 8px;">
-                        <div class="user-badge" id="user-badge">
-                            <span class="user-role-pill" id="auth-role-badge">USER</span>
-                            <span id="auth-username">User</span>
-                        </div>
-                        <button type="button" id="btn-logout" class="btn btn-outline btn-sm">Sign Out</button>
-                    </div>
+                    <button type="button" id="btn-nav-login" class="btn btn-secondary btn-sm">Sign In</button>
+                    <button type="button" id="btn-nav-signup" class="btn btn-primary btn-sm">Register</button>
                 </div>
             </div>
         </div>
@@ -68,19 +60,20 @@
     <div id="auth-modal" class="modal-backdrop" style="display: none;">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 id="auth-modal-title">Sign In to ClaimSense</h3>
-                <button type="button" class="btn-close-modal" id="auth-modal-close"
+                <h3 id="modal-title">Account Portal</h3>
+                <button type="button" class="btn-close-modal" id="btn-close-auth-modal"
                     aria-label="Close modal">&times;</button>
             </div>
             <div class="auth-tabs">
-                <button type="button" id="tab-login" class="auth-tab active">Log In</button>
-                <button type="button" id="tab-signup" class="auth-tab">Sign Up</button>
+                <button type="button" id="tab-btn-login" class="auth-tab active">Log In</button>
+                <button type="button" id="tab-btn-signup" class="auth-tab">Sign Up</button>
             </div>
             <div class="modal-body">
-                <div id="auth-modal-error" class="alert alert-error" style="display: none;"></div>
+                <div id="auth-alert" class="alert alert-error" style="display: none;"></div>
 
                 <!-- Login Form -->
-                <form id="form-login">
+                <form id="login-form">
+                    <input type="hidden" name="csrf_token" class="input-csrf-token">
                     <div class="form-group">
                         <label for="login-identifier">Username or Email <span class="req">*</span></label>
                         <input type="text" id="login-identifier" placeholder="e.g. ansh_g or ansh@abes.ac.in" required>
@@ -93,12 +86,13 @@
                         <button type="submit" id="btn-submit-login" class="btn btn-primary full-width">Sign In</button>
                     </div>
                     <p class="auth-switch-text">
-                        Don't have an account? <a href="#" id="btn-modal-switch-signup">Create one here</a>
+                        Don't have an account? <a href="#" id="link-switch-to-signup">Create one here</a>
                     </p>
                 </form>
 
                 <!-- Signup Form -->
-                <form id="form-signup" style="display: none;">
+                <form id="signup-form" style="display: none;">
+                    <input type="hidden" name="csrf_token" class="input-csrf-token">
                     <div class="form-group">
                         <label for="signup-fullname">Full Name <span class="req">*</span></label>
                         <input type="text" id="signup-fullname" placeholder="e.g. Ansh Gupta" required>
@@ -114,7 +108,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="signup-password">Password <span class="req">*</span></label>
-                            <input type="password" id="signup-password" placeholder="Min 8 characters (letters & numbers)" required>
+                            <input type="password" id="signup-password" placeholder="Min 8 chars (letters & numbers)" required>
                         </div>
                         <div class="form-group">
                             <label for="signup-confirm">Confirm Password <span class="req">*</span></label>
@@ -126,7 +120,7 @@
                             Account</button>
                     </div>
                     <p class="auth-switch-text">
-                        Already have an account? <a href="#" id="btn-modal-switch-login">Log in here</a>
+                        Already have an account? <a href="#" id="link-switch-to-login">Log in here</a>
                     </p>
                 </form>
             </div>
@@ -138,29 +132,19 @@
         <nav class="quick-nav-bar" aria-label="Main Navigation">
             <div class="nav-pills" role="tablist">
                 <button type="button" id="pill-nav-submit" class="nav-pill active" role="tab" aria-selected="true" aria-controls="section-submit">
-                    <svg class="pill-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                    <span class="pill-icon">📝</span>
                     <span class="pill-text">Submit Claim Evidence</span>
                 </button>
                 <button type="button" id="pill-nav-search" class="nav-pill" role="tab" aria-selected="false" aria-controls="section-lookup">
-                    <svg class="pill-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <span class="pill-icon">🔍</span>
                     <span class="pill-text">Policy Claim Lookup</span>
                 </button>
                 <button type="button" id="pill-nav-myclaims" class="nav-pill" role="tab" aria-selected="false" aria-controls="section-myclaims">
-                    <svg class="pill-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                    <span class="pill-icon">📂</span>
                     <span class="pill-text">My Submissions</span>
                 </button>
             </div>
-<<<<<<< HEAD
-            <div class="card-body">
-                <div id="auth-required-notice" class="alert alert-info" style="display: none;">
-                    <strong>Authentication Required:</strong> You must be signed in with an active account to submit an insurance claim.
-                    <a href="#" id="link-submission-login">Click here to Sign In</a> or <a href="#" id="link-submission-signup">Register an Account</a>.
-                </div>
-                <form id="claim-form" enctype="multipart/form-data">
-                    <div id="form-error-alert" class="alert alert-error" style="display: none;"><span id="error-message"></span></div>
-=======
         </nav>
->>>>>>> 772aeb2 (Phase 4)
 
         <!-- ========================================================= -->
         <!-- SECTION 1: SUBMIT CLAIM EVIDENCE                          -->
@@ -175,8 +159,7 @@
                     </div>
                     <button type="button" id="btn-fill-sample" class="btn btn-secondary btn-sm"
                         title="Populate form with sample test claim for quick demo">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
-                        <span>Fill Demo Sample</span>
+                        ✨ Fill Demo Sample
                     </button>
                 </div>
                 <div class="card-body">
@@ -242,7 +225,7 @@
                                             accept=".pdf,.docx,.png,.jpg,.jpeg" required>
                                     </div>
                                     <div class="selected-file-badge" id="badge-policy_document" style="display: none;">
-                                        <span class="file-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
+                                        <span class="file-icon">📄</span>
                                         <span class="selected-filename">No file selected</span>
                                         <span class="selected-filesize"></span>
                                     </div>
@@ -260,7 +243,7 @@
                                             accept=".pdf,.docx,.png,.jpg,.jpeg" required>
                                     </div>
                                     <div class="selected-file-badge" id="badge-claim_form_file" style="display: none;">
-                                        <span class="file-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></span>
+                                        <span class="file-icon">📋</span>
                                         <span class="selected-filename">No file selected</span>
                                         <span class="selected-filesize"></span>
                                     </div>
@@ -278,7 +261,7 @@
                                             accept=".pdf,.docx,.png,.jpg,.jpeg" required>
                                     </div>
                                     <div class="selected-file-badge" id="badge-invoice_document" style="display: none;">
-                                        <span class="file-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg></span>
+                                        <span class="file-icon">🧾</span>
                                         <span class="selected-filename">No file selected</span>
                                         <span class="selected-filesize"></span>
                                     </div>
@@ -296,7 +279,7 @@
                                             required>
                                     </div>
                                     <div class="selected-file-badge" id="badge-vehicle_image" style="display: none;">
-                                        <span class="file-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></span>
+                                        <span class="file-icon">📷</span>
                                         <span class="selected-filename">No file selected</span>
                                         <span class="selected-filesize"></span>
                                     </div>
@@ -307,10 +290,7 @@
 
                         <div class="form-actions">
                             <button type="submit" id="btn-submit-claim" class="btn btn-primary btn-submit-lg">
-                                <span class="btn-text">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                                    Submit Claim for Verification
-                                </span>
+                                <span class="btn-text">🚀 Submit Claim for Verification</span>
                                 <span class="btn-spinner" style="display: none;">
                                     <span class="spinner-circle"></span> Processing & Verifying Documents...
                                 </span>
@@ -334,10 +314,7 @@
                     <div class="claim-id-banner">
                         <span class="claim-id-label">Generated Claim Identifier:</span>
                         <span class="claim-id-val" id="res-claim-id">CLM-XXXXXXXX-XXXX</span>
-                        <button type="button" id="btn-copy-claim-id" class="btn btn-secondary btn-sm">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                            <span>Copy ID</span>
-                        </button>
+                        <button type="button" id="btn-copy-claim-id" class="btn btn-secondary btn-sm">📋 Copy ID</button>
                     </div>
 
                     <div class="summary-section">
@@ -380,9 +357,7 @@
 
                     <div class="replace-image-box" id="replace-image-container">
                         <div class="replace-image-header">
-                            <span class="box-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
-                            </span>
+                            <span class="box-icon">📷</span>
                             <div>
                                 <h4>Replace Vehicle Accident Photograph</h4>
                                 <p>If the initial upload was flagged as an invalid graphic, upload an authentic vehicle damage photograph. The original uploaded file will remain safely preserved in the audit repository.</p>
@@ -396,17 +371,17 @@
                     </div>
 
                     <div class="success-actions">
+                        <button type="button" id="btn-view-claim-modal" class="btn btn-primary">
+                            🔍 View Claim & AI Damage Analysis
+                        </button>
                         <a id="btn-download-receipt" href="#" target="_blank" class="btn btn-secondary">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                            <span>Download PDF Receipt</span>
+                            📄 Download PDF Receipt
                         </a>
                         <a id="btn-download-document-report" href="#" target="_blank" class="btn btn-secondary">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-                            <span>Download Document Report</span>
+                            📊 Download Document Report
                         </a>
-                        <button type="button" id="btn-new-claim" class="btn btn-primary">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                            <span>Submit Another Claim</span>
+                        <button type="button" id="btn-new-claim" class="btn btn-outline">
+                            ➕ Submit Another Claim
                         </button>
                     </div>
                 </div>
@@ -429,29 +404,25 @@
                         <div class="search-type-selector">
                             <label class="search-type-label">
                                 <input type="radio" name="search-mode" value="auto" checked>
-                                <span>Auto-Detect</span>
+                                <span>⚡ Auto-Detect</span>
                             </label>
                             <label class="search-type-label">
                                 <input type="radio" name="search-mode" value="claim_id">
-                                <span>Claim ID</span>
+                                <span>🆔 Claim ID</span>
                             </label>
                             <label class="search-type-label">
                                 <input type="radio" name="search-mode" value="policy">
-                                <span>Policy Number</span>
+                                <span>📄 Policy Number</span>
                             </label>
                         </div>
                         <div class="search-input-wrapper">
-                            <div class="search-input-field search-input-field-lg">
-                                <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                                <input type="text" id="search-policy-input"
-                                    placeholder="Enter Claim ID (e.g. CLM-20261115-XXXX) or Policy Number (e.g. POL-2024-88391)" required>
-                            </div>
+                            <input type="text" id="search-policy-input"
+                                placeholder="Enter Claim ID (e.g. CLM-20261115-XXXX) or Policy Number (e.g. POL-2024-88391)" required>
                             <button type="submit" id="btn-search-policy" class="btn btn-primary btn-search">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                                <span>Search</span>
+                                🔍 Search
                             </button>
                             <button type="button" id="btn-clear-lookup" class="btn btn-secondary btn-sm" style="display: none;">
-                                Clear
+                                ✕ Clear
                             </button>
                         </div>
                     </form>
@@ -468,9 +439,7 @@
 
                     <!-- Empty state before search -->
                     <div id="lookup-initial-state" class="empty-state-card">
-                        <div class="empty-state-icon-wrapper">
-                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        </div>
+                        <div class="empty-state-icon">🔍</div>
                         <h3>Find Any Claim Record</h3>
                         <p>Enter a unique <strong>Claim ID</strong> (e.g. <code>CLM-20261115-XXXX</code>) or an insurance <strong>Policy Number</strong> (e.g. <code>POL-2024-88391</code>) to retrieve submission details, view evidence packages, and download PDF receipts.</p>
                     </div>
@@ -489,26 +458,15 @@
                         <p class="section-desc">Overview of evidence claims submitted under your authenticated profile.</p>
                     </div>
                     <div class="header-actions">
-                        <button type="button" id="btn-refresh-my-claims" class="btn btn-secondary btn-sm">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-                            <span>Refresh</span>
-                        </button>
+                        <button type="button" id="btn-refresh-my-claims" class="btn btn-secondary btn-sm">↻ Refresh</button>
                     </div>
                 </div>
                 <div class="card-body">
                     <!-- Search / Filter & Sort Controls for Submissions -->
                     <div class="myclaims-controls-bar">
                         <div class="myclaims-filter-box">
-                            <div class="search-input-field">
-                                <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="11" cy="11" r="8"></circle>
-                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                </svg>
-                                <input type="text" id="myclaims-filter-input" placeholder="Filter submissions by ID, policy, claimant, vehicle..." aria-label="Filter submissions">
-                                <button type="button" class="btn-clear-input" id="btn-clear-myclaims-filter" style="display: none;" title="Clear filter">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                </button>
-                            </div>
+                            <span class="search-icon">🔎</span>
+                            <input type="text" id="myclaims-filter-input" placeholder="Filter submissions by ID, policy, claimant, vehicle..." aria-label="Filter submissions">
                         </div>
                         <div class="myclaims-sort-box">
                             <span class="sort-label">Sort:</span>
@@ -582,10 +540,7 @@
 
                 <!-- Extracted Intelligence Fields Section (Phase 4) -->
                 <div class="mt-4" id="modal-extracted-section" style="display: none;">
-                    <h4 class="subheading">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: text-bottom; margin-right: 6px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                        Document Intelligence Extracted Fields
-                    </h4>
+                    <h4 class="subheading">📑 Document Intelligence Extracted Fields</h4>
                     <div class="table-responsive mt-2">
                         <table class="data-table">
                             <thead>
@@ -602,16 +557,100 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- AI Vehicle Damage Inspection Section (Phase 5) -->
+                <div class="mt-4" id="modal-damage-section">
+                    <div class="damage-section-header">
+                        <div>
+                            <h4 class="subheading">🚗 AI Vehicle Damage Inspection (CarDD)</h4>
+                            <div class="model-info-subtitle" id="model-benchmark-subtitle" style="font-size: 0.82rem; color: var(--text-muted, #94a3b8); margin-top: 2px;">
+                                Model: <b>YOLOv8n-CarDD</b> (v1.0) &bull; Dataset: <b>CarDD-300</b> &bull; Precision: <b>34.2%</b> &bull; Recall: <b>26.1%</b> &bull; mAP@50: <b>19.2%</b> &bull; mAP@50-95: <b>11.7%</b>
+                            </div>
+                        </div>
+                        <div class="damage-actions">
+                            <button type="button" id="btn-analyze-damage" class="btn btn-primary btn-sm">
+                                <span id="btn-damage-text">🔍 Analyze Vehicle Damage</span>
+                                <span id="btn-damage-spinner" class="spinner-small" style="display: none;"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Damage Status Notification / Banner -->
+                    <div id="damage-status-banner" class="damage-banner mt-2" style="display: none;"></div>
+
+                    <!-- Visual Inspection: Original vs AI Annotated Image -->
+                    <div id="damage-visual-container" class="damage-visual-grid mt-3" style="display: none;">
+                        <div class="damage-image-card">
+                            <div class="damage-card-header">
+                                <span class="badge badge-secondary">Original Evidence Photo</span>
+                                <span id="badge-photo-validation" class="badge badge-success">Authentic Photo</span>
+                            </div>
+                            <div class="damage-img-wrapper">
+                                <img id="damage-original-img" src="" alt="Original vehicle photograph" />
+                            </div>
+                        </div>
+                        <div class="damage-image-card">
+                            <div class="damage-card-header">
+                                <span class="badge badge-info">AI Annotated Damage (YOLOv8)</span>
+                                <a id="btn-download-annotated" href="#" target="_blank" class="btn btn-secondary btn-xs" download style="display: none;">⬇ Download Annotated</a>
+                            </div>
+                            <div class="damage-img-wrapper">
+                                <img id="damage-annotated-img" src="" alt="Annotated vehicle damage photograph" />
+                                <div id="damage-annotated-placeholder" class="damage-placeholder" style="display: none;">
+                                    <span>Click "Analyze Vehicle Damage" to detect damages</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detection Summary Metrics -->
+                    <div id="damage-metrics-container" class="damage-metrics-grid mt-3" style="display: none;">
+                        <div class="metric-card">
+                            <span class="metric-num" id="metric-damage-count">0</span>
+                            <span class="metric-title">Damages Detected</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-num" id="metric-damage-peak-conf">0%</span>
+                            <span class="metric-title">Peak Confidence</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-num" id="metric-damage-latency">0 ms</span>
+                            <span class="metric-title">Inference Time</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-val monospace" id="metric-damage-model">YOLOv8n-CarDD</span>
+                            <span class="metric-title">Vision Model</span>
+                        </div>
+                    </div>
+
+                    <!-- Detections Table -->
+                    <div id="damage-table-container" class="mt-3" style="display: none;">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Damage Category</th>
+                                        <th>Confidence</th>
+                                        <th>Vehicle Region</th>
+                                        <th>Bounding Box (x1, y1, x2, y2)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="damage-detections-rows"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Analysis History -->
+                    <div id="damage-history-container" class="mt-3" style="display: none;">
+                        <span class="history-title">Inspection Run History:</span>
+                        <div id="damage-history-list" class="history-tags mt-1"></div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <a id="btn-modal-receipt" href="#" target="_blank" class="btn btn-secondary btn-sm">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                    <span>Download Receipt</span>
-                </a>
-                <a id="btn-modal-report" href="#" target="_blank" class="btn btn-secondary btn-sm">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-                    <span>Download Report</span>
-                </a>
+                <a id="btn-modal-receipt" href="#" target="_blank" class="btn btn-secondary btn-sm">📄 Download Receipt</a>
+                <a id="btn-modal-report" href="#" target="_blank" class="btn btn-secondary btn-sm">📊 Download Report</a>
                 <button type="button" id="btn-modal-close" class="btn btn-primary btn-sm">Close</button>
             </div>
         </div>
@@ -644,7 +683,7 @@
         </div>
     </footer>
 
-    <script src="app.js?v=14"></script>
+    <script src="app.js?v=10"></script>
 </body>
 
 </html>

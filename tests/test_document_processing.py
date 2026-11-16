@@ -330,6 +330,7 @@ class Phase4DocumentProcessingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             from backend.app import create_app
             from backend.config import Config
+            from backend.database.models import User
 
             tmp = Path(tmpdir)
             class TestCfg(Config):
@@ -341,50 +342,69 @@ class Phase4DocumentProcessingTests(unittest.TestCase):
             app = create_app(TestCfg)
             client = app.test_client()
 
-            # Create an initial claim
-            claim_payload = {
-                "claimant_name": "Rajesh Sharma",
-                "policy_number": "POL-2024-88391",
-                "vehicle_number": "MH-12-DE-4052",
-                "accident_date": "2026-09-28",
-                "claim_description": "Rear-end collision on MG Road.",
-                "policy_document": (io.BytesIO(b"Policy text POL-2024-88391"), "policy.pdf"),
-                "claim_form": (io.BytesIO(b"Claim form text"), "form.pdf"),
-                "invoice_document": (io.BytesIO(b"Invoice text INR 84500"), "invoice.pdf"),
-                "vehicle_image": (io.BytesIO(b"\xff\xd8\xff\xe0" + b"\x00" * 200), "graphic.jpg"),
-            }
-            res = client.post("/api/claims", data=claim_payload, content_type="multipart/form-data")
-            self.assertEqual(res.status_code, 201)
-            cid = res.get_json()["claim_id"]
+            try:
+                # Seed and login user for authentication
+                with get_db_session() as db:
+                    user = User(
+                        username="test_claimant",
+                        email="test_claimant@example.com",
+                        full_name="Rajesh Sharma",
+                        role="user",
+                    )
+                    user.set_password("Password123")
+                    db.add(user)
+                    db.flush()
 
-            orig_img_path = tmp / "uploads" / cid / "images" / "vehicle_image_graphic.jpg"
-            self.assertTrue(orig_img_path.exists())
+                client.post(
+                    "/api/auth/login",
+                    json={"identifier": "test_claimant", "password": "Password123"},
+                )
 
-            # Now replace the image with a replacement photograph
-            img_buf = io.BytesIO()
-            new_img = Image.new("RGB", (300, 200), color=(120, 140, 160))
-            for x in range(300):
-                for y in range(200):
-                    new_img.putpixel((x, y), ((x * 3) % 256, (y * 5) % 256, (x + y) % 256))
-            new_img.save(img_buf, format="JPEG")
-            img_buf.seek(0)
+                # Create an initial claim
+                claim_payload = {
+                    "claimant_name": "Rajesh Sharma",
+                    "policy_number": "POL-2024-88391",
+                    "vehicle_number": "MH-12-DE-4052",
+                    "accident_date": "2026-09-28",
+                    "claim_description": "Rear-end collision on MG Road.",
+                    "policy_document": (io.BytesIO(b"%PDF-1.4 Policy text POL-2024-88391"), "policy.pdf"),
+                    "claim_form": (io.BytesIO(b"%PDF-1.4 Claim form text"), "form.pdf"),
+                    "invoice_document": (io.BytesIO(b"%PDF-1.4 Invoice text INR 84500"), "invoice.pdf"),
+                    "vehicle_image": (io.BytesIO(b"\xff\xd8\xff\xe0" + b"\x00" * 200), "graphic.jpg"),
+                }
+                res = client.post("/api/claims", data=claim_payload, content_type="multipart/form-data")
+                self.assertEqual(res.status_code, 201)
+                cid = res.get_json()["claim_id"]
 
-            rep_res = client.post(
-                f"/api/claims/{cid}/replace-image",
-                data={"vehicle_image": (img_buf, "actual_damage_photo.jpg")},
-                content_type="multipart/form-data",
-            )
-            self.assertEqual(rep_res.status_code, 200)
-            rep_data = rep_res.get_json()
-            self.assertTrue(rep_data["success"])
-            self.assertTrue(rep_data["original_preserved"])
-            # Verify original file was preserved
-            self.assertTrue(orig_img_path.exists())
-            # Verify new file exists
-            new_img_path = tmp / "uploads" / cid / "images" / "replacement_vehicle_image_actual_damage_photo.jpg"
-            self.assertTrue(new_img_path.exists())
-            self.assertTrue(rep_data["validation"]["is_valid_vehicle_photo"])
-            close_engine()
+                orig_img_path = tmp / "uploads" / cid / "images" / "vehicle_image_graphic.jpg"
+                self.assertTrue(orig_img_path.exists())
+
+                # Now replace the image with a replacement photograph
+                img_buf = io.BytesIO()
+                new_img = Image.new("RGB", (300, 200), color=(120, 140, 160))
+                for x in range(300):
+                    for y in range(200):
+                        new_img.putpixel((x, y), ((x * 3) % 256, (y * 5) % 256, (x + y) % 256))
+                new_img.save(img_buf, format="JPEG")
+                img_buf.seek(0)
+
+                rep_res = client.post(
+                    f"/api/claims/{cid}/replace-image",
+                    data={"vehicle_image": (img_buf, "actual_damage_photo.jpg")},
+                    content_type="multipart/form-data",
+                )
+                self.assertEqual(rep_res.status_code, 200)
+                rep_data = rep_res.get_json()
+                self.assertTrue(rep_data["success"])
+                self.assertTrue(rep_data["original_preserved"])
+                # Verify original file was preserved
+                self.assertTrue(orig_img_path.exists())
+                # Verify new file exists
+                new_img_path = tmp / "uploads" / cid / "images" / "replacement_vehicle_image_actual_damage_photo.jpg"
+                self.assertTrue(new_img_path.exists())
+                self.assertTrue(rep_data["validation"]["is_valid_vehicle_photo"])
+            finally:
+                close_engine()
 
     def test_dataset_evaluations_produce_reproducible_metrics(self):
         repo_root = Path(__file__).resolve().parents[1]

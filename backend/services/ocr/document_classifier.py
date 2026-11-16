@@ -7,9 +7,18 @@ from typing import Any, Dict
 
 
 def classify_document(file_path: str | Path | None = None, text: str = "") -> Dict[str, Any]:
-    """Classify a document as policy, claim form, invoice, or other based on keywords."""
-    source_text = (text or "").lower()
+    """Classify a document as policy, claim form, invoice, or other based on content keywords and file type."""
+    source_text = (text or "").lower().strip()
     filename = (str(file_path or "")).lower()
+    ext = Path(file_path).suffix.lower() if file_path else ""
+
+    # Photographic evidence without structured document text should not be classified as a textual document
+    if ext in {".jpg", ".jpeg", ".png"} and len(source_text) < 15:
+        return {
+            "document_type": "image",
+            "confidence": 0.95,
+            "source_text_length": len(source_text),
+        }
 
     if any(token in source_text for token in ["policy", "coverage", "schedule", "insured"]):
         label = "policy_document"
@@ -20,13 +29,13 @@ def classify_document(file_path: str | Path | None = None, text: str = "") -> Di
     elif any(token in source_text for token in ["invoice", "repair estimate", "garage", "amount due", "bill"]):
         label = "invoice_document"
         confidence = 0.88
-    elif any(token in filename for token in ["policy", "schedule"]):
+    elif ext not in {".jpg", ".jpeg", ".png"} and any(token in filename for token in ["policy", "schedule"]):
         label = "policy_document"
         confidence = 0.72
-    elif any(token in filename for token in ["claim", "form"]):
+    elif ext not in {".jpg", ".jpeg", ".png"} and any(token in filename for token in ["claim", "form"]):
         label = "claim_form"
         confidence = 0.7
-    elif any(token in filename for token in ["invoice", "estimate", "bill"]):
+    elif ext not in {".jpg", ".jpeg", ".png"} and any(token in filename for token in ["invoice", "estimate", "bill"]):
         label = "invoice_document"
         confidence = 0.7
     else:

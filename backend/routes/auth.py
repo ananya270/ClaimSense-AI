@@ -28,10 +28,15 @@ def _get_request_data() -> dict:
 def get_csrf_token():
     """Generates and returns a fresh CSRF token for state-changing requests."""
     token = generate_csrf()
-    return jsonify({
+    response = jsonify({
         "success": True,
         "csrf_token": token,
-    }), 200
+    })
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    response.set_cookie("claimsense_csrf_token", token, samesite="Lax", httponly=False)
+    return response, 200
 
 
 @auth_bp.route("/auth/signup", methods=["POST"])
@@ -119,6 +124,7 @@ def signup():
     return jsonify({
         "success": True,
         "message": "Account created successfully",
+        "csrf_token": generate_csrf(),
     }), 201
 
 
@@ -169,6 +175,7 @@ def login():
         session["user_id"] = user.id
         session["username"] = user.username
         session["role"] = user.role
+        new_csrf_token = generate_csrf()
 
         user_info = user.to_dict()
         logger.info(f"User logged in successfully: username='{user.username}', role='{user.role}'")
@@ -177,6 +184,7 @@ def login():
         "success": True,
         "message": "Login successful",
         "user": user_info,
+        "csrf_token": new_csrf_token,
     }), 200
 
 
@@ -185,10 +193,12 @@ def logout():
     """Logs out current authenticated user and clears session state completely."""
     username = session.get("username", "anonymous")
     session.clear()
+    new_csrf_token = generate_csrf()
     logger.info(f"User '{username}' logged out successfully.")
     return jsonify({
         "success": True,
         "message": "Logged out successfully",
+        "csrf_token": new_csrf_token,
     }), 200
 
 

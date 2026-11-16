@@ -7,9 +7,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_from_directory, request, make_response, session
 from flask_cors import CORS
-from flask_wtf.csrf import CSRFError
+from flask_wtf.csrf import CSRFError, generate_csrf
 
 from backend.config import Config
 from backend.extensions import csrf, limiter
@@ -54,6 +54,30 @@ def create_app(config_class=Config) -> Flask:
         if not getattr(config_class, "ENABLE_RATELIMIT_FOR_TESTS", False):
             app.config["RATELIMIT_ENABLED"] = False
 
+    @app.before_request
+    def extract_csrf_from_json():
+        """Extract CSRF token from JSON body, headers, cookies, or query params and populate WSGI environ."""
+        token = None
+        if request.is_json:
+            try:
+                payload = request.get_json(silent=True)
+                if isinstance(payload, dict) and payload.get("csrf_token"):
+                    token = str(payload["csrf_token"]).strip()
+            except Exception:
+                pass
+
+        if not token:
+            token = (
+                request.headers.get("X-CSRFToken")
+                or request.headers.get("X-CSRF-Token")
+                or request.cookies.get("claimsense_csrf_token")
+                or request.args.get("csrf_token")
+            )
+
+        if token:
+            request.environ["HTTP_X_CSRFTOKEN"] = str(token)
+            request.environ["HTTP_X_CSRF_TOKEN"] = str(token)
+
     # Initialize Security Extensions (CSRF & Limiter)
     csrf.init_app(app)
     limiter.init_app(app)
@@ -78,10 +102,31 @@ def create_app(config_class=Config) -> Flask:
     app.register_blueprint(claims_bp, url_prefix="/api")
     app.register_blueprint(auth_bp, url_prefix="/api")
 
-    # Serve Frontend UI
+    # Serve Frontend UI with embedded CSRF token and session initialization
     @app.route("/", methods=["GET"])
     def index():
+        token = generate_csrf()
+        index_file = Path(app.static_folder) / "index.html"
+        if index_file.exists():
+            html = index_file.read_text(encoding="utf-8")
+            html = html.replace('<meta name="csrf-token" content="">', f'<meta name="csrf-token" content="{token}">')
+            resp = make_response(html)
+            resp.headers["Content-Type"] = "text/html; charset=utf-8"
+            resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+            resp.set_cookie("claimsense_csrf_token", token, samesite="Lax", httponly=False)
+            return resp
         return send_from_directory(app.static_folder, "index.html")
+
+    @app.after_request
+    def set_csrf_cookie(response):
+        """Ensures the readable CSRF cookie is synchronized whenever CSRF session exists."""
+        if "csrf_token" in session:
+            try:
+                token = generate_csrf()
+                response.set_cookie("claimsense_csrf_token", token, samesite="Lax", httponly=False)
+            except Exception:
+                pass
+        return response
 
     # Global Error Handlers with Consistent JSON output
     @app.errorhandler(400)

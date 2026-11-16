@@ -1,4 +1,5 @@
-"""SQLAlchemy ORM models for ClaimSense AI (Phase 3)."""
+"""SQLAlchemy ORM models for ClaimSense AI (Phase 3 & Phase 5)."""
+import json
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -89,6 +90,7 @@ class Claim(Base):
     images = relationship("ClaimImage", back_populates="claim", cascade="all, delete-orphan", lazy="select")
     extracted_info = relationship("ExtractedInformation", back_populates="claim", cascade="all, delete-orphan", lazy="select")
     image_analyses = relationship("ImageAnalysis", back_populates="claim", cascade="all, delete-orphan", lazy="select")
+    vehicle_damage_analyses = relationship("VehicleDamageAnalysis", back_populates="claim", cascade="all, delete-orphan", lazy="select")
     verification_results = relationship("VerificationResult", back_populates="claim", cascade="all, delete-orphan", lazy="select")
     risk_assessments = relationship("RiskAssessment", back_populates="claim", cascade="all, delete-orphan", lazy="select")
     reports = relationship("Report", back_populates="claim", cascade="all, delete-orphan", lazy="select")
@@ -128,15 +130,26 @@ class Claim(Base):
                     "relative_path": doc.file_path,
                     "size_bytes": doc.file_size,
                 }
-            for img in self.images:
+            archived = []
+            for img in sorted(self.images, key=lambda i: i.image_id):
+                if "vehicle_image" in files_dict:
+                    archived.append(files_dict["vehicle_image"])
                 files_dict["vehicle_image"] = {
                     "original_name": img.original_filename,
                     "saved_as": img.stored_filename,
                     "relative_path": img.file_path,
                     "size_bytes": img.file_size,
                 }
+            if archived:
+                data["archived_images"] = archived
             data["files"] = files_dict
             data["files_count"] = len(self.documents) + len(self.images)
+
+            if self.vehicle_damage_analyses:
+                latest_analysis = sorted(self.vehicle_damage_analyses, key=lambda a: a.id)[-1]
+                data["damage_analysis"] = latest_analysis.to_dict()
+            else:
+                data["damage_analysis"] = None
 
         return data
 
@@ -263,6 +276,96 @@ class ImageAnalysis(Base):
             "detected_damage": self.detected_damage,
             "damage_location": self.damage_location,
             "confidence": self.confidence,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class VehicleDamageAnalysis(Base):
+    """Phase 5 Vehicle damage detection results from fine-tuned YOLOv8 on CarDD."""
+    __tablename__ = "vehicle_damage_analyses"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    claim_id = Column(String(32), ForeignKey("claims.claim_id"), nullable=False, index=True)
+    image_id = Column(Integer, ForeignKey("claim_images.image_id"), nullable=True)
+    image_path = Column(String(512), nullable=True)
+    original_image_path = Column(String(512), nullable=True, default="")
+    annotated_image_path = Column(String(512), nullable=True)
+    model_name = Column(String(64), default="YOLOv8n-CarDD", nullable=False)
+    model_version = Column(String(32), default="v1.0", nullable=False)
+    total_detections = Column(Integer, default=0, nullable=False)
+    total_damages_detected = Column(Integer, default=0, nullable=True)
+    damage_categories = Column(Text, nullable=True)
+    detected_categories = Column(Text, nullable=True)
+    highest_confidence = Column(Float, nullable=True)
+    max_confidence = Column(Float, nullable=True)
+    average_confidence = Column(Float, nullable=True)
+    analysis_status = Column(String(32), default="completed", nullable=True)
+    processing_time_ms = Column(Float, nullable=True)
+    inference_time_ms = Column(Float, nullable=True)
+    device = Column(String(32), default="cpu", nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=True)
+
+    claim = relationship("Claim", back_populates="vehicle_damage_analyses")
+    detections = relationship("VehicleDamageDetection", back_populates="analysis", cascade="all, delete-orphan", lazy="select")
+
+    def to_dict(self) -> Dict[str, Any]:
+        try:
+            cats = json.loads(self.damage_categories) if self.damage_categories else []
+        except Exception:
+            cats = [c.strip() for c in (self.damage_categories or "").split(",") if c.strip()]
+
+        return {
+            "id": self.id,
+            "claim_id": self.claim_id,
+            "image_id": self.image_id,
+            "image_path": self.image_path,
+            "annotated_image_path": self.annotated_image_path,
+            "model_name": self.model_name,
+            "model_version": self.model_version,
+            "total_detections": self.total_detections,
+            "damage_categories": cats,
+            "highest_confidence": round(self.highest_confidence, 4) if self.highest_confidence is not None else 0.0,
+            "processing_time_ms": round(self.processing_time_ms, 2) if self.processing_time_ms is not None else 0.0,
+            "device": self.device,
+            "detections": [d.to_dict() for d in self.detections] if self.detections else [],
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class VehicleDamageDetection(Base):
+    """Phase 5 Individual detected damage bounding boxes, confidence, and spatial regions."""
+    __tablename__ = "vehicle_damage_detections"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    analysis_id = Column(Integer, ForeignKey("vehicle_damage_analyses.id"), nullable=False, index=True)
+    detection_index = Column(Integer, nullable=False)
+    category = Column(String(64), nullable=False)
+    confidence = Column(Float, nullable=False)
+    bbox_x1 = Column(Float, nullable=False)
+    bbox_y1 = Column(Float, nullable=False)
+    bbox_x2 = Column(Float, nullable=False)
+    bbox_y2 = Column(Float, nullable=False)
+    location_region = Column(String(64), nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    analysis = relationship("VehicleDamageAnalysis", back_populates="detections")
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "analysis_id": self.analysis_id,
+            "detection_index": self.detection_index,
+            "category": self.category,
+            "confidence": round(self.confidence, 4),
+            "confidence_percentage": round(self.confidence * 100, 1),
+            "bbox": [
+                round(self.bbox_x1, 1),
+                round(self.bbox_y1, 1),
+                round(self.bbox_x2, 1),
+                round(self.bbox_y2, 1),
+            ],
+            "location_region": self.location_region or "unspecified",
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
