@@ -17,6 +17,7 @@ CATEGORY_COLORS_RGB = {
     "tire flat": (168, 85, 247),       # Purple
 }
 DEFAULT_COLOR_RGB = (239, 68, 68)     # Default Red
+OPENCV_REGION_COLOR_RGB = (14, 165, 233)  # Sky Blue for non-semantic OpenCV contours
 
 
 def get_category_color(category: str) -> tuple:
@@ -28,11 +29,21 @@ def create_annotated_image(
     image_input: Union[str, Path, bytes, Image.Image],
     detections: List[Dict[str, Any]],
     output_path: Optional[Union[str, Path]] = None,
+    opencv_observations: Optional[Dict[str, Any]] = None,
 ) -> Image.Image:
     """Draws bounding boxes and labels for each detected damage instance on the image.
 
+    If detections are empty and opencv_observations are provided, generates an
+    OpenCV structural analysis visualization without asserting false damage classes.
     Preserves original dimensions and aspect ratio, and saves to output_path if provided.
     """
+    if (not detections) and opencv_observations:
+        return create_opencv_visual_analysis(
+            image_input=image_input,
+            observations=opencv_observations,
+            output_path=output_path,
+        )
+
     pil_img, _, meta = load_and_preprocess_image(image_input)
     annotated = pil_img.copy()
     draw = ImageDraw.Draw(annotated, "RGBA")
@@ -95,3 +106,87 @@ def create_annotated_image(
         annotated.save(out_p, format="JPEG", quality=92)
 
     return annotated
+
+
+def create_opencv_visual_analysis(
+    image_input: Union[str, Path, bytes, Image.Image],
+    observations: Optional[Dict[str, Any]] = None,
+    output_path: Optional[Union[str, Path]] = None,
+) -> Image.Image:
+    """Generates an OpenCV diagnostic visual analysis image.
+
+    Explicitly labels morphological contours and edge regions without asserting
+    semantic damage classes (e.g. no fake dents, scratches, cracks).
+    """
+    pil_img, _, meta = load_and_preprocess_image(image_input)
+    annotated = pil_img.copy()
+    draw = ImageDraw.Draw(annotated, "RGBA")
+
+    img_w, img_h = annotated.size
+    line_width = max(2, int(min(img_w, img_h) / 350))
+
+    try:
+        font = ImageFont.load_default()
+    except Exception:
+        font = None
+
+    obs = observations or {}
+    contour_info = obs.get("contour_analysis", obs)
+    salient_contours = contour_info.get("salient_contours", [])
+    quality = obs.get("image_quality", {})
+
+    # 1. Top Informational Banner (Distinct from YOLO detections)
+    banner_h = max(28, int(img_h * 0.05))
+    draw.rectangle([0, 0, img_w, banner_h], fill=(15, 23, 42, 230))  # Dark Slate
+    banner_title = "OPENCV STRUCTURAL ANALYSIS (TRADITIONAL CV - NO SEMANTIC DAMAGE PREDICTIONS)"
+    draw.text((12, int(banner_h * 0.25)), banner_title, fill=(255, 255, 255), font=font)
+
+    # 2. Render Salient Contour Regions (Neutral sky-blue outlines, non-semantic labels)
+    for idx, sc in enumerate(salient_contours, start=1):
+        bbox = sc.get("bbox", [0, 0, 0, 0])
+        x1, y1, x2, y2 = bbox
+        region = sc.get("relative_location", "surface")
+        area = sc.get("area", 0)
+
+        # Draw structural feature outline
+        draw.rectangle([x1, y1, x2, y2], outline=OPENCV_REGION_COLOR_RGB, width=line_width)
+
+        # Label as morphological feature, NEVER as damage category
+        label_text = f"FEATURE #{idx} [{region}]"
+        pad = 4
+        text_h = 14
+        raw_by1 = y1 - text_h - pad * 2
+        raw_by2 = y1
+        if raw_by1 < banner_h + 2:
+            raw_by1 = max(banner_h + 2, y1)
+            raw_by2 = raw_by1 + text_h + pad * 2
+
+        by0 = min(raw_by1, raw_by2)
+        by1 = max(raw_by1, raw_by2)
+        bx0 = max(0, min(x1, x2))
+        bx1 = min(img_w, bx0 + len(label_text) * 8 + pad * 2)
+
+        draw.rectangle([bx0, by0, bx1, by1], fill=(14, 165, 233, 200))
+        draw.text((bx0 + pad, by0 + pad), label_text, fill=(255, 255, 255), font=font)
+
+    # 3. Bottom Diagnostic Metrics & Disclaimer Banner
+    footer_h = max(32, int(img_h * 0.06))
+    footer_y1 = img_h - footer_h
+    draw.rectangle([0, footer_y1, img_w, img_h], fill=(15, 23, 42, 230))
+
+    grade = quality.get("quality_grade", "ASSESSED")
+    sharpness = quality.get("laplacian_variance", 0.0)
+    edge_density = contour_info.get("edge_density_pct", 0.0)
+    footer_text_1 = f"Quality: {grade} | Sharpness: {sharpness:.1f} | Edge Density: {edge_density}% | Salient Features: {len(salient_contours)}"
+    footer_text_2 = "OpenCV Traditional CV Fallback: Bounding boxes indicate contour density, NOT semantic damage classes."
+
+    draw.text((12, footer_y1 + 4), footer_text_1, fill=(226, 232, 240), font=font)
+    draw.text((12, footer_y1 + 18), footer_text_2, fill=(148, 163, 184), font=font)
+
+    if output_path:
+        out_p = Path(output_path)
+        out_p.parent.mkdir(parents=True, exist_ok=True)
+        annotated.save(out_p, format="JPEG", quality=92)
+
+    return annotated
+

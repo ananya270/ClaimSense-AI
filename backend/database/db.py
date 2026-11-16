@@ -92,12 +92,23 @@ def _ensure_schema_migrations(engine: Engine) -> None:
             v_cols = {col["name"] for col in inspector.get_columns("vehicle_damage_analyses")}
             v_migrations = {
                 "image_path": "VARCHAR(512)",
+                "original_image_path": "VARCHAR(512) DEFAULT ''",
+                "annotated_image_path": "VARCHAR(512)",
                 "model_name": "VARCHAR(64) DEFAULT 'YOLOv8n-CarDD'",
                 "model_version": "VARCHAR(32) DEFAULT 'v1.0'",
+                "detection_method": "VARCHAR(64) DEFAULT 'YOLOv8'",
+                "model_available": "BOOLEAN DEFAULT 1",
+                "opencv_observations": "TEXT",
                 "total_detections": "INTEGER DEFAULT 0",
+                "total_damages_detected": "INTEGER DEFAULT 0",
                 "damage_categories": "TEXT",
+                "detected_categories": "TEXT",
                 "highest_confidence": "FLOAT",
+                "max_confidence": "FLOAT",
+                "average_confidence": "FLOAT",
+                "analysis_status": "VARCHAR(32) DEFAULT 'completed'",
                 "processing_time_ms": "FLOAT",
+                "inference_time_ms": "FLOAT",
                 "device": "VARCHAR(32) DEFAULT 'cpu'",
             }
             for col_name, ddl in v_migrations.items():

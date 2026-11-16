@@ -307,6 +307,9 @@ class VehicleDamageAnalysis(Base):
     max_confidence = Column(Float, nullable=True)
     average_confidence = Column(Float, nullable=True)
     analysis_status = Column(String(32), default="completed", nullable=True)
+    detection_method = Column(String(64), default="YOLOv8", nullable=True)
+    model_available = Column(Boolean, default=True, nullable=True)
+    opencv_observations = Column(Text, nullable=True)
     processing_time_ms = Column(Float, nullable=True)
     inference_time_ms = Column(Float, nullable=True)
     device = Column(String(32), default="cpu", nullable=False)
@@ -322,6 +325,11 @@ class VehicleDamageAnalysis(Base):
         except Exception:
             cats = [c.strip() for c in (self.damage_categories or "").split(",") if c.strip()]
 
+        try:
+            obs = json.loads(self.opencv_observations) if self.opencv_observations else None
+        except Exception:
+            obs = None
+
         return {
             "id": self.id,
             "claim_id": self.claim_id,
@@ -330,11 +338,16 @@ class VehicleDamageAnalysis(Base):
             "annotated_image_path": self.annotated_image_path,
             "model_name": self.model_name,
             "model_version": self.model_version,
+            "detection_method": self.detection_method or "YOLOv8",
+            "model_available": self.model_available if self.model_available is not None else True,
             "total_detections": self.total_detections,
             "damage_categories": cats,
             "highest_confidence": round(self.highest_confidence, 4) if self.highest_confidence is not None else 0.0,
+            "average_confidence": round(self.average_confidence, 4) if self.average_confidence is not None else 0.0,
             "processing_time_ms": round(self.processing_time_ms, 2) if self.processing_time_ms is not None else 0.0,
             "device": self.device,
+            "analysis_status": self.analysis_status or "completed",
+            "opencv_observations": obs,
             "detections": [d.to_dict() for d in self.detections] if self.detections else [],
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

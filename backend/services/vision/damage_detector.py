@@ -1,14 +1,27 @@
-"""Vehicle Damage Detector Service using fine-tuned YOLOv8 on CarDD dataset."""
+"""Vehicle Damage Detector Service using fine-tuned YOLOv8 on CarDD dataset with OpenCV fallback."""
 
 import os
 import time
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Union
+from typing import Dict, Any, List, Optional, Union, Tuple
 from PIL import Image
 import numpy as np
 
-from ultralytics import YOLO
-from backend.services.vision.preprocessing import load_and_preprocess_image
+try:
+    from ultralytics import YOLO
+    ULTRALYTICS_AVAILABLE = True
+except (ImportError, Exception):
+    YOLO = None
+    ULTRALYTICS_AVAILABLE = False
+
+from backend.services.vision.preprocessing import (
+    load_and_preprocess_image,
+    assess_image_quality,
+    enhance_contrast_clahe,
+    reduce_noise,
+    detect_edges_and_contours,
+    OPENCV_AVAILABLE,
+)
 from backend.utils.logger import setup_logger
 
 logger = setup_logger("claimsense.vision.detector")
@@ -62,28 +75,79 @@ def determine_spatial_region(
     return f"{vertical}_{horizontal}"
 
 
+class _OpenCVFallbackModelWrapper:
+    """Fallback model attribute wrapper when YOLO model cannot be loaded."""
+
+    def __init__(self):
+        self.names = CARDD_CLASS_NAMES
+        self.is_loaded = False
+
+
 class VehicleDamageDetector:
-    """Singleton service for detecting vehicle damage using YOLOv8."""
+    """Singleton service for detecting vehicle damage using YOLOv8 with graceful OpenCV fallback."""
 
     _instance: Optional["VehicleDamageDetector"] = None
 
     def __init__(self, model_path: Optional[Union[str, Path]] = None):
         self.model_path = self._resolve_model_path(model_path)
-        logger.info(f"Loading vehicle damage YOLO model from: {self.model_path}")
-        self.model = YOLO(str(self.model_path))
-        self.model_name = "YOLOv8n-CarDD"
-        self.model_version = "v1.0"
         self.device = "cpu"
+        self.model = None
+        self.model_loaded = False
+
+        if ULTRALYTICS_AVAILABLE and YOLO is not None and self.model_path and self.model_path.exists():
+            try:
+                logger.info(f"Loading vehicle damage YOLO model from: {self.model_path}")
+                self.model = YOLO(str(self.model_path))
+                # Validate model classes match expected CarDD categories
+                names = getattr(self.model, "names", {})
+                if isinstance(names, (list, dict)) and len(names) == 6:
+                    self.model_name = "YOLOv8n-CarDD"
+                    self.model_version = "v1.0"
+                    self.detection_method = "yolov8_cardd"
+                    self.model_loaded = True
+                    logger.info("YOLOv8 model checkpoint verified with 6 CarDD categories.")
+                else:
+                    logger.warning(f"Model class mismatch ({len(names)} classes). Reverting to fallback.")
+                    self.model = _OpenCVFallbackModelWrapper()
+                    self.model_name = "OpenCV-Vision-Fallback"
+                    self.model_version = "cv2-fallback-v1.0"
+                    self.detection_method = "opencv_traditional_cv"
+            except Exception as exc:
+                logger.warning(f"Could not load YOLO model from {self.model_path}: {exc}. Using OpenCV fallback.")
+                self.model = _OpenCVFallbackModelWrapper()
+                self.model_name = "OpenCV-Vision-Fallback"
+                self.model_version = "cv2-fallback-v1.0"
+                self.detection_method = "opencv_traditional_cv"
+        else:
+            logger.info("Ultralytics/checkpoint unavailable or missing. Initialized OpenCV fallback detector.")
+            self.model = _OpenCVFallbackModelWrapper()
+            self.model_name = "OpenCV-Vision-Fallback"
+            self.model_version = "cv2-fallback-v1.0"
+            self.detection_method = "opencv_traditional_cv"
+
+    @property
+    def class_names(self) -> Dict[int, str]:
+        if self.model and hasattr(self.model, "names"):
+            return self.model.names
+        return CARDD_CLASS_NAMES
+
+    def is_model_available(self) -> bool:
+        """Returns True if trained YOLOv8 model is loaded in memory."""
+        return self.model_loaded
 
     @classmethod
     def get_instance(cls, model_path: Optional[Union[str, Path]] = None) -> "VehicleDamageDetector":
-        """Provides a cached singleton detector to avoid loading weights on every call."""
+        """Provides a cached singleton detector. Re-initializes if custom model_path differs."""
         if cls._instance is None:
             cls._instance = cls(model_path)
+        elif model_path is not None:
+            resolved = cls._resolve_model_path(model_path)
+            if resolved != cls._instance.model_path:
+                cls._instance = cls(model_path)
         return cls._instance
 
     @staticmethod
-    def _resolve_model_path(candidate_path: Optional[Union[str, Path]] = None) -> Path:
+    def _resolve_model_path(candidate_path: Optional[Union[str, Path]] = None) -> Optional[Path]:
         """Finds the trained CarDD weights checkpoint, checking standard project locations."""
         if candidate_path:
             p = Path(candidate_path)
@@ -97,6 +161,7 @@ class VehicleDamageDetector:
             base_dir / "models" / "vehicle_damage" / "best.pt",
             base_dir / "models" / "runs" / "cardd_damage" / "weights" / "best.pt",
             base_dir / "models" / "cardd_damage_yolov8n.pt",
+            base_dir / "runs" / "detect" / "models" / "test_run" / "test_epoch" / "weights" / "best.pt",
             base_dir / "models" / "phase5" / "last.pt",
             base_dir / "models" / "vehicle_damage" / "last.pt",
             base_dir / "yolov8n.pt",
@@ -105,92 +170,175 @@ class VehicleDamageDetector:
             if candidate.exists():
                 return candidate
 
-        raise FileNotFoundError(
-            f"No vehicle damage model checkpoint found in: {[str(c) for c in candidates]}"
-        )
+        return None
 
     def detect_damage(
         self,
         image_input: Union[str, Path, bytes, Image.Image],
         conf_threshold: float = 0.15,
         iou_threshold: float = 0.45,
+        force_opencv_fallback: bool = False,
     ) -> Dict[str, Any]:
-        """Runs damage detection on the given image and returns structured predictions."""
+        """Runs damage detection on the given image.
+
+        If YOLO model is loaded and force_opencv_fallback is False, executes YOLO inference.
+        Otherwise executes graceful OpenCV structural/contour analysis without fabricating damage classes.
+        """
         pil_img, np_img, meta = load_and_preprocess_image(image_input)
         img_w = meta["width"]
         img_h = meta["height"]
 
         start_time = time.perf_counter()
 
-        # Run inference
-        results = self.model.predict(
-            source=pil_img,
-            conf=conf_threshold,
-            iou=iou_threshold,
-            device=self.device,
-            verbose=False,
-        )
+        # Quality assessment (always executed)
+        quality_assessment = assess_image_quality(np_img)
+
+        # Path 1: Trained YOLO Model Inference
+        if self.model_loaded and not force_opencv_fallback and self.model is not None and hasattr(self.model, "predict"):
+            results = self.model.predict(
+                source=pil_img,
+                conf=conf_threshold,
+                iou=iou_threshold,
+                device=self.device,
+                verbose=False,
+            )
+
+            processing_time_ms = (time.perf_counter() - start_time) * 1000.0
+
+            detections: List[Dict[str, Any]] = []
+            highest_conf = 0.0
+
+            # Quality assessment checks if image is a featureless blank solid canvas
+            is_featureless_blank = (
+                quality_assessment.get("contrast_std", 10.0) < 1.0
+                or quality_assessment.get("laplacian_variance", 10.0) < 0.5
+            )
+
+            if not is_featureless_blank and results and len(results) > 0:
+                result = results[0]
+                boxes = result.boxes
+
+                if boxes is not None and len(boxes) > 0:
+                    for idx, box in enumerate(boxes, start=1):
+                        cls_id = int(box.cls[0].item())
+                        conf = float(box.conf[0].item())
+                        xyxy = [float(v) for v in box.xyxy[0].tolist()]
+
+                        # Clamp coordinates to image boundaries
+                        x1 = max(0.0, min(float(img_w), xyxy[0]))
+                        y1 = max(0.0, min(float(img_h), xyxy[1]))
+                        x2 = max(0.0, min(float(img_w), xyxy[2]))
+                        y2 = max(0.0, min(float(img_h), xyxy[3]))
+
+                        category = CARDD_CLASS_NAMES.get(cls_id, f"damage_cls_{cls_id}")
+                        region = determine_spatial_region([x1, y1, x2, y2], img_w, img_h)
+
+                        if conf > highest_conf:
+                            highest_conf = conf
+
+                        detections.append({
+                            "detection_index": idx,
+                            "category": category,
+                            "class_id": cls_id,
+                            "confidence": round(conf, 4),
+                            "confidence_percentage": round(conf * 100.0, 1),
+                            "bbox": [round(x1, 1), round(y1, 1), round(x2, 1), round(y2, 1)],
+                            "normalized_bbox": [
+                                round(x1 / img_w, 4),
+                                round(y1 / img_h, 4),
+                                round(x2 / img_w, 4),
+                                round(y2 / img_h, 4),
+                            ],
+                            "location_region": region,
+                        })
+
+            # Sort detections by confidence descending
+            detections.sort(key=lambda d: d["confidence"], reverse=True)
+            for i, det in enumerate(detections, start=1):
+                det["detection_index"] = i
+
+            distinct_categories = sorted(list({d["category"] for d in detections}))
+
+            return {
+                "model_name": self.model_name,
+                "model_version": self.model_version,
+                "model_available": True,
+                "detection_method": "yolov8_cardd",
+                "device": self.device,
+                "image_dimensions": {"width": img_w, "height": img_h},
+                "conf_threshold": conf_threshold,
+                "total_detections": len(detections),
+                "damage_categories": distinct_categories,
+                "highest_confidence": round(highest_conf, 4),
+                "processing_time_ms": round(processing_time_ms, 2),
+                "detections": detections,
+                "has_damage": len(detections) > 0,
+                "quality_assessment": quality_assessment,
+            }
+
+        # Path 2: OpenCV Fallback Analysis (No false semantic classifications!)
+        enhanced_img = enhance_contrast_clahe(np_img)
+        denoised_img = reduce_noise(enhanced_img, method="bilateral")
+        contour_res = detect_edges_and_contours(denoised_img)
 
         processing_time_ms = (time.perf_counter() - start_time) * 1000.0
 
-        detections: List[Dict[str, Any]] = []
-        highest_conf = 0.0
+        candidate_regions = []
+        for idx, sc in enumerate(contour_res.get("salient_contours", []), start=1):
+            bbox = sc["bbox"]
+            reg = determine_spatial_region(bbox, img_w, img_h)
+            candidate_regions.append({
+                "region_index": idx,
+                "bbox": bbox,
+                "location_region": reg,
+                "area_px": sc["area"],
+                "perimeter": sc["perimeter"],
+                "aspect_ratio": sc["aspect_ratio"],
+                "feature_type": "structural_edge_anomaly",
+            })
 
-        if results and len(results) > 0:
-            result = results[0]
-            boxes = result.boxes
-
-            if boxes is not None and len(boxes) > 0:
-                for idx, box in enumerate(boxes, start=1):
-                    cls_id = int(box.cls[0].item())
-                    conf = float(box.conf[0].item())
-                    xyxy = [float(v) for v in box.xyxy[0].tolist()]
-
-                    # Clamp coordinates to image boundaries
-                    x1 = max(0.0, min(float(img_w), xyxy[0]))
-                    y1 = max(0.0, min(float(img_h), xyxy[1]))
-                    x2 = max(0.0, min(float(img_w), xyxy[2]))
-                    y2 = max(0.0, min(float(img_h), xyxy[3]))
-
-                    category = CARDD_CLASS_NAMES.get(cls_id, f"damage_cls_{cls_id}")
-                    region = determine_spatial_region([x1, y1, x2, y2], img_w, img_h)
-
-                    if conf > highest_conf:
-                        highest_conf = conf
-
-                    detections.append({
-                        "detection_index": idx,
-                        "category": category,
-                        "class_id": cls_id,
-                        "confidence": round(conf, 4),
-                        "confidence_percentage": round(conf * 100.0, 1),
-                        "bbox": [round(x1, 1), round(y1, 1), round(x2, 1), round(y2, 1)],
-                        "normalized_bbox": [
-                            round(x1 / img_w, 4),
-                            round(y1 / img_h, 4),
-                            round(x2 / img_w, 4),
-                            round(y2 / img_h, 4),
-                        ],
-                        "location_region": region,
-                    })
-
-        # Sort detections by confidence descending
-        detections.sort(key=lambda d: d["confidence"], reverse=True)
-        for i, det in enumerate(detections, start=1):
-            det["detection_index"] = i
-
-        distinct_categories = sorted(list({d["category"] for d in detections}))
+        opencv_observations = {
+            "status": "opencv_analyzed",
+            "quality_assessment": quality_assessment,
+            "image_quality": quality_assessment,
+            "edge_density": contour_res.get("edge_density", 0.0),
+            "edge_density_pct": contour_res.get("edge_density_pct", round(contour_res.get("edge_density", 0.0) * 100, 2)),
+            "edge_pixel_count": contour_res.get("edge_pixels", 0),
+            "total_contours": contour_res.get("total_contours", 0),
+            "salient_contour_count": len(candidate_regions),
+            "salient_contours": contour_res.get("salient_contours", []),
+            "contour_analysis": contour_res,
+            "candidate_structural_regions": candidate_regions,
+            "notice": (
+                "OpenCV edge and contour diagnostic analysis executed. Traditional image processing "
+                "identifies gradient boundaries and spatial regions but CANNOT classify semantic damage "
+                "(dent, scratch, crack, etc.) without a validated deep learning model."
+            ),
+            "limitations_notice": (
+                "Traditional computer vision (OpenCV) cannot perform semantic vehicle damage classification. "
+                "Contours, edges, and texture metrics represent morphological surface features only."
+            ),
+        }
 
         return {
-            "model_name": self.model_name,
-            "model_version": self.model_version,
-            "device": self.device,
+            "model_name": "OpenCV-Vision-Fallback",
+            "model_version": "cv2-fallback-v1.0",
+            "model_available": False,
+            "detection_method": "opencv_traditional_cv",
+            "device": "cpu",
             "image_dimensions": {"width": img_w, "height": img_h},
             "conf_threshold": conf_threshold,
-            "total_detections": len(detections),
-            "damage_categories": distinct_categories,
-            "highest_confidence": round(highest_conf, 4),
+            "total_detections": 0,  # CRITICAL: 0 semantic damage detections
+            "damage_categories": [],  # CRITICAL: no semantic categories fabricated
+            "highest_confidence": 0.0,
             "processing_time_ms": round(processing_time_ms, 2),
-            "detections": detections,
-            "has_damage": len(detections) > 0,
+            "detections": [],  # CRITICAL: empty list of semantic detections
+            "has_damage": False,
+            "quality_assessment": quality_assessment,
+            "opencv_observations": opencv_observations,
+            "limitations": (
+                "Trained YOLOv8 model checkpoint is unavailable or OpenCV fallback was requested. "
+                "OpenCV edge/contour analysis provides structural diagnostics only; no semantic damage "
+                "predictions are fabricated."
+            ),
         }

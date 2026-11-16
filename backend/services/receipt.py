@@ -967,11 +967,20 @@ def generate_document_intelligence_report_pdf(
     story.append(PageBreak())
 
     # Page 5: Vehicle Damage Detection Analysis (Phase 5 Computer Vision)
-    story.append(Paragraph("Page 5: Vehicle Damage Detection Analysis", section_heading))
-    story.append(Paragraph("AI-Powered Computer Vision Damage Inspection using fine-tuned YOLOv8 on CarDD", subtitle_style))
-    story.append(Spacer(1, 6))
-
     damage_analysis = claim_dict.get("damage_analysis") or claim_dict.get("latest_damage_analysis")
+    is_cv_fallback = bool(
+        damage_analysis and (
+            damage_analysis.get("detection_method") == "opencv_traditional_cv"
+            or not damage_analysis.get("model_available", True)
+        )
+    )
+
+    story.append(Paragraph("Page 5: Vehicle Damage Detection Analysis", section_heading))
+    if is_cv_fallback:
+        story.append(Paragraph("Computer Vision Structural & Edge Analysis using OpenCV Diagnostic Fallback", subtitle_style))
+    else:
+        story.append(Paragraph("AI-Powered Computer Vision Damage Inspection using fine-tuned YOLOv8 on CarDD", subtitle_style))
+    story.append(Spacer(1, 6))
 
     # Try resolving annotated image from disk if available
     annotated_photo = None
@@ -982,6 +991,8 @@ def generate_document_intelligence_report_pdf(
         img_dir = Path(upload_root) / claim_id / "images"
         if img_dir.exists():
             ann_matches = list(img_dir.glob("annotated_*"))
+            if not ann_matches:
+                ann_matches = list(img_dir.glob("opencv_analysis_*"))
             if ann_matches:
                 annotated_path = ann_matches[-1]
 
@@ -1022,11 +1033,12 @@ def generate_document_intelligence_report_pdf(
             except Exception:
                 orig_photo_small = None
 
+    right_col_title = "<b>OpenCV Structural & Edge Analysis</b>" if is_cv_fallback else "<b>AI Damage Localization & Classification</b>"
     if orig_photo_small and annotated_photo:
         img_table_data = [
             [
                 Paragraph("<b>Original Uploaded Evidence</b>", meta_label),
-                Paragraph("<b>AI Damage Localization & Classification</b>", meta_label)
+                Paragraph(right_col_title, meta_label)
             ],
             [orig_photo_small, annotated_photo],
         ]
@@ -1040,7 +1052,7 @@ def generate_document_intelligence_report_pdf(
         story.append(img_table)
         story.append(Spacer(1, 8))
     elif annotated_photo:
-        story.append(Paragraph("<b>AI Damage Localization & Classification</b>", meta_label))
+        story.append(Paragraph(right_col_title, meta_label))
         story.append(annotated_photo)
         story.append(Spacer(1, 8))
     elif orig_photo_small:
@@ -1062,11 +1074,14 @@ def generate_document_intelligence_report_pdf(
     latency = damage_analysis.get("processing_time_ms", 0.0) if damage_analysis else 0.0
     model_name = damage_analysis.get("model_name", "YOLOv8n-CarDD") if damage_analysis else "YOLOv8n-CarDD"
     device_name = damage_analysis.get("device", "CPU").upper() if damage_analysis else "CPU"
+    det_method_str = damage_analysis.get("detection_method", "yolov8_cardd") if damage_analysis else "Not executed"
 
     # Determine explicit processing status
     if damage_analysis:
         if damage_analysis.get("error"):
             proc_status = "Failed"
+        elif is_cv_fallback:
+            proc_status = "Completed (OpenCV Traditional CV Fallback - Structural Only)"
         elif total_det == 0:
             proc_status = "Completed (No damage detected by the model)"
         else:
@@ -1096,18 +1111,28 @@ def generate_document_intelligence_report_pdf(
     except Exception:
         pass
 
-    meta_rows = [
-        [Paragraph("Vision Model", meta_label), Paragraph(f"{model_name} (Ultralytics YOLOv8n)", meta_val),
-         Paragraph("Dataset Name", meta_label), Paragraph("CarDD (Car Damage Dataset)", meta_val)],
-        [Paragraph("Processing Status", meta_label), Paragraph(f"<b>{proc_status}</b>", meta_val),
-         Paragraph("Processing Device", meta_label), Paragraph(device_name, meta_val)],
-        [Paragraph("Total Damages Identified", meta_label), Paragraph(str(total_det), meta_val),
-         Paragraph("Peak Confidence", meta_label), Paragraph(f"{peak_conf * 100:.1f}%" if peak_conf else "—", meta_val)],
-        [Paragraph("Detected Damage Classes", meta_label), Paragraph(cats_str, meta_val),
-         Paragraph("Inference Latency", meta_label), Paragraph(f"{latency:.1f} ms" if latency else "—", meta_val)],
-        [Paragraph("CarDD Test Precision / Recall", meta_label), Paragraph(f"{bench_precision_str} / {bench_recall_str}", meta_val),
-         Paragraph("CarDD Test mAP@50 / mAP@50-95", meta_label), Paragraph(f"{bench_map50_str} / {bench_map95_str}", meta_val)],
-    ]
+    if is_cv_fallback:
+        meta_rows = [
+            [Paragraph("Vision Method", meta_label), Paragraph("OpenCV Traditional CV Fallback", meta_val),
+             Paragraph("Model Availability", meta_label), Paragraph("Fallback Invoked (No Fake Detections)", meta_val)],
+            [Paragraph("Processing Status", meta_label), Paragraph(f"<b>{proc_status}</b>", meta_val),
+             Paragraph("Processing Engine", meta_label), Paragraph(f"OpenCV (cv2) on {device_name}", meta_val)],
+            [Paragraph("Semantic Damage Classes", meta_label), Paragraph("None asserted (Fallback Mode)", meta_val),
+             Paragraph("Processing Latency", meta_label), Paragraph(f"{latency:.1f} ms" if latency else "—", meta_val)],
+        ]
+    else:
+        meta_rows = [
+            [Paragraph("Vision Model", meta_label), Paragraph(f"{model_name} (Ultralytics YOLOv8n)", meta_val),
+             Paragraph("Dataset Name", meta_label), Paragraph("CarDD (Car Damage Dataset)", meta_val)],
+            [Paragraph("Processing Status", meta_label), Paragraph(f"<b>{proc_status}</b>", meta_val),
+             Paragraph("Processing Device", meta_label), Paragraph(device_name, meta_val)],
+            [Paragraph("Total Damages Identified", meta_label), Paragraph(str(total_det), meta_val),
+             Paragraph("Peak Confidence", meta_label), Paragraph(f"{peak_conf * 100:.1f}%" if peak_conf else "—", meta_val)],
+            [Paragraph("Detected Damage Classes", meta_label), Paragraph(cats_str, meta_val),
+             Paragraph("Inference Latency", meta_label), Paragraph(f"{latency:.1f} ms" if latency else "—", meta_val)],
+            [Paragraph("CarDD Test Precision / Recall", meta_label), Paragraph(f"{bench_precision_str} / {bench_recall_str}", meta_val),
+             Paragraph("CarDD Test mAP@50 / mAP@50-95", meta_label), Paragraph(f"{bench_map50_str} / {bench_map95_str}", meta_val)],
+        ]
     meta_table = Table(meta_rows, colWidths=[130, 125, 125, 130])
     meta_table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f8fafc")),
@@ -1120,6 +1145,51 @@ def generate_document_intelligence_report_pdf(
     ]))
     story.append(meta_table)
     story.append(Spacer(1, 8))
+
+    # OpenCV observations table if present
+    raw_obs = damage_analysis.get("opencv_observations") if damage_analysis else None
+    if isinstance(raw_obs, str):
+        try:
+            raw_obs = json.loads(raw_obs)
+        except Exception:
+            raw_obs = None
+
+    if raw_obs:
+        q = raw_obs.get("image_quality") or {}
+        c = raw_obs.get("contour_analysis") or {}
+        obs_rows = [
+            [Paragraph("<b>Metric</b>", meta_label), Paragraph("<b>Measurement</b>", meta_label),
+             Paragraph("<b>Interpretation</b>", meta_label)],
+            [Paragraph("Image Resolution", meta_val),
+             Paragraph(f"{q.get('width', '—')} x {q.get('height', '—')} ({q.get('megapixels', '—')} MP)", meta_val),
+             Paragraph("Dimensional integrity preserved", meta_val)],
+            [Paragraph("Laplacian Blur Variance", meta_val),
+             Paragraph(f"{q.get('laplacian_variance', 0.0):.1f} ({q.get('quality_grade', 'ASSESSED')})", meta_val),
+             Paragraph("Sharpness verified; high structural detail" if q.get("is_sharp") else "Sub-threshold sharpness", meta_val)],
+            [Paragraph("Contrast (Standard Dev)", meta_val),
+             Paragraph(f"{q.get('contrast_std', 0.0):.1f}", meta_val),
+             Paragraph("Balanced dynamic range", meta_val)],
+            [Paragraph("Canny Edge Density", meta_val),
+             Paragraph(f"{c.get('edge_density_pct', 0.0):.2f}%", meta_val),
+             Paragraph(f"{c.get('edge_pixels', 0):,} structural edge pixels identified", meta_val)],
+            [Paragraph("Salient Structural Contours", meta_val),
+             Paragraph(f"{c.get('salient_contours_count', 0)} salient regions", meta_val),
+             Paragraph("Surface morphology analyzed (No damage classes asserted)", meta_val)],
+        ]
+        obs_table = Table(obs_rows, colWidths=[150, 150, 210])
+        obs_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f1f5f9")),
+            ("BOX", (0, 0), (-1, -1), 0.6, colors.HexColor("#cbd5e1")),
+            ("INNERGRID", (0, 0), (-1, -1), 0.45, colors.HexColor("#e2e8f0")),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+            ("LEFTPADDING", (0, 0), (-1, -1), 5),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+        ]))
+        story.append(Paragraph("<b>OpenCV Morphological & Quality Assessment:</b>", meta_label))
+        story.append(Spacer(1, 3))
+        story.append(obs_table)
+        story.append(Spacer(1, 8))
 
     # Detections table
     detections_list = damage_analysis.get("detections", []) if damage_analysis else []
@@ -1157,6 +1227,13 @@ def generate_document_intelligence_report_pdf(
             ("RIGHTPADDING", (0, 0), (-1, -1), 6),
         ]))
         story.append(det_table)
+    elif is_cv_fallback:
+        story.append(Paragraph(
+            "<b>Damage Inspection Assessment:</b> OpenCV traditional computer vision fallback executed. "
+            "No semantic damage classes (e.g. dent, scratch, crack) were asserted because machine learning inference "
+            "was in fallback mode. Morphological contours were mapped without fabricating predictions.",
+            meta_val
+        ))
     elif damage_analysis:
         story.append(Paragraph("<b>Damage Inspection Assessment:</b> No damage detected by the model (no vehicle damages identified exceeding the confidence threshold).", meta_val))
     elif vehicle_validation and not vehicle_validation.get("is_valid_vehicle_photo"):
@@ -1166,7 +1243,7 @@ def generate_document_intelligence_report_pdf(
 
     story.append(Spacer(1, 8))
     story.append(Paragraph(
-        "<i>Notice: Vehicle damage detection powered by fine-tuned YOLOv8 on CarDD dataset. This automated analysis is intended as an assistive verification tool for insurance assessors and does not replace certified manual inspection.</i>",
+        "<i>Notice: Vehicle damage detection is an automated decision-support feature. Claims are NOT approved or rejected automatically based on vision predictions or contour analysis. All results serve as assistive evidence for human claims adjusters.</i>",
         warning_style
     ))
     story.append(PageBreak())

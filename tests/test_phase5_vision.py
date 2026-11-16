@@ -28,6 +28,11 @@ from backend.services.vision import (
     VehicleDamageDetector,
     determine_spatial_region,
     create_annotated_image,
+    create_opencv_visual_analysis,
+    assess_image_quality,
+    enhance_contrast_clahe,
+    reduce_noise,
+    detect_edges_and_contours,
     get_category_color,
     get_model_evaluation_metrics,
     load_and_preprocess_image,
@@ -427,6 +432,116 @@ class Phase5VisionTestSuite(unittest.TestCase):
             self.assertIn("EVIDENCE AUDIT TRAIL", pdf_text.upper())
             self.assertIn("VEHICLE DAMAGE DETECTION ANALYSIS", pdf_text.upper())
             self.assertIn("COMPLETED", pdf_text.upper())
+
+    # -------------------------------------------------------------
+    # 8. OpenCV Fallback & Quality Assessment Tests
+    # -------------------------------------------------------------
+    def test_opencv_preprocessing_and_quality_assessment(self):
+        """Verifies OpenCV preprocessing pipeline, CLAHE enhancement, bilateral denoising, and edge detection."""
+        real_img_path = self.cardd_dir / "test" / "images" / "000023.jpg"
+        pil_img, np_img, meta = load_and_preprocess_image(real_img_path)
+
+        # 1. Quality Assessment
+        qa = assess_image_quality(np_img)
+        self.assertIn("laplacian_variance", qa)
+        self.assertIn("contrast_std", qa)
+        self.assertIn("quality_grade", qa)
+        self.assertGreater(qa["laplacian_variance"], 0.0)
+        self.assertGreater(qa["contrast_std"], 0.0)
+
+        # 2. CLAHE Enhancement
+        enhanced = enhance_contrast_clahe(np_img)
+        self.assertEqual(enhanced.shape, np_img.shape)
+
+        # 3. Noise Reduction
+        denoised = reduce_noise(enhanced, method="bilateral")
+        self.assertEqual(denoised.shape, np_img.shape)
+
+        # 4. Edge and Contour Analysis
+        edges_contours = detect_edges_and_contours(np_img)
+        self.assertIn("edge_pixels", edges_contours)
+        self.assertIn("edge_density_pct", edges_contours)
+        self.assertIn("salient_contours", edges_contours)
+        self.assertGreater(edges_contours["edge_pixels"], 0)
+        self.assertGreater(len(edges_contours["salient_contours"]), 0)
+
+    def test_opencv_fallback_detection_mode(self):
+        """Verifies detector in OpenCV fallback mode returns zero semantic damage detections and rich CV observations."""
+        detector = VehicleDamageDetector.get_instance(self.weights_path)
+        real_img_path = self.cardd_dir / "test" / "images" / "000023.jpg"
+
+        res = detector.detect_damage(real_img_path, force_opencv_fallback=True)
+        self.assertEqual(res["detection_method"], "opencv_traditional_cv")
+        self.assertEqual(res["total_detections"], 0, "OpenCV fallback must NOT fabricate damage detections.")
+        self.assertEqual(res["damage_categories"], [], "No semantic damage categories should be asserted.")
+        self.assertEqual(res["highest_confidence"], 0.0)
+        self.assertFalse(res["has_damage"])
+        self.assertIn("opencv_observations", res)
+        obs = res["opencv_observations"]
+        self.assertIn("image_quality", obs)
+        self.assertIn("contour_analysis", obs)
+        self.assertIn("limitations_notice", obs)
+
+    def test_opencv_visual_analysis_generation(self):
+        """Verifies OpenCV visual analysis produces diagnostic visualization without false damage boxes."""
+        real_img_path = self.cardd_dir / "test" / "images" / "000023.jpg"
+        pil_img, np_img, meta = load_and_preprocess_image(real_img_path)
+        qa = assess_image_quality(np_img)
+        contours = detect_edges_and_contours(np_img)
+
+        out_path = self.tmp / "opencv_visual_test.jpg"
+        vis = create_opencv_visual_analysis(
+            image_input=real_img_path,
+            observations={"image_quality": qa, "contour_analysis": contours},
+            output_path=out_path,
+        )
+        self.assertEqual(vis.size, (meta["width"], meta["height"]))
+        self.assertTrue(out_path.exists())
+        self.assertGreater(out_path.stat().st_size, 1000)
+
+    def test_api_analyze_damage_with_opencv_fallback(self):
+        """Verifies POST /api/claims/<claim_id>/analyze-damage with fallback=true persists fallback record and produces valid PDF."""
+        real_img = self.cardd_dir / "test" / "images" / "000023.jpg"
+        cid = self._create_test_claim(real_img)
+
+        # 1. Execute damage analysis in fallback mode
+        res = self.client.post(f"/api/claims/{cid}/analyze-damage", json={"force_opencv": True})
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data["success"])
+        analysis = data["analysis"]
+        self.assertEqual(analysis["detection_method"], "opencv_traditional_cv")
+        self.assertEqual(analysis["total_detections"], 0)
+        self.assertIsNotNone(analysis["opencv_observations"])
+
+        # 2. Database record check
+        with get_db_session() as db:
+            db_analysis = db.query(VehicleDamageAnalysis).filter_by(claim_id=cid).first()
+            self.assertIsNotNone(db_analysis)
+            self.assertEqual(db_analysis.detection_method, "opencv_traditional_cv")
+            self.assertEqual(db_analysis.total_detections, 0)
+            # Ensure zero false detections in vehicle_damage_detections
+            detections = db.query(VehicleDamageDetection).filter_by(analysis_id=db_analysis.id).all()
+            self.assertEqual(len(detections), 0)
+
+        # 3. GET /api/claims/<claim_id>/annotated-image serves the opencv analysis image
+        img_res = self.client.get(f"/api/claims/{cid}/annotated-image")
+        self.assertEqual(img_res.status_code, 200)
+        self.assertEqual(img_res.content_type, "image/jpeg")
+
+        # 4. Generate consolidated PDF and verify OpenCV Fallback layout
+        claim_res = self.client.get(f"/api/claims/{cid}")
+        pdf_bytes = generate_document_intelligence_report_pdf(
+            claim_dict=claim_res.get_json()["data"],
+            extracted_rows=[],
+            upload_root=self.upload_dir,
+        )
+        import fitz
+        with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
+            pdf_text = " ".join([page.get_text() for page in doc])
+            self.assertIn("OPENCV", pdf_text.upper())
+            self.assertIn("FALLBACK", pdf_text.upper())
+            self.assertIn("MORPHOLOGICAL", pdf_text.upper())
 
 
 if __name__ == "__main__":

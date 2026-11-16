@@ -1006,17 +1006,23 @@ def analyze_claim_vehicle_damage(claim_id: str):
                 "requires_replacement": True,
             }), 400
 
-        # Allow confidence threshold override from JSON or query params
+        # Allow confidence threshold override and fallback mode from JSON or query params
         req_json = request.get_json(silent=True) or {}
         try:
             conf_thresh = float(req_json.get("conf_threshold") or request.args.get("conf", 0.15))
         except (TypeError, ValueError):
             conf_thresh = 0.15
 
+        force_fallback = bool(req_json.get("force_opencv") or req_json.get("fallback") or request.args.get("fallback") == "true")
+
         # Run damage detection
         try:
             detector = VehicleDamageDetector.get_instance()
-            analysis_result = detector.detect_damage(target_img_path, conf_threshold=conf_thresh)
+            analysis_result = detector.detect_damage(
+                target_img_path,
+                conf_threshold=conf_thresh,
+                force_opencv_fallback=force_fallback,
+            )
         except Exception as exc:
             logger.error(f"Damage detection failed for claim {claim_id}: {exc}", exc_info=True)
             return jsonify({
@@ -1025,8 +1031,9 @@ def analyze_claim_vehicle_damage(claim_id: str):
                 "message": f"Computer vision analysis failed: {str(exc)}",
             }), 500
 
-        # Generate annotated image
-        annotated_filename = f"annotated_{target_img_path.name}"
+        # Generate annotated or OpenCV visual analysis image
+        is_fallback = analysis_result.get("detection_method") == "opencv_traditional_cv"
+        annotated_filename = f"opencv_analysis_{target_img_path.name}" if is_fallback else f"annotated_{target_img_path.name}"
         annotated_target_path = images_dir / annotated_filename
         rel_annotated_path = None
         try:
@@ -1034,10 +1041,11 @@ def analyze_claim_vehicle_damage(claim_id: str):
                 target_img_path,
                 analysis_result["detections"],
                 output_path=annotated_target_path,
+                opencv_observations=analysis_result.get("opencv_observations"),
             )
             rel_annotated_path = str(annotated_target_path.relative_to(upload_base))
         except Exception as exc:
-            logger.warning(f"Could not save annotated image for claim {claim_id}: {exc}")
+            logger.warning(f"Could not save annotated/visual image for claim {claim_id}: {exc}")
 
         rel_img_path = str(target_img_path.relative_to(upload_base))
 
@@ -1047,6 +1055,8 @@ def analyze_claim_vehicle_damage(claim_id: str):
             avg_conf = sum(d["confidence"] for d in analysis_result["detections"]) / len(analysis_result["detections"])
 
         now_utc = datetime.now(timezone.utc)
+        obs_json = json.dumps(analysis_result.get("opencv_observations")) if analysis_result.get("opencv_observations") else None
+
         analysis_record = VehicleDamageAnalysis(
             claim_id=claim_id,
             image_id=claim_image_rec.image_id if claim_image_rec else None,
@@ -1055,6 +1065,9 @@ def analyze_claim_vehicle_damage(claim_id: str):
             annotated_image_path=rel_annotated_path,
             model_name=analysis_result["model_name"],
             model_version=analysis_result["model_version"],
+            detection_method=analysis_result.get("detection_method", "yolov8_cardd"),
+            model_available=analysis_result.get("model_available", True),
+            opencv_observations=obs_json,
             total_detections=analysis_result["total_detections"],
             total_damages_detected=analysis_result["total_detections"],
             damage_categories=json.dumps(analysis_result["damage_categories"]),
@@ -1278,6 +1291,8 @@ def get_claim_annotated_image(claim_id: str):
             images_dir = upload_base / claim_id / "images"
             if images_dir.exists():
                 annotated_files = list(images_dir.glob("annotated_*"))
+                if not annotated_files:
+                    annotated_files = list(images_dir.glob("opencv_analysis_*"))
                 if annotated_files:
                     annotated_path = annotated_files[-1]
 
@@ -1305,15 +1320,19 @@ def get_vision_status():
     try:
         detector = VehicleDamageDetector.get_instance()
         eval_metrics = get_model_evaluation_metrics()
+        model_avail = detector.is_model_available()
+        classes = detector.class_names
         return jsonify({
             "success": True,
-            "status": "ready",
+            "status": "ready" if model_avail else "fallback_ready",
+            "model_available": model_avail,
+            "detection_method": detector.detection_method,
             "model_name": detector.model_name,
             "model_version": detector.model_version,
-            "model_path": str(detector.model_path),
+            "model_path": str(detector.model_path) if detector.model_path else None,
             "device": detector.device,
             "dataset": "CarDD",
-            "classes": detector.model.names if hasattr(detector.model, "names") else {},
+            "classes": classes,
             "evaluation_metrics": eval_metrics.get("overall_metrics"),
             "per_class_metrics": eval_metrics.get("per_class_metrics"),
             "latency_metrics": eval_metrics.get("latency_metrics"),
