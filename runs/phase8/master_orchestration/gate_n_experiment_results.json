@@ -1,0 +1,168 @@
+{
+  "baseline": {
+    "tag": "Baseline_Session4",
+    "checkpoint": "c:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\session_4_training_01\\weights\\best.pt",
+    "sha256": "ea53eee94e508bbb81620b47b2a23c9826341b6b5a6981d9371e476cb9d0594f",
+    "map50": 0.0007,
+    "map50_95": 0.0002,
+    "precision_001": 0.0004,
+    "recall_001": 0.3,
+    "class_ap50": {
+      "dent": 0.0008,
+      "scratch": 0.0027,
+      "crack": 0.0,
+      "glass shatter": 0.0,
+      "lamp broken": 0.0,
+      "tire flat": 0.0
+    },
+    "clean_fps_025": 23,
+    "clean_fps_001": 2150,
+    "clean_fp_rate_025": 2.09,
+    "op_precision_025": 0.0,
+    "op_recall_025": 0.0,
+    "op_f1_025": 0.0
+  },
+  "exp01": {
+    "meta": {
+      "exp_name": "exp01_negative_mining",
+      "init_ckpt": "c:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\session_4_training_01\\weights\\best.pt",
+      "init_hash": "ea53eee94e508bbb81620b47b2a23c9826341b6b5a6981d9371e476cb9d0594f",
+      "best_ckpt": "c:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\domain_adaptation\\exp01_negative_mining\\weights\\best.pt",
+      "best_hash": "3ebd2a5c6ed2ca0aa58601d31c7918b95f5a2436fdab5ba34fd214dded366dc1",
+      "last_ckpt": "c:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\domain_adaptation\\exp01_negative_mining\\weights\\last.pt",
+      "last_hash": "487740108aea4d541ea4d043c51a76dccb6aedbb4b2f84436074de6b1dba1215",
+      "duration_sec": 107.76,
+      "epochs": 15,
+      "gpu_before": {
+        "device": "NVIDIA GeForce RTX 3050 Laptop GPU",
+        "allocated_mb": 35.74,
+        "reserved_mb": 218.0
+      },
+      "gpu_after": {
+        "device": "NVIDIA GeForce RTX 3050 Laptop GPU",
+        "allocated_mb": 92.45,
+        "reserved_mb": 206.0
+      }
+    },
+    "metrics": {
+      "tag": "EXP01_Negative_Mining",
+      "checkpoint": "c:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\domain_adaptation\\exp01_negative_mining\\weights\\best.pt",
+      "sha256": "3ebd2a5c6ed2ca0aa58601d31c7918b95f5a2436fdab5ba34fd214dded366dc1",
+      "map50": 0.0017,
+      "map50_95": 0.0006,
+      "precision_001": 0.0019,
+      "recall_001": 0.1333,
+      "class_ap50": {
+        "dent": 0.0,
+        "scratch": 0.0053,
+        "crack": 0.0,
+        "glass shatter": 0.0,
+        "lamp broken": 0.0031,
+        "tire flat": 0.0
+      },
+      "clean_fps_025": 3,
+      "clean_fps_001": 983,
+      "clean_fp_rate_025": 0.27,
+      "op_precision_025": 0.0,
+      "op_recall_025": 0.0,
+      "op_f1_025": 0.0
+    }
+  },
+  "exp02": {
+    "meta": {
+      "exp_name": "exp02_rare_class",
+      "init_ckpt": "c:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\domain_adaptation\\exp01_negative_mining\\weights\\best.pt",
+      "init_hash": "3ebd2a5c6ed2ca0aa58601d31c7918b95f5a2436fdab5ba34fd214dded366dc1",
+      "best_ckpt": "c:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\domain_adaptation\\exp02_rare_class\\weights\\best.pt",
+      "best_hash": "68e2b58ec7759427808621debc9a8d725a9e4c1fbc57a2102cd239a8ca14f006",
+      "last_ckpt": "c:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\domain_adaptation\\exp02_rare_class\\weights\\last.pt",
+      "last_hash": "bea2a8dc59788235b332f030c96ec06594b3f02b66df9270ad925dd82f0fcb2f",
+      "duration_sec": 140.44,
+      "epochs": 15,
+      "gpu_before": {
+        "device": "NVIDIA GeForce RTX 3050 Laptop GPU",
+        "allocated_mb": 67.74,
+        "reserved_mb": 310.0
+      },
+      "gpu_after": {
+        "device": "NVIDIA GeForce RTX 3050 Laptop GPU",
+        "allocated_mb": 92.58,
+        "reserved_mb": 202.0
+      }
+    },
+    "metrics": {
+      "tag": "EXP02_Rare_Class",
+      "checkpoint": "c:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\domain_adaptation\\exp02_rare_class\\weights\\best.pt",
+      "sha256": "68e2b58ec7759427808621debc9a8d725a9e4c1fbc57a2102cd239a8ca14f006",
+      "map50": 0.0343,
+      "map50_95": 0.0098,
+      "precision_001": 0.0026,
+      "recall_001": 0.5833,
+      "class_ap50": {
+        "dent": 0.0084,
+        "scratch": 0.0174,
+        "crack": 0.0,
+        "glass shatter": 0.0155,
+        "lamp broken": 0.1299,
+        "tire flat": 0.0
+      },
+      "clean_fps_025": 0,
+      "clean_fps_001": 1087,
+      "clean_fp_rate_025": 0.0,
+      "op_precision_025": 0.0,
+      "op_recall_025": 0.0,
+      "op_f1_025": 0.0
+    }
+  },
+  "exp03": {
+    "meta": {
+      "exp_name": "exp03_unified_multiscale",
+      "init_ckpt": "c:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\domain_adaptation\\exp02_rare_class\\weights\\best.pt",
+      "init_hash": "68e2b58ec7759427808621debc9a8d725a9e4c1fbc57a2102cd239a8ca14f006",
+      "best_ckpt": "c:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\domain_adaptation\\exp03_unified_multiscale\\weights\\best.pt",
+      "best_hash": "550fa1c01b9f401f190658b7499ae4f442d9afdf93c72b2c4df00e369f815f01",
+      "last_ckpt": "c:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\domain_adaptation\\exp03_unified_multiscale\\weights\\last.pt",
+      "last_hash": "457ba42401acb84c2554b951cf9e9c0b352d468a000d883dff44da532431f9d5",
+      "duration_sec": 290.19,
+      "epochs": 15,
+      "gpu_before": {
+        "device": "NVIDIA GeForce RTX 3050 Laptop GPU",
+        "allocated_mb": 67.74,
+        "reserved_mb": 326.0
+      },
+      "gpu_after": {
+        "device": "NVIDIA GeForce RTX 3050 Laptop GPU",
+        "allocated_mb": 93.36,
+        "reserved_mb": 204.0
+      }
+    },
+    "metrics": {
+      "tag": "EXP03_Unified_MultiScale",
+      "checkpoint": "c:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\domain_adaptation\\exp03_unified_multiscale\\weights\\best.pt",
+      "sha256": "550fa1c01b9f401f190658b7499ae4f442d9afdf93c72b2c4df00e369f815f01",
+      "map50": 0.0202,
+      "map50_95": 0.0051,
+      "precision_001": 0.0096,
+      "recall_001": 0.2,
+      "class_ap50": {
+        "dent": 0.004,
+        "scratch": 0.0168,
+        "crack": 0.0,
+        "glass shatter": 0.0398,
+        "lamp broken": 0.0403,
+        "tire flat": 0.0
+      },
+      "clean_fps_025": 0,
+      "clean_fps_001": 1245,
+      "clean_fp_rate_025": 0.0,
+      "op_precision_025": 0.0,
+      "op_recall_025": 0.0,
+      "op_f1_025": 0.0
+    }
+  },
+  "winner": {
+    "name": "EXP02 (Rare Class Expansion)",
+    "ckpt": "c:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\domain_adaptation\\exp02_rare_class\\weights\\best.pt",
+    "hash": "68e2b58ec7759427808621debc9a8d725a9e4c1fbc57a2102cd239a8ca14f006"
+  }
+}

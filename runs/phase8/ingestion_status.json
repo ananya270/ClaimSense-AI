@@ -1,0 +1,46 @@
+{
+  "audit_timestamp": "2026-11-17T10:18:15",
+  "batch_id": "BATCH_001_EXPANDED_PILOT",
+  "manifest_path": "datasets/CarDD_Expanded_v1/provenance/batch_1_manifest.json",
+  "target_directory": "datasets/CarDD_Expanded_v1/raw_incoming",
+  "counts": {
+    "cataloged": 100,
+    "received": 0,
+    "readable": 0,
+    "hash_matched": 0,
+    "provenance_complete": 100,
+    "permission_cleared": 100,
+    "missing_files": 100,
+    "quarantined": 100
+  },
+  "breakdown_by_priority": {
+    "crack": {
+      "cataloged": 40,
+      "received": 0,
+      "missing": 40,
+      "range": "EXP-CR-001.jpg - EXP-CR-040.jpg"
+    },
+    "scratch": {
+      "cataloged": 35,
+      "received": 0,
+      "missing": 35,
+      "range": "EXP-SC-001.jpg - EXP-SC-035.jpg"
+    },
+    "dent": {
+      "cataloged": 25,
+      "received": 0,
+      "missing": 25,
+      "range": "EXP-DT-001.jpg - EXP-DT-025.jpg"
+    }
+  },
+  "safeguards": {
+    "active_train_modified": false,
+    "active_val_modified": false,
+    "frozen_test_modified": false,
+    "production_model_untouched": true,
+    "production_model_sha256": "90d489e46ff8521edff88d522f0feffa164ac38a53b84700594c02a69e515565",
+    "phase7_frozen": true,
+    "session_4_training_executed": false
+  },
+  "action_required": "Deposit 100 raw JPG files into datasets/CarDD_Expanded_v1/raw_incoming/ to trigger byte-level hash verification."
+}

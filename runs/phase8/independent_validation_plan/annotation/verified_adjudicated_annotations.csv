@@ -1,0 +1,9 @@
+image_id,width,height,total_pixels,class_id,class_name,resolution_tier,derivation_status,x1,y1,x2,y2,box_width,box_height,box_area_px,verified_occupancy_pct,meets_30pct_floor,x_center_norm,y_center_norm,w_norm,h_norm,notes
+CS_VAL_016,640,480,307200,0,dent,Tier 2,CONSENSUS_VERIFIED,48,38,598,440,550,402,221100,71.97%,True,0.504687,0.497917,0.859375,0.837500,Multi-dent hail cluster across hood panel.
+CS_VAL_017,720,960,691200,0,dent,Tier 2,CONSENSUS_VERIFIED,60,75,670,745,610,670,408700,59.13%,True,0.506944,0.427083,0.847222,0.697917,Hail dents across roof and upper rail (portrait crop).
+CS_VAL_020,637,419,266903,2,crack,Tier 2,CONSENSUS_VERIFIED,105,70,540,360,435,290,126150,47.26%,True,0.506279,0.513126,0.682889,0.692124,Severe plastic bumper split with displaced flange.
+CS_VAL_021,637,440,280280,2,crack,Tier 2,CONSENSUS_VERIFIED,135,50,518,410,383,360,137880,49.19%,True,0.512559,0.522727,0.601256,0.818182,Vertical bumper fracture line up to mounting seam.
+CS_VAL_022,629,471,296259,4,lamp broken,Tier 2,ADJUDICATED_VERIFIED,46,36,582,434,536,398,213328,72.01%,True,0.499205,0.498938,0.852146,0.845011,Smashed front headlamp assembly adjudicated under Rule 6.
+CS_VAL_023,881,476,419356,4,lamp broken,Tier 2,CONSENSUS_VERIFIED,170,78,770,418,600,340,204000,48.65%,True,0.533485,0.521008,0.681044,0.714286,Cracked red taillight casing across center right.
+CS_VAL_024,637,442,281554,1,scratch,Tier 2,ADJUDICATED_VERIFIED,38,112,602,328,564,216,121824,43.27%,True,0.502355,0.497738,0.885400,0.488688,Continuous diagonal key scratch unified under Safeguard 5.
+CS_VAL_025,637,444,282828,0,dent,Tier 2,CONSENSUS_VERIFIED,80,60,560,390,480,330,158400,56.01%,True,0.502355,0.506757,0.753532,0.743243,Concave fender impact deformation including inflection rim.

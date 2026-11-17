@@ -1,0 +1,165 @@
+{
+  "audit_timestamp": "2026-11-17T10:57:51.851868",
+  "audit_status": "AUDIT_COMPLETE_TRAINING_PAUSED",
+  "dataset_verification": {
+    "train": {
+      "images": 310,
+      "labels": 310,
+      "instances": 829,
+      "classes": {
+        "dent": 269,
+        "scratch": 260,
+        "crack": 169,
+        "glass shatter": 45,
+        "lamp broken": 64,
+        "tire flat": 22
+      },
+      "verified_exact_match": true
+    },
+    "val": {
+      "images": 45,
+      "labels": 45,
+      "instances": 140,
+      "classes": {
+        "dent": 44,
+        "scratch": 60,
+        "crack": 11,
+        "glass shatter": 10,
+        "lamp broken": 10,
+        "tire flat": 5
+      },
+      "verified_exact_match": true
+    },
+    "test": {
+      "images": 45,
+      "labels": 45,
+      "instances": 148,
+      "classes": {
+        "dent": 49,
+        "scratch": 53,
+        "crack": 13,
+        "glass shatter": 12,
+        "lamp broken": 15,
+        "tire flat": 6
+      },
+      "is_frozen_isolated": true
+    }
+  },
+  "checkpoint_verification": {
+    "session_2_best": {
+      "path": "runs\\phase8\\session_2\\weights\\best.pt",
+      "sha256": "2ee0a56749ceba72da863fd3496f080ee06f26409daa4e9588fb69ee149333c5",
+      "size_bytes": 6486314,
+      "loadable": true,
+      "nc": 6,
+      "architecture": "DetectionModel"
+    },
+    "session_2_last": {
+      "path": "runs\\phase8\\session_2\\weights\\last.pt",
+      "sha256": "457a852a2b5fce6057639cb612782c0194750a630c2fc6af8268b6040461b014",
+      "size_bytes": 6486314,
+      "loadable": true,
+      "nc": 6,
+      "architecture": "DetectionModel"
+    },
+    "session_3_1024_best": {
+      "path": "runs\\phase8\\session_3_1024\\weights\\best.pt",
+      "sha256": "9f0d6e2f4b52eb30f52e989eb199e4155454a50aed485c788258f06aaab61ebc",
+      "size_bytes": 6540202,
+      "loadable": true,
+      "nc": 6,
+      "architecture": "DetectionModel"
+    },
+    "phase5_best": {
+      "path": "models\\phase5\\best.pt",
+      "sha256": "90d489e46ff8521edff88d522f0feffa164ac38a53b84700594c02a69e515565",
+      "size_bytes": 6472234,
+      "loadable": true,
+      "nc": 6,
+      "architecture": "DetectionModel"
+    }
+  },
+  "hardware_and_environment": {
+    "python_version": "3.13.2",
+    "pytorch_version": "2.11.0+cu128",
+    "ultralytics_version": "8.4.215",
+    "gpu": {
+      "cuda_available": true,
+      "device_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "compute_capability": [
+        8,
+        6
+      ],
+      "total_vram_gb": 4.0,
+      "amp_supported": true
+    },
+    "system_ram_gb": 15.68,
+    "available_ram_gb": 4.29,
+    "free_disk_space_gb": 55.1,
+    "adamw_support_verified": true,
+    "dataloader_worker_compatibility": "Windows requires freeze_support() and if __name__ == '__main__':; workers=2 recommended, fallback 0"
+  },
+  "reconciled_session_2_test_baselines": {
+    "overall_mAP50": 0.4117,
+    "dent_mAP50": 0.262,
+    "scratch_mAP50": 0.1536,
+    "crack_mAP50": 0.0199,
+    "glass_shatter_mAP50": 0.6112,
+    "lamp_broken_mAP50": 0.7062,
+    "tire_flat_mAP50": 0.7171,
+    "dent_baseline_explanation": "Reconciled to actual test benchmark mAP (26.20%), correcting prior confusion with validation split (~50.56%)."
+  },
+  "promotion_framework": {
+    "type": "MULTI_METRIC_HUMAN_REVIEWED",
+    "is_automatic_single_threshold": false,
+    "required_metrics": [
+      "per_class_precision",
+      "per_class_recall",
+      "per_class_f1",
+      "per_class_mAP50",
+      "per_class_mAP50_95",
+      "confusion_matrix_tp_fp_fn",
+      "specular_glare_false_positive_reduction",
+      "inference_latency_ms"
+    ],
+    "promotion_requires": "Formal sign-off by human appraisal engineer after reviewing scorecards and prediction plots."
+  },
+  "augmentation_trade_off_policy": {
+    "mosaic_probability": 0.5,
+    "close_mosaic_epochs": 5,
+    "erasing_probability": 0.0,
+    "rationale": "Configures a 50% stochastic probability per sample of applying mosaic augmentation, reducing mosaic frequency so more batches retain native 640px resolution during early training. Downsampling in mosaic composites can attenuate fine spatial gradients for tiny cracks and scratches, making them harder to resolve, though actual detection performance must be evaluated experimentally. Disabling mosaic for the final 5 epochs guarantees clean damage boundaries during convergence. Zero erasing prevents occluding faint damage."
+  },
+  "validation_stability_safeguards": {
+    "loss_tracking": "Track bounding-box and classification validation loss alongside mAP50.",
+    "multi_epoch_stability": "Evaluate 3-epoch moving window; do not select a checkpoint solely based on a single-epoch mAP spike.",
+    "artifact_preservation": "Preserve epoch-wise results.csv, PR curves, and prediction batches."
+  },
+  "output_path_protection": {
+    "session_4_audit_dir": "runs/phase8/session_4/",
+    "session_4_training_dir": "runs/phase8/session_4_training_01/",
+    "session_4_eval_dir": "runs/phase8/session_4_training_01/eval/",
+    "training_dir_exists": false,
+    "exist_ok": false,
+    "protected_paths": [
+      "runs/phase8/session_4/ (Audit Deliverables)",
+      "runs/phase8/session_2/",
+      "runs/phase8/session_3_1024/",
+      "models/phase5/best.pt"
+    ],
+    "overwrite_prevention_status": "VERIFIED_ISOLATED"
+  },
+  "test_split_isolation": {
+    "test_path": "datasets/CarDD_300/test/",
+    "accessed_during_training": false,
+    "used_for_hyperparameter_tuning": false,
+    "status": "STRICTLY_FROZEN_BENCHMARK_ONLY"
+  },
+  "safeguards_gate": {
+    "training_epochs_executed": 0,
+    "production_checkpoint_untouched": true,
+    "production_sha256": "90d489e46ff8521edff88d522f0feffa164ac38a53b84700594c02a69e515565",
+    "phase7_frozen": true,
+    "session_4_status": "STRICTLY_PAUSED_AWAITING_USER_APPROVAL"
+  }
+}

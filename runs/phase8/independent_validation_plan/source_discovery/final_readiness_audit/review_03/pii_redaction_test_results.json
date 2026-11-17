@@ -1,0 +1,86 @@
+{
+  "audit_title": "PII Redaction & Governance Logic Test",
+  "execution_date": "2026-11-17",
+  "test_type": "Synthetic Unit Tests (Zero External Data)",
+  "all_tests_passed": true,
+  "detailed_results": [
+    {
+      "test": "License plate dilation >= 15% and solid zero-entropy masking",
+      "passed": true,
+      "original_box": [
+        100,
+        120,
+        300,
+        180
+      ],
+      "dilated_box": [
+        70,
+        111,
+        330,
+        189
+      ],
+      "width_expansion_ratio": 0.3,
+      "height_expansion_ratio": 0.3,
+      "interior_strictly_black_zero": true
+    },
+    {
+      "test": "Boundary truncation clamping",
+      "passed": true,
+      "boundary_box": [
+        0,
+        100,
+        150,
+        160
+      ],
+      "dilated_clamped_box": [
+        0,
+        91,
+        172,
+        169
+      ]
+    },
+    {
+      "test": "Reflection flare capture analysis",
+      "passed": true,
+      "plate_box": [
+        100,
+        100,
+        300,
+        160
+      ],
+      "dilated_box_15pct": [
+        70,
+        91,
+        330,
+        169
+      ],
+      "reflection_zone": [
+        110,
+        162,
+        290,
+        172
+      ],
+      "reflection_coverage_ratio": 0.7,
+      "engineering_finding": "15% dilation captures immediate border flares (<9px), but specular reflections on chrome bumpers (>10px) escape automated dilation and require mandatory human inspector verification."
+    },
+    {
+      "test": "Damage occlusion threshold rule (20% threshold)",
+      "passed": true,
+      "far_damage_occlusion": 0.0,
+      "far_damage_decision": "ACCEPT",
+      "abutting_damage_occlusion": 1.0,
+      "abutting_damage_decision": "REJECT",
+      "rule_validation": "Successfully rejected image when dilated PII mask occluded >20% of damage instance."
+    },
+    {
+      "test": "EXIF stripping and hash audit trail",
+      "passed": true,
+      "raw_sha256": "33e391b88aa0272f9b25c915fc27574c82708602563e4e4e2921150900e2a93f",
+      "processed_sha256": "f57ffca41566681f226035cff8d5d0fb8ec6e8a19c70789fd6aad4a085019460",
+      "raw_dhash": "0000000000000000",
+      "processed_dhash": "6006969660060000",
+      "processed_exif_tags_count": 0,
+      "exif_completely_stripped": true
+    }
+  ]
+}

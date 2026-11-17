@@ -1,0 +1,13 @@
+model_key,model_name,evaluation_split,image_count,precision,recall,f1_score,map50,map50_95
+production_baseline,Production Baseline (Phase 5),Tier 1 (Walkaround),36,0.1678,0.203,0.1838,0.001,0.0002
+production_baseline,Production Baseline (Phase 5),Tier 2 (Macro),8,0.2743,0.375,0.3169,0.032,0.0101
+production_baseline,Production Baseline (Phase 5),Empirical Pooled,44,0.169,0.24,0.1984,0.0016,0.0004
+production_baseline,Production Baseline (Phase 5),Fixed-Weight Composite (70% T1 + 30% T2),44,0.1998,0.2546,0.2239,0.0103,0.0032
+session_2,Phase 8 Session 2,Tier 1 (Walkaround),36,0.6819,0.0128,0.0252,0.002,0.0003
+session_2,Phase 8 Session 2,Tier 2 (Macro),8,0.0004,0.25,0.0007,0.0016,0.0003
+session_2,Phase 8 Session 2,Empirical Pooled,44,0.3473,0.0128,0.0247,0.0019,0.0003
+session_2,Phase 8 Session 2,Fixed-Weight Composite (70% T1 + 30% T2),44,0.4775,0.084,0.1428,0.0019,0.0003
+session_4,Phase 8 Session 4,Tier 1 (Walkaround),36,0.1929,0.0256,0.0453,0.0063,0.0008
+session_4,Phase 8 Session 4,Tier 2 (Macro),8,0.002,0.5417,0.0041,0.0033,0.0006
+session_4,Phase 8 Session 4,Empirical Pooled,44,0.1894,0.0256,0.0452,0.006,0.0008
+session_4,Phase 8 Session 4,Fixed-Weight Composite (70% T1 + 30% T2),44,0.1356,0.1804,0.1549,0.0054,0.0007

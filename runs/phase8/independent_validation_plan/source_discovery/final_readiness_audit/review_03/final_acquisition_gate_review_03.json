@@ -1,0 +1,78 @@
+{
+  "gate_metadata": {
+    "project": "ClaimSense AI",
+    "gate_review_stage": "Review 03 — Read-Only Verification Audit",
+    "audit_timestamp": "2026-11-17T12:20:00+05:30",
+    "gate_status": "GATE_LOCKED_STRICTLY_READ_ONLY",
+    "acquisition_authorized": false
+  },
+  "verified_facts": {
+    "wikimedia_commons_api_audit": {
+      "api_endpoint": "https://commons.wikimedia.org/w/api.php",
+      "execution_modality": "MediaWiki Action API Read-Only Query (Zero Binaries Downloaded)",
+      "total_files_audited": 98,
+      "approved_files_count": 36,
+      "approved_licenses": ["CC0 1.0 Universal", "Public Domain", "CC BY 2.0", "CC BY 2.5", "CC BY 3.0", "CC BY 4.0"],
+      "excluded_files_count": 62,
+      "exclusion_rate_pct": 63.27,
+      "exclusion_causes": ["CC BY-SA 3.0/4.0 Copyleft (54 files)", "GFDL Restrictive (4 files)", "Unknown/Unverified (4 files)"]
+    },
+    "drbimmer_humans_in_the_loop_audit": {
+      "root_publisher": "Humans in the Loop (Bulgaria / Ukraine)",
+      "root_url": "https://humansintheloop.org/resources/datasets/car-parts-and-car-damages-dataset/",
+      "root_license": "Creative Commons CC0 1.0 Universal (Public Domain Dedication)",
+      "dataset_scale": "1,812 images (24,851 polygon segmentation masks)",
+      "license_medium_coverage": "Raw JPEG image files and JSON polygon annotations distributed together under CC0 1.0 deed",
+      "mirror_status": "Hugging Face DrBimmer MIT license wrapper is legally subservient to root CC0 public-domain dedication",
+      "classification": "APPROVED (Institutional CC0 Anchor)"
+    },
+    "pii_redaction_unit_tests": {
+      "test_modality": "Purely Synthetic Image Patches (Zero External Data)",
+      "tests_executed": 5,
+      "tests_passed": 5,
+      "dilation_rule_verified": "15% per-axis expansion expands bounding box area by ~32%, completely covering plate mounting bevels",
+      "boundary_clamping_verified": "Truncated plates at image borders clamp cleanly to [0, W] without array index wrap",
+      "solid_masking_verified": "Interior pixels strictly overwritten with [0, 0, 0] zero entropy",
+      "damage_occlusion_rule_verified": "Damage intersecting dilated PII mask by >20% successfully triggered automated REJECT",
+      "exif_stripping_verified": "Raw vs processed SHA-256 hashes differ; processed image retains exactly 0 EXIF tags"
+    },
+    "model_and_dataset_integrity": {
+      "production_baseline_sha256": "90d489e46ff8521edff88d522f0feffa164ac38a53b84700594c02a69e515565 (UNTOUCHED)",
+      "session_2_best_sha256": "2ee0a56749ceba72da863fd3496f080ee06f26409daa4e9588fb69ee149333c5 (UNTOUCHED)",
+      "session_4_best_sha256": "ea53eee94e508bbb81620b47b2a23c9826341b6b5a6981d9371e476cb9d0594f (UNTOUCHED)",
+      "cardd_expanded_dataset": "UNTOUCHED"
+    }
+  },
+  "estimates": {
+    "screening_fallout_rate": "25% to 35% across candidate intake due to blur, resolution (<800x600), and damage occlusion",
+    "raw_candidates_required_to_stage": "320 to 350 images to secure 235 usable validation images",
+    "target_curated_validation_images": 235,
+    "projected_instance_yields": {
+      "dent": { "target": 90, "projected_yield": 130 },
+      "scratch": { "target": 100, "projected_yield": 140 },
+      "crack": { "target": 60, "projected_yield": 68 },
+      "glass_shatter": { "target": 40, "projected_yield": 46 },
+      "lamp_broken": { "target": 45, "projected_yield": 50 },
+      "tire_flat": { "target": 30, "projected_yield": 32 }
+    }
+  },
+  "unresolved_legal_questions": {
+    "nemo_dat_chain_of_title": "Uploaders of Roboflow V5 and Kaggle Insurance Claims lack documented copyright assignments from original photographers",
+    "copyleft_weight_derivation": "Unsettled judicial precedent on whether neural network weights constitute derivative works of CC BY-SA inputs (safeguarded by 100% exclusion of CC BY-SA)",
+    "contextual_deanonymization": "Residual privacy risks under GDPR Recital 26 arising from unique commercial decals or distinctive background residences in public photos"
+  },
+  "failed_or_incomplete_checks": {
+    "category_hail_damage_empty": "Category:Automobile_hail_damage returned 0 files on direct API query. Requires subcategory traversal or alternative query (e.g., 'Category:Hail damage' or search API).",
+    "remote_reflection_automation_failure": "15% bounding box dilation failed to capture specular reflections extending >10px below plate bracket on chrome bumpers. Automated solution insufficient; requires mandatory human reviewer inspection.",
+    "src_01_and_src_05_title_failure": "Roboflow V5 and Kaggle Insurance Claims failed asset-level title verification; restricted to internal quarantine only.",
+    "src_03_and_src_04_rejection": "Kaggle COCO (anujms) lacked license tag; Kaggle lplenka contained only 80 total images and zero flat tires. Both permanently rejected."
+  },
+  "explicit_approval_requirements": {
+    "prerequisites_before_unlock": [
+      "1. Explicit User Authorization approving physical acquisition and raw staging.",
+      "2. Resolution of hail damage category query using MediaWiki search API.",
+      "3. Signed Internal Fair Use Quarantine Protocol restricting SRC-01 and SRC-05 to offline benchmark scoring only.",
+      "4. Confirmation of Dual-Blind Human Protocol for manual inspection of chrome plate reflections."
+    ]
+  }
+}

@@ -1,0 +1,991 @@
+{
+  "status": "PASSED",
+  "benchmark_date": "2026-11-17 11:31:01",
+  "dataset": {
+    "name": "CarDD Frozen Test Split",
+    "config": "C:\\Users\\ansh9\\Desktop\\Claimsense Ai\\data\\cardd_train.yaml",
+    "images_count": 45,
+    "labels_count": 45,
+    "total_ground_truth_instances": 148
+  },
+  "evaluation_settings": {
+    "imgsz": 640,
+    "batch": 4,
+    "device": "CUDA:0 (NVIDIA GeForce RTX 3050 Laptop GPU)",
+    "evaluator": "Ultralytics YOLO Validator",
+    "matching_criteria": {
+      "mAP_conf_threshold": 0.001,
+      "mAP_iou_thresholds": "0.50:0.95:0.05",
+      "confusion_matrix_conf_threshold": 0.25,
+      "confusion_matrix_iou_threshold": 0.45
+    }
+  },
+  "models": {
+    "production_baseline": {
+      "name": "Production Baseline (Phase 5)",
+      "path": "C:\\Users\\ansh9\\Desktop\\Claimsense Ai\\models\\phase5\\best.pt",
+      "sha256": "90d489e46ff8521edff88d522f0feffa164ac38a53b84700594c02a69e515565",
+      "eval_duration_sec": 48.91,
+      "latency_bench": {
+        "mean_ms": 49.18,
+        "median_ms": 34.1,
+        "std_ms": 36.31,
+        "min_ms": 26.87,
+        "max_ms": 163.18,
+        "fps": 20.3,
+        "sample_count": 45
+      },
+      "artifacts_dir": "C:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\final_benchmark\\eval_production"
+    },
+    "session_2": {
+      "name": "Phase 8 - Session 2",
+      "path": "C:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\session_2\\weights\\best.pt",
+      "sha256": "2ee0a56749ceba72da863fd3496f080ee06f26409daa4e9588fb69ee149333c5",
+      "eval_duration_sec": 37.88,
+      "latency_bench": {
+        "mean_ms": 25.85,
+        "median_ms": 25.02,
+        "std_ms": 3.19,
+        "min_ms": 18.38,
+        "max_ms": 35.0,
+        "fps": 38.7,
+        "sample_count": 45
+      },
+      "artifacts_dir": "C:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\final_benchmark\\eval_session_2"
+    },
+    "session_4": {
+      "name": "Phase 8 - Session 4",
+      "path": "C:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\session_4_training_01\\weights\\best.pt",
+      "sha256": "ea53eee94e508bbb81620b47b2a23c9826341b6b5a6981d9371e476cb9d0594f",
+      "eval_duration_sec": 39.08,
+      "latency_bench": {
+        "mean_ms": 27.7,
+        "median_ms": 27.41,
+        "std_ms": 5.37,
+        "min_ms": 19.65,
+        "max_ms": 47.15,
+        "fps": 36.1,
+        "sample_count": 45
+      },
+      "artifacts_dir": "C:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\final_benchmark\\eval_session_4"
+    }
+  },
+  "comparative_overall": {
+    "precision": {
+      "production": 0.1703,
+      "session_2": 0.55,
+      "session_4": 0.5272,
+      "delta_s4_vs_prod": 0.3569,
+      "delta_s4_vs_s2": -0.0228
+    },
+    "recall": {
+      "production": 0.1735,
+      "session_2": 0.3487,
+      "session_4": 0.366,
+      "delta_s4_vs_prod": 0.1925,
+      "delta_s4_vs_s2": 0.0173
+    },
+    "f1_score": {
+      "production": 0.1719,
+      "session_2": 0.4268,
+      "session_4": 0.432,
+      "delta_s4_vs_prod": 0.2601,
+      "delta_s4_vs_s2": 0.0052
+    },
+    "map50": {
+      "production": 0.0012,
+      "session_2": 0.4117,
+      "session_4": 0.4105,
+      "delta_s4_vs_prod": 0.4093,
+      "delta_s4_vs_s2": -0.0012
+    },
+    "map50_95": {
+      "production": 0.0003,
+      "session_2": 0.2569,
+      "session_4": 0.2612,
+      "delta_s4_vs_prod": 0.2609,
+      "delta_s4_vs_s2": 0.0043
+    }
+  },
+  "comparative_per_class": {
+    "dent": {
+      "production": {
+        "class_id": 0,
+        "precision": 0.0027,
+        "recall": 0.2245,
+        "f1_score": 0.0054,
+        "map50": 0.0012,
+        "map50_95": 0.0003,
+        "ground_truth_instances": 49,
+        "true_positives": 15,
+        "false_positives": 7537,
+        "false_negatives": 34,
+        "false_positives_cross_class": 39,
+        "false_positives_background": 7498,
+        "recall_at_matching_threshold": 0.3061
+      },
+      "session_2": {
+        "class_id": 0,
+        "precision": 0.535,
+        "recall": 0.1837,
+        "f1_score": 0.2735,
+        "map50": 0.262,
+        "map50_95": 0.1083,
+        "ground_truth_instances": 49,
+        "true_positives": 35,
+        "false_positives": 3021,
+        "false_negatives": 14,
+        "false_positives_cross_class": 12,
+        "false_positives_background": 3009,
+        "recall_at_matching_threshold": 0.7143
+      },
+      "session_4": {
+        "class_id": 0,
+        "precision": 0.6543,
+        "recall": 0.2857,
+        "f1_score": 0.3977,
+        "map50": 0.3667,
+        "map50_95": 0.1512,
+        "ground_truth_instances": 49,
+        "true_positives": 33,
+        "false_positives": 2705,
+        "false_negatives": 16,
+        "false_positives_cross_class": 12,
+        "false_positives_background": 2693,
+        "recall_at_matching_threshold": 0.6735
+      },
+      "delta_map50_s4_vs_prod": 0.3655,
+      "delta_map50_s4_vs_s2": 0.1047,
+      "delta_recall_s4_vs_prod": 0.0612,
+      "delta_recall_s4_vs_s2": 0.102,
+      "delta_precision_s4_vs_prod": 0.6516,
+      "delta_precision_s4_vs_s2": 0.1193,
+      "delta_f1_s4_vs_prod": 0.3923,
+      "delta_f1_s4_vs_s2": 0.1242
+    },
+    "scratch": {
+      "production": {
+        "class_id": 1,
+        "precision": 1.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "map50": 0.0,
+        "map50_95": 0.0,
+        "ground_truth_instances": 53,
+        "true_positives": 0,
+        "false_positives": 24,
+        "false_negatives": 53,
+        "false_positives_cross_class": 0,
+        "false_positives_background": 24,
+        "recall_at_matching_threshold": 0.0
+      },
+      "session_2": {
+        "class_id": 1,
+        "precision": 0.3789,
+        "recall": 0.0943,
+        "f1_score": 0.1511,
+        "map50": 0.1536,
+        "map50_95": 0.0585,
+        "ground_truth_instances": 53,
+        "true_positives": 36,
+        "false_positives": 4786,
+        "false_negatives": 17,
+        "false_positives_cross_class": 13,
+        "false_positives_background": 4773,
+        "recall_at_matching_threshold": 0.6792
+      },
+      "session_4": {
+        "class_id": 1,
+        "precision": 0.0982,
+        "recall": 0.0167,
+        "f1_score": 0.0285,
+        "map50": 0.1223,
+        "map50_95": 0.0485,
+        "ground_truth_instances": 53,
+        "true_positives": 36,
+        "false_positives": 3230,
+        "false_negatives": 17,
+        "false_positives_cross_class": 9,
+        "false_positives_background": 3221,
+        "recall_at_matching_threshold": 0.6792
+      },
+      "delta_map50_s4_vs_prod": 0.1223,
+      "delta_map50_s4_vs_s2": -0.0313,
+      "delta_recall_s4_vs_prod": 0.0167,
+      "delta_recall_s4_vs_s2": -0.0776,
+      "delta_precision_s4_vs_prod": -0.9018,
+      "delta_precision_s4_vs_s2": -0.2807,
+      "delta_f1_s4_vs_prod": 0.0285,
+      "delta_f1_s4_vs_s2": -0.1226
+    },
+    "crack": {
+      "production": {
+        "class_id": 2,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "map50": 0.0,
+        "map50_95": 0.0,
+        "ground_truth_instances": 13,
+        "true_positives": 0,
+        "false_positives": 1403,
+        "false_negatives": 13,
+        "false_positives_cross_class": 2,
+        "false_positives_background": 1401,
+        "recall_at_matching_threshold": 0.0
+      },
+      "session_2": {
+        "class_id": 2,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "map50": 0.0199,
+        "map50_95": 0.0039,
+        "ground_truth_instances": 13,
+        "true_positives": 5,
+        "false_positives": 1733,
+        "false_negatives": 8,
+        "false_positives_cross_class": 1,
+        "false_positives_background": 1732,
+        "recall_at_matching_threshold": 0.3846
+      },
+      "session_4": {
+        "class_id": 2,
+        "precision": 0.4263,
+        "recall": 0.0769,
+        "f1_score": 0.1303,
+        "map50": 0.0913,
+        "map50_95": 0.0429,
+        "ground_truth_instances": 13,
+        "true_positives": 9,
+        "false_positives": 2540,
+        "false_negatives": 4,
+        "false_positives_cross_class": 8,
+        "false_positives_background": 2532,
+        "recall_at_matching_threshold": 0.6923
+      },
+      "delta_map50_s4_vs_prod": 0.0913,
+      "delta_map50_s4_vs_s2": 0.0714,
+      "delta_recall_s4_vs_prod": 0.0769,
+      "delta_recall_s4_vs_s2": 0.0769,
+      "delta_precision_s4_vs_prod": 0.4263,
+      "delta_precision_s4_vs_s2": 0.4263,
+      "delta_f1_s4_vs_prod": 0.1303,
+      "delta_f1_s4_vs_s2": 0.1303
+    },
+    "glass shatter": {
+      "production": {
+        "class_id": 3,
+        "precision": 0.004,
+        "recall": 0.75,
+        "f1_score": 0.008,
+        "map50": 0.0036,
+        "map50_95": 0.0011,
+        "ground_truth_instances": 12,
+        "true_positives": 0,
+        "false_positives": 3481,
+        "false_negatives": 12,
+        "false_positives_cross_class": 3,
+        "false_positives_background": 3478,
+        "recall_at_matching_threshold": 0.0
+      },
+      "session_2": {
+        "class_id": 3,
+        "precision": 0.9,
+        "recall": 0.75,
+        "f1_score": 0.8182,
+        "map50": 0.7939,
+        "map50_95": 0.5811,
+        "ground_truth_instances": 12,
+        "true_positives": 10,
+        "false_positives": 355,
+        "false_negatives": 2,
+        "false_positives_cross_class": 4,
+        "false_positives_background": 351,
+        "recall_at_matching_threshold": 0.8333
+      },
+      "session_4": {
+        "class_id": 3,
+        "precision": 0.8037,
+        "recall": 0.5833,
+        "f1_score": 0.676,
+        "map50": 0.7406,
+        "map50_95": 0.5307,
+        "ground_truth_instances": 12,
+        "true_positives": 9,
+        "false_positives": 183,
+        "false_negatives": 3,
+        "false_positives_cross_class": 1,
+        "false_positives_background": 182,
+        "recall_at_matching_threshold": 0.75
+      },
+      "delta_map50_s4_vs_prod": 0.737,
+      "delta_map50_s4_vs_s2": -0.0533,
+      "delta_recall_s4_vs_prod": -0.1667,
+      "delta_recall_s4_vs_s2": -0.1667,
+      "delta_precision_s4_vs_prod": 0.7997,
+      "delta_precision_s4_vs_s2": -0.0963,
+      "delta_f1_s4_vs_prod": 0.668,
+      "delta_f1_s4_vs_s2": -0.1422
+    },
+    "lamp broken": {
+      "production": {
+        "class_id": 4,
+        "precision": 0.0152,
+        "recall": 0.0667,
+        "f1_score": 0.0247,
+        "map50": 0.0024,
+        "map50_95": 0.0004,
+        "ground_truth_instances": 15,
+        "true_positives": 2,
+        "false_positives": 969,
+        "false_negatives": 13,
+        "false_positives_cross_class": 5,
+        "false_positives_background": 964,
+        "recall_at_matching_threshold": 0.1333
+      },
+      "session_2": {
+        "class_id": 4,
+        "precision": 0.7255,
+        "recall": 0.5291,
+        "f1_score": 0.6119,
+        "map50": 0.5236,
+        "map50_95": 0.2587,
+        "ground_truth_instances": 15,
+        "true_positives": 12,
+        "false_positives": 546,
+        "false_negatives": 3,
+        "false_positives_cross_class": 4,
+        "false_positives_background": 542,
+        "recall_at_matching_threshold": 0.8
+      },
+      "session_4": {
+        "class_id": 4,
+        "precision": 0.5775,
+        "recall": 0.4,
+        "f1_score": 0.4726,
+        "map50": 0.3818,
+        "map50_95": 0.2028,
+        "ground_truth_instances": 15,
+        "true_positives": 12,
+        "false_positives": 355,
+        "false_negatives": 3,
+        "false_positives_cross_class": 3,
+        "false_positives_background": 352,
+        "recall_at_matching_threshold": 0.8
+      },
+      "delta_map50_s4_vs_prod": 0.3794,
+      "delta_map50_s4_vs_s2": -0.1418,
+      "delta_recall_s4_vs_prod": 0.3333,
+      "delta_recall_s4_vs_s2": -0.1291,
+      "delta_precision_s4_vs_prod": 0.5623,
+      "delta_precision_s4_vs_s2": -0.148,
+      "delta_f1_s4_vs_prod": 0.4479,
+      "delta_f1_s4_vs_s2": -0.1393
+    },
+    "tire flat": {
+      "production": {
+        "class_id": 5,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "map50": 0.0,
+        "map50_95": 0.0,
+        "ground_truth_instances": 6,
+        "true_positives": 0,
+        "false_positives": 69,
+        "false_negatives": 6,
+        "false_positives_cross_class": 1,
+        "false_positives_background": 68,
+        "recall_at_matching_threshold": 0.0
+      },
+      "session_2": {
+        "class_id": 5,
+        "precision": 0.7605,
+        "recall": 0.5351,
+        "f1_score": 0.6282,
+        "map50": 0.7171,
+        "map50_95": 0.531,
+        "ground_truth_instances": 6,
+        "true_positives": 6,
+        "false_positives": 190,
+        "false_negatives": 0,
+        "false_positives_cross_class": 0,
+        "false_positives_background": 190,
+        "recall_at_matching_threshold": 1.0
+      },
+      "session_4": {
+        "class_id": 5,
+        "precision": 0.6031,
+        "recall": 0.8333,
+        "f1_score": 0.6998,
+        "map50": 0.7606,
+        "map50_95": 0.591,
+        "ground_truth_instances": 6,
+        "true_positives": 6,
+        "false_positives": 205,
+        "false_negatives": 0,
+        "false_positives_cross_class": 1,
+        "false_positives_background": 204,
+        "recall_at_matching_threshold": 1.0
+      },
+      "delta_map50_s4_vs_prod": 0.7606,
+      "delta_map50_s4_vs_s2": 0.0435,
+      "delta_recall_s4_vs_prod": 0.8333,
+      "delta_recall_s4_vs_s2": 0.2982,
+      "delta_precision_s4_vs_prod": 0.6031,
+      "delta_precision_s4_vs_s2": -0.1574,
+      "delta_f1_s4_vs_prod": 0.6998,
+      "delta_f1_s4_vs_s2": 0.0716
+    }
+  },
+  "raw_results": {
+    "production_baseline": {
+      "overall": {
+        "precision": 0.1703,
+        "recall": 0.1735,
+        "f1_score": 0.1719,
+        "map50": 0.0012,
+        "map50_95": 0.0003,
+        "total_ground_truth": 148,
+        "total_true_positives": 17,
+        "total_false_positives": 13483,
+        "total_false_negatives": 131,
+        "validator_speed_ms": {
+          "preprocess": 1.55,
+          "inference": 19.91,
+          "loss": 0.0,
+          "postprocess": 9.97,
+          "total": 31.44
+        },
+        "total_false_positives_cross_class": 50,
+        "total_false_positives_background": 13433
+      },
+      "per_class": {
+        "dent": {
+          "class_id": 0,
+          "precision": 0.0027,
+          "recall": 0.2245,
+          "f1_score": 0.0054,
+          "map50": 0.0012,
+          "map50_95": 0.0003,
+          "ground_truth_instances": 49,
+          "true_positives": 15,
+          "false_positives": 7537,
+          "false_negatives": 34,
+          "false_positives_cross_class": 39,
+          "false_positives_background": 7498,
+          "recall_at_matching_threshold": 0.3061
+        },
+        "scratch": {
+          "class_id": 1,
+          "precision": 1.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "map50": 0.0,
+          "map50_95": 0.0,
+          "ground_truth_instances": 53,
+          "true_positives": 0,
+          "false_positives": 24,
+          "false_negatives": 53,
+          "false_positives_cross_class": 0,
+          "false_positives_background": 24,
+          "recall_at_matching_threshold": 0.0
+        },
+        "crack": {
+          "class_id": 2,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "map50": 0.0,
+          "map50_95": 0.0,
+          "ground_truth_instances": 13,
+          "true_positives": 0,
+          "false_positives": 1403,
+          "false_negatives": 13,
+          "false_positives_cross_class": 2,
+          "false_positives_background": 1401,
+          "recall_at_matching_threshold": 0.0
+        },
+        "glass shatter": {
+          "class_id": 3,
+          "precision": 0.004,
+          "recall": 0.75,
+          "f1_score": 0.008,
+          "map50": 0.0036,
+          "map50_95": 0.0011,
+          "ground_truth_instances": 12,
+          "true_positives": 0,
+          "false_positives": 3481,
+          "false_negatives": 12,
+          "false_positives_cross_class": 3,
+          "false_positives_background": 3478,
+          "recall_at_matching_threshold": 0.0
+        },
+        "lamp broken": {
+          "class_id": 4,
+          "precision": 0.0152,
+          "recall": 0.0667,
+          "f1_score": 0.0247,
+          "map50": 0.0024,
+          "map50_95": 0.0004,
+          "ground_truth_instances": 15,
+          "true_positives": 2,
+          "false_positives": 969,
+          "false_negatives": 13,
+          "false_positives_cross_class": 5,
+          "false_positives_background": 964,
+          "recall_at_matching_threshold": 0.1333
+        },
+        "tire flat": {
+          "class_id": 5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "map50": 0.0,
+          "map50_95": 0.0,
+          "ground_truth_instances": 6,
+          "true_positives": 0,
+          "false_positives": 69,
+          "false_negatives": 6,
+          "false_positives_cross_class": 1,
+          "false_positives_background": 68,
+          "recall_at_matching_threshold": 0.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          15.0,
+          16.0,
+          2.0,
+          9.0,
+          8.0,
+          4.0,
+          7498.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          24.0
+        ],
+        [
+          2.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1401.0
+        ],
+        [
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          3478.0
+        ],
+        [
+          1.0,
+          2.0,
+          0.0,
+          2.0,
+          2.0,
+          0.0,
+          964.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          68.0
+        ],
+        [
+          29.0,
+          34.0,
+          10.0,
+          1.0,
+          5.0,
+          2.0,
+          0.0
+        ]
+      ]
+    },
+    "session_2": {
+      "overall": {
+        "precision": 0.55,
+        "recall": 0.3487,
+        "f1_score": 0.4268,
+        "map50": 0.4117,
+        "map50_95": 0.2569,
+        "total_ground_truth": 148,
+        "total_true_positives": 104,
+        "total_false_positives": 10631,
+        "total_false_negatives": 44,
+        "validator_speed_ms": {
+          "preprocess": 1.27,
+          "inference": 10.68,
+          "loss": 0.0,
+          "postprocess": 1.88,
+          "total": 13.83
+        },
+        "total_false_positives_cross_class": 34,
+        "total_false_positives_background": 10597
+      },
+      "per_class": {
+        "dent": {
+          "class_id": 0,
+          "precision": 0.535,
+          "recall": 0.1837,
+          "f1_score": 0.2735,
+          "map50": 0.262,
+          "map50_95": 0.1083,
+          "ground_truth_instances": 49,
+          "true_positives": 35,
+          "false_positives": 3021,
+          "false_negatives": 14,
+          "false_positives_cross_class": 12,
+          "false_positives_background": 3009,
+          "recall_at_matching_threshold": 0.7143
+        },
+        "scratch": {
+          "class_id": 1,
+          "precision": 0.3789,
+          "recall": 0.0943,
+          "f1_score": 0.1511,
+          "map50": 0.1536,
+          "map50_95": 0.0585,
+          "ground_truth_instances": 53,
+          "true_positives": 36,
+          "false_positives": 4786,
+          "false_negatives": 17,
+          "false_positives_cross_class": 13,
+          "false_positives_background": 4773,
+          "recall_at_matching_threshold": 0.6792
+        },
+        "crack": {
+          "class_id": 2,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "map50": 0.0199,
+          "map50_95": 0.0039,
+          "ground_truth_instances": 13,
+          "true_positives": 5,
+          "false_positives": 1733,
+          "false_negatives": 8,
+          "false_positives_cross_class": 1,
+          "false_positives_background": 1732,
+          "recall_at_matching_threshold": 0.3846
+        },
+        "glass shatter": {
+          "class_id": 3,
+          "precision": 0.9,
+          "recall": 0.75,
+          "f1_score": 0.8182,
+          "map50": 0.7939,
+          "map50_95": 0.5811,
+          "ground_truth_instances": 12,
+          "true_positives": 10,
+          "false_positives": 355,
+          "false_negatives": 2,
+          "false_positives_cross_class": 4,
+          "false_positives_background": 351,
+          "recall_at_matching_threshold": 0.8333
+        },
+        "lamp broken": {
+          "class_id": 4,
+          "precision": 0.7255,
+          "recall": 0.5291,
+          "f1_score": 0.6119,
+          "map50": 0.5236,
+          "map50_95": 0.2587,
+          "ground_truth_instances": 15,
+          "true_positives": 12,
+          "false_positives": 546,
+          "false_negatives": 3,
+          "false_positives_cross_class": 4,
+          "false_positives_background": 542,
+          "recall_at_matching_threshold": 0.8
+        },
+        "tire flat": {
+          "class_id": 5,
+          "precision": 0.7605,
+          "recall": 0.5351,
+          "f1_score": 0.6282,
+          "map50": 0.7171,
+          "map50_95": 0.531,
+          "ground_truth_instances": 6,
+          "true_positives": 6,
+          "false_positives": 190,
+          "false_negatives": 0,
+          "false_positives_cross_class": 0,
+          "false_positives_background": 190,
+          "recall_at_matching_threshold": 1.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          35.0,
+          9.0,
+          1.0,
+          0.0,
+          2.0,
+          0.0,
+          3009.0
+        ],
+        [
+          10.0,
+          36.0,
+          3.0,
+          0.0,
+          0.0,
+          0.0,
+          4773.0
+        ],
+        [
+          0.0,
+          1.0,
+          5.0,
+          0.0,
+          0.0,
+          0.0,
+          1732.0
+        ],
+        [
+          1.0,
+          3.0,
+          0.0,
+          10.0,
+          0.0,
+          0.0,
+          351.0
+        ],
+        [
+          1.0,
+          1.0,
+          0.0,
+          2.0,
+          12.0,
+          0.0,
+          542.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          6.0,
+          190.0
+        ],
+        [
+          2.0,
+          3.0,
+          4.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    "session_4": {
+      "overall": {
+        "precision": 0.5272,
+        "recall": 0.366,
+        "f1_score": 0.432,
+        "map50": 0.4105,
+        "map50_95": 0.2612,
+        "total_ground_truth": 148,
+        "total_true_positives": 105,
+        "total_false_positives": 9218,
+        "total_false_negatives": 43,
+        "validator_speed_ms": {
+          "preprocess": 1.44,
+          "inference": 10.57,
+          "loss": 0.0,
+          "postprocess": 1.64,
+          "total": 13.65
+        },
+        "total_false_positives_cross_class": 34,
+        "total_false_positives_background": 9184
+      },
+      "per_class": {
+        "dent": {
+          "class_id": 0,
+          "precision": 0.6543,
+          "recall": 0.2857,
+          "f1_score": 0.3977,
+          "map50": 0.3667,
+          "map50_95": 0.1512,
+          "ground_truth_instances": 49,
+          "true_positives": 33,
+          "false_positives": 2705,
+          "false_negatives": 16,
+          "false_positives_cross_class": 12,
+          "false_positives_background": 2693,
+          "recall_at_matching_threshold": 0.6735
+        },
+        "scratch": {
+          "class_id": 1,
+          "precision": 0.0982,
+          "recall": 0.0167,
+          "f1_score": 0.0285,
+          "map50": 0.1223,
+          "map50_95": 0.0485,
+          "ground_truth_instances": 53,
+          "true_positives": 36,
+          "false_positives": 3230,
+          "false_negatives": 17,
+          "false_positives_cross_class": 9,
+          "false_positives_background": 3221,
+          "recall_at_matching_threshold": 0.6792
+        },
+        "crack": {
+          "class_id": 2,
+          "precision": 0.4263,
+          "recall": 0.0769,
+          "f1_score": 0.1303,
+          "map50": 0.0913,
+          "map50_95": 0.0429,
+          "ground_truth_instances": 13,
+          "true_positives": 9,
+          "false_positives": 2540,
+          "false_negatives": 4,
+          "false_positives_cross_class": 8,
+          "false_positives_background": 2532,
+          "recall_at_matching_threshold": 0.6923
+        },
+        "glass shatter": {
+          "class_id": 3,
+          "precision": 0.8037,
+          "recall": 0.5833,
+          "f1_score": 0.676,
+          "map50": 0.7406,
+          "map50_95": 0.5307,
+          "ground_truth_instances": 12,
+          "true_positives": 9,
+          "false_positives": 183,
+          "false_negatives": 3,
+          "false_positives_cross_class": 1,
+          "false_positives_background": 182,
+          "recall_at_matching_threshold": 0.75
+        },
+        "lamp broken": {
+          "class_id": 4,
+          "precision": 0.5775,
+          "recall": 0.4,
+          "f1_score": 0.4726,
+          "map50": 0.3818,
+          "map50_95": 0.2028,
+          "ground_truth_instances": 15,
+          "true_positives": 12,
+          "false_positives": 355,
+          "false_negatives": 3,
+          "false_positives_cross_class": 3,
+          "false_positives_background": 352,
+          "recall_at_matching_threshold": 0.8
+        },
+        "tire flat": {
+          "class_id": 5,
+          "precision": 0.6031,
+          "recall": 0.8333,
+          "f1_score": 0.6998,
+          "map50": 0.7606,
+          "map50_95": 0.591,
+          "ground_truth_instances": 6,
+          "true_positives": 6,
+          "false_positives": 205,
+          "false_negatives": 0,
+          "false_positives_cross_class": 1,
+          "false_positives_background": 204,
+          "recall_at_matching_threshold": 1.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          33.0,
+          8.0,
+          0.0,
+          2.0,
+          2.0,
+          0.0,
+          2693.0
+        ],
+        [
+          8.0,
+          36.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          3221.0
+        ],
+        [
+          4.0,
+          4.0,
+          9.0,
+          0.0,
+          0.0,
+          0.0,
+          2532.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          9.0,
+          0.0,
+          0.0,
+          182.0
+        ],
+        [
+          2.0,
+          0.0,
+          0.0,
+          1.0,
+          12.0,
+          0.0,
+          352.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          6.0,
+          204.0
+        ],
+        [
+          2.0,
+          3.0,
+          3.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ]
+      ]
+    }
+  },
+  "evaluation_limitations": [
+    "Sample size: The frozen test set contains 45 images and 148 ground-truth instances. Minor classes such as crack (13 instances) and tire flat (6 instances) have high variance where 1 true positive represents ~7.7% and ~16.7% recall delta respectively.",
+    "Confusion Matrix vs mAP operating point: The TP, FP, FN metrics are evaluated at a fixed confidence threshold (0.25) and IoU threshold (0.45), whereas mAP integrates over the entire precision-recall curve across confidence thresholds [0.001, 1.0].",
+    "Hardware latency: Latency was measured on an NVIDIA GeForce RTX 3050 Laptop GPU (4GB VRAM) under Windows 11. Production deployment on server-grade GPUs (e.g. T4, A10G, L4) will exhibit different latency scaling."
+  ],
+  "promotion_recommendation": {
+    "authorized": false,
+    "decision": "HOLD_PENDING_SEPARATE_HUMAN_AUTHORIZATION",
+    "reason": "Controlled benchmarking completed. Production model remains active and untouched per strict execution constraints."
+  }
+}

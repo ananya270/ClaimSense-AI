@@ -1,0 +1,19 @@
+model_key,model_name,class_id,class_name,pooled_precision,pooled_recall,pooled_f1,pooled_ap50,pooled_ap50_95,tier1_ap50,tier2_ap50,composite_ap50
+production_baseline,Production Baseline (Phase 5),0,dent,0.0036,0.8889,0.0072,0.0058,0.001,0.0037,0.0485,0.0171
+production_baseline,Production Baseline (Phase 5),1,scratch,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+production_baseline,Production Baseline (Phase 5),2,crack,0.0072,0.1667,0.0138,0.0025,0.0009,0.0,0.0796,0.0239
+production_baseline,Production Baseline (Phase 5),3,glass shatter,0.0034,0.3846,0.0067,0.0015,0.0005,0.002,0.0,0.0014
+production_baseline,Production Baseline (Phase 5),4,lamp broken,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+production_baseline,Production Baseline (Phase 5),5,tire flat,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+session_2,Phase 8 Session 2,0,dent,0.0,0.0,0.0,0.0013,0.0002,0.0025,0.0,0.0017
+session_2,Phase 8 Session 2,1,scratch,1.0,0.0,0.0,0.0003,0.0001,0.0,0.0062,0.0019
+session_2,Phase 8 Session 2,2,crack,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+session_2,Phase 8 Session 2,3,glass shatter,0.0836,0.0769,0.0801,0.0099,0.0014,0.0096,0.0,0.0067
+session_2,Phase 8 Session 2,4,lamp broken,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+session_2,Phase 8 Session 2,5,tire flat,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+session_4,Phase 8 Session 4,0,dent,0.0,0.0,0.0,0.0009,0.0002,0.0011,0.0026,0.0015
+session_4,Phase 8 Session 4,1,scratch,0.0,0.0,0.0,0.0003,0.0,0.0,0.0082,0.0025
+session_4,Phase 8 Session 4,2,crack,1.0,0.0,0.0,0.001,0.0001,0.0003,0.0025,0.001
+session_4,Phase 8 Session 4,3,glass shatter,0.1362,0.1538,0.1445,0.0339,0.0042,0.0365,0.0,0.0255
+session_4,Phase 8 Session 4,4,lamp broken,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+session_4,Phase 8 Session 4,5,tire flat,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0

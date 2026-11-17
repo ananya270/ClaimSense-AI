@@ -1,0 +1,197 @@
+{
+  "cuda_640_batch4": {
+    "model": "C:\\Users\\ansh9\\Desktop\\Claimsense Ai\\models\\phase5\\best.pt",
+    "imgsz": 640,
+    "device": "0",
+    "batch": 4,
+    "workers": 0,
+    "duration_sec": 10.02,
+    "overall": {
+      "precision": 0.1703,
+      "recall": 0.1735,
+      "f1_score": 0.1719,
+      "map50": 0.0012,
+      "map50_95": 0.0003,
+      "latency_ms": {
+        "preprocess": 0.63,
+        "inference": 26.33,
+        "postprocess": 12.91,
+        "total": 39.88
+      }
+    },
+    "per_class": {
+      "dent": {
+        "precision": 0.0027,
+        "recall": 0.2245,
+        "f1_score": 0.0054,
+        "map50": 0.0012,
+        "map50_95": 0.0003
+      },
+      "scratch": {
+        "precision": 1.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "map50": 0.0,
+        "map50_95": 0.0
+      },
+      "crack": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "map50": 0.0,
+        "map50_95": 0.0
+      },
+      "glass shatter": {
+        "precision": 0.004,
+        "recall": 0.75,
+        "f1_score": 0.008,
+        "map50": 0.0036,
+        "map50_95": 0.0011
+      },
+      "lamp broken": {
+        "precision": 0.0152,
+        "recall": 0.0667,
+        "f1_score": 0.0247,
+        "map50": 0.0024,
+        "map50_95": 0.0004
+      },
+      "tire flat": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "map50": 0.0,
+        "map50_95": 0.0
+      }
+    }
+  },
+  "cpu_640_batch1": {
+    "model": "C:\\Users\\ansh9\\Desktop\\Claimsense Ai\\models\\phase5\\best.pt",
+    "imgsz": 640,
+    "device": "cpu",
+    "batch": 1,
+    "workers": 0,
+    "duration_sec": 10.13,
+    "overall": {
+      "precision": 0.0037,
+      "recall": 0.1735,
+      "f1_score": 0.0072,
+      "map50": 0.0013,
+      "map50_95": 0.0003,
+      "latency_ms": {
+        "preprocess": 1.13,
+        "inference": 66.09,
+        "postprocess": 127.25,
+        "total": 194.47
+      }
+    },
+    "per_class": {
+      "dent": {
+        "precision": 0.0028,
+        "recall": 0.2245,
+        "f1_score": 0.0055,
+        "map50": 0.0012,
+        "map50_95": 0.0003
+      },
+      "scratch": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "map50": 0.0,
+        "map50_95": 0.0
+      },
+      "crack": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "map50": 0.0,
+        "map50_95": 0.0
+      },
+      "glass shatter": {
+        "precision": 0.0042,
+        "recall": 0.75,
+        "f1_score": 0.0083,
+        "map50": 0.0042,
+        "map50_95": 0.0013
+      },
+      "lamp broken": {
+        "precision": 0.0152,
+        "recall": 0.0667,
+        "f1_score": 0.0248,
+        "map50": 0.0023,
+        "map50_95": 0.0004
+      },
+      "tire flat": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "map50": 0.0,
+        "map50_95": 0.0
+      }
+    }
+  },
+  "cuda_416_batch4": {
+    "model": "C:\\Users\\ansh9\\Desktop\\Claimsense Ai\\models\\phase5\\best.pt",
+    "imgsz": 416,
+    "device": "0",
+    "batch": 4,
+    "workers": 0,
+    "duration_sec": 2.99,
+    "overall": {
+      "precision": 0.1761,
+      "recall": 0.1355,
+      "f1_score": 0.1532,
+      "map50": 0.0064,
+      "map50_95": 0.0021,
+      "latency_ms": {
+        "preprocess": 0.53,
+        "inference": 18.23,
+        "postprocess": 7.72,
+        "total": 26.48
+      }
+    },
+    "per_class": {
+      "dent": {
+        "precision": 0.0044,
+        "recall": 0.1633,
+        "f1_score": 0.0085,
+        "map50": 0.0022,
+        "map50_95": 0.0006
+      },
+      "scratch": {
+        "precision": 1.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "map50": 0.0007,
+        "map50_95": 0.0001
+      },
+      "crack": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "map50": 0.0,
+        "map50_95": 0.0
+      },
+      "glass shatter": {
+        "precision": 0.0058,
+        "recall": 0.5833,
+        "f1_score": 0.0115,
+        "map50": 0.0207,
+        "map50_95": 0.0101
+      },
+      "lamp broken": {
+        "precision": 0.0466,
+        "recall": 0.0667,
+        "f1_score": 0.0549,
+        "map50": 0.013,
+        "map50_95": 0.0018
+      },
+      "tire flat": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "map50": 0.002,
+        "map50_95": 0.0002
+      }
+    }
+  }
+}

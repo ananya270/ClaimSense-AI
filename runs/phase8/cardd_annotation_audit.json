@@ -1,0 +1,848 @@
+{
+  "train": {
+    "num_images": 210,
+    "num_labels": 210,
+    "instance_counts": {
+      "tire flat": 22,
+      "crack": 91,
+      "dent": 234,
+      "scratch": 258,
+      "lamp broken": 64,
+      "glass shatter": 45
+    },
+    "image_presence": {
+      "tire flat": 22,
+      "crack": 56,
+      "scratch": 154,
+      "dent": 142,
+      "lamp broken": 62,
+      "glass shatter": 45
+    },
+    "resolutions": {
+      "unique_resolutions": [
+        [
+          665,
+          1000
+        ],
+        [
+          667,
+          1000
+        ],
+        [
+          714,
+          1000
+        ],
+        [
+          750,
+          1000
+        ],
+        [
+          774,
+          1000
+        ],
+        [
+          890,
+          1000
+        ],
+        [
+          1000,
+          519
+        ],
+        [
+          1000,
+          554
+        ],
+        [
+          1000,
+          562
+        ],
+        [
+          1000,
+          563
+        ],
+        [
+          1000,
+          579
+        ],
+        [
+          1000,
+          583
+        ],
+        [
+          1000,
+          606
+        ],
+        [
+          1000,
+          637
+        ],
+        [
+          1000,
+          639
+        ],
+        [
+          1000,
+          640
+        ],
+        [
+          1000,
+          656
+        ],
+        [
+          1000,
+          662
+        ],
+        [
+          1000,
+          664
+        ],
+        [
+          1000,
+          665
+        ],
+        [
+          1000,
+          666
+        ],
+        [
+          1000,
+          667
+        ],
+        [
+          1000,
+          668
+        ],
+        [
+          1000,
+          669
+        ],
+        [
+          1000,
+          671
+        ],
+        [
+          1000,
+          678
+        ],
+        [
+          1000,
+          681
+        ],
+        [
+          1000,
+          683
+        ],
+        [
+          1000,
+          689
+        ],
+        [
+          1000,
+          694
+        ],
+        [
+          1000,
+          695
+        ],
+        [
+          1000,
+          696
+        ],
+        [
+          1000,
+          702
+        ],
+        [
+          1000,
+          704
+        ],
+        [
+          1000,
+          712
+        ],
+        [
+          1000,
+          732
+        ],
+        [
+          1000,
+          750
+        ],
+        [
+          1000,
+          751
+        ],
+        [
+          1000,
+          759
+        ],
+        [
+          1000,
+          787
+        ],
+        [
+          1000,
+          830
+        ],
+        [
+          1000,
+          859
+        ],
+        [
+          1000,
+          904
+        ],
+        [
+          1000,
+          993
+        ],
+        [
+          1000,
+          1000
+        ]
+      ],
+      "min_w": 665,
+      "max_w": 1000,
+      "min_h": 519,
+      "max_h": 1000
+    },
+    "area_stats": {
+      "tire flat": {
+        "count": 22,
+        "mean": 0.22828,
+        "std": 0.18765,
+        "median": 0.17102,
+        "min": 0.015259,
+        "max": 0.68435,
+        "p25": 0.10868,
+        "p75": 0.24137
+      },
+      "crack": {
+        "count": 91,
+        "mean": 0.02638,
+        "std": 0.06886,
+        "median": 0.0069,
+        "min": 0.000175,
+        "max": 0.44974,
+        "p25": 0.00251,
+        "p75": 0.01356
+      },
+      "dent": {
+        "count": 234,
+        "mean": 0.09862,
+        "std": 0.12248,
+        "median": 0.05523,
+        "min": 0.000202,
+        "max": 0.78924,
+        "p25": 0.02396,
+        "p75": 0.12362
+      },
+      "scratch": {
+        "count": 258,
+        "mean": 0.08116,
+        "std": 0.11788,
+        "median": 0.04324,
+        "min": 0.001862,
+        "max": 0.7597,
+        "p25": 0.01659,
+        "p75": 0.09195
+      },
+      "lamp broken": {
+        "count": 64,
+        "mean": 0.14026,
+        "std": 0.12163,
+        "median": 0.10068,
+        "min": 0.009664,
+        "max": 0.5346,
+        "p25": 0.06899,
+        "p75": 0.16661
+      },
+      "glass shatter": {
+        "count": 45,
+        "mean": 0.45514,
+        "std": 0.29771,
+        "median": 0.43168,
+        "min": 0.014845,
+        "max": 1.0,
+        "p25": 0.19521,
+        "p75": 0.67791
+      }
+    },
+    "tiny_boxes_count": 16,
+    "tiny_boxes_sample": [
+      {
+        "image": "000008.jpg",
+        "class": "crack",
+        "bbox": [
+          0.3967,
+          0.2438,
+          0.0156,
+          0.0283
+        ],
+        "area": 0.000442
+      },
+      {
+        "image": "000265.jpg",
+        "class": "dent",
+        "bbox": [
+          0.0123,
+          0.6536,
+          0.017,
+          0.0119
+        ],
+        "area": 0.000202
+      },
+      {
+        "image": "000265.jpg",
+        "class": "dent",
+        "bbox": [
+          0.0154,
+          0.5715,
+          0.0232,
+          0.0213
+        ],
+        "area": 0.000494
+      },
+      {
+        "image": "000265.jpg",
+        "class": "dent",
+        "bbox": [
+          0.0176,
+          0.6166,
+          0.0255,
+          0.0213
+        ],
+        "area": 0.000543
+      },
+      {
+        "image": "000265.jpg",
+        "class": "dent",
+        "bbox": [
+          0.0347,
+          0.5337,
+          0.0233,
+          0.0238
+        ],
+        "area": 0.000554
+      },
+      {
+        "image": "000904.jpg",
+        "class": "crack",
+        "bbox": [
+          0.2089,
+          0.533,
+          0.0098,
+          0.0461
+        ],
+        "area": 0.000452
+      },
+      {
+        "image": "001111.jpg",
+        "class": "crack",
+        "bbox": [
+          0.4192,
+          0.369,
+          0.0223,
+          0.0232
+        ],
+        "area": 0.000517
+      },
+      {
+        "image": "001132.jpg",
+        "class": "crack",
+        "bbox": [
+          0.4991,
+          0.624,
+          0.0109,
+          0.0395
+        ],
+        "area": 0.00043
+      },
+      {
+        "image": "001149.jpg",
+        "class": "dent",
+        "bbox": [
+          0.5979,
+          0.4391,
+          0.0543,
+          0.0114
+        ],
+        "area": 0.000621
+      },
+      {
+        "image": "001149.jpg",
+        "class": "dent",
+        "bbox": [
+          0.7964,
+          0.4165,
+          0.0634,
+          0.0157
+        ],
+        "area": 0.000997
+      }
+    ],
+    "overlapping_boxes_count": 0,
+    "overlapping_boxes_sample": [],
+    "fragmented_scratch_count": 26,
+    "fragmented_scratch_sample": [
+      {
+        "image": "000112.jpg",
+        "scratch_count": 4,
+        "total_boxes": 5
+      },
+      {
+        "image": "000118.jpg",
+        "scratch_count": 3,
+        "total_boxes": 6
+      },
+      {
+        "image": "000126.jpg",
+        "scratch_count": 3,
+        "total_boxes": 5
+      },
+      {
+        "image": "000512.jpg",
+        "scratch_count": 5,
+        "total_boxes": 6
+      },
+      {
+        "image": "000566.jpg",
+        "scratch_count": 3,
+        "total_boxes": 6
+      },
+      {
+        "image": "000594.jpg",
+        "scratch_count": 4,
+        "total_boxes": 5
+      },
+      {
+        "image": "000792.jpg",
+        "scratch_count": 5,
+        "total_boxes": 6
+      },
+      {
+        "image": "000870.jpg",
+        "scratch_count": 4,
+        "total_boxes": 7
+      },
+      {
+        "image": "001153.jpg",
+        "scratch_count": 3,
+        "total_boxes": 5
+      },
+      {
+        "image": "001485.jpg",
+        "scratch_count": 3,
+        "total_boxes": 5
+      }
+    ]
+  },
+  "val": {
+    "num_images": 45,
+    "num_labels": 45,
+    "instance_counts": {
+      "glass shatter": 10,
+      "scratch": 60,
+      "lamp broken": 10,
+      "tire flat": 5,
+      "dent": 44,
+      "crack": 11
+    },
+    "image_presence": {
+      "glass shatter": 10,
+      "scratch": 36,
+      "lamp broken": 10,
+      "tire flat": 5,
+      "dent": 31,
+      "crack": 10
+    },
+    "resolutions": {
+      "unique_resolutions": [
+        [
+          662,
+          1000
+        ],
+        [
+          667,
+          1000
+        ],
+        [
+          668,
+          1000
+        ],
+        [
+          750,
+          1000
+        ],
+        [
+          1000,
+          662
+        ],
+        [
+          1000,
+          663
+        ],
+        [
+          1000,
+          664
+        ],
+        [
+          1000,
+          666
+        ],
+        [
+          1000,
+          667
+        ],
+        [
+          1000,
+          668
+        ],
+        [
+          1000,
+          675
+        ],
+        [
+          1000,
+          702
+        ],
+        [
+          1000,
+          731
+        ],
+        [
+          1000,
+          750
+        ],
+        [
+          1000,
+          800
+        ]
+      ],
+      "min_w": 662,
+      "max_w": 1000,
+      "min_h": 662,
+      "max_h": 1000
+    },
+    "area_stats": {
+      "glass shatter": {
+        "count": 10,
+        "mean": 0.41176,
+        "std": 0.26628,
+        "median": 0.46802,
+        "min": 0.060864,
+        "max": 0.82281,
+        "p25": 0.1475,
+        "p75": 0.53617
+      },
+      "scratch": {
+        "count": 60,
+        "mean": 0.08504,
+        "std": 0.10543,
+        "median": 0.04345,
+        "min": 0.006775,
+        "max": 0.61711,
+        "p25": 0.01988,
+        "p75": 0.09867
+      },
+      "lamp broken": {
+        "count": 10,
+        "mean": 0.17285,
+        "std": 0.16677,
+        "median": 0.11682,
+        "min": 0.030621,
+        "max": 0.63433,
+        "p25": 0.09448,
+        "p75": 0.15538
+      },
+      "tire flat": {
+        "count": 5,
+        "mean": 0.21894,
+        "std": 0.09431,
+        "median": 0.25535,
+        "min": 0.059078,
+        "max": 0.32616,
+        "p25": 0.17248,
+        "p75": 0.28164
+      },
+      "dent": {
+        "count": 44,
+        "mean": 0.10728,
+        "std": 0.15719,
+        "median": 0.05071,
+        "min": 0.000656,
+        "max": 0.77418,
+        "p25": 0.02484,
+        "p75": 0.09283
+      },
+      "crack": {
+        "count": 11,
+        "mean": 0.02502,
+        "std": 0.03786,
+        "median": 0.00735,
+        "min": 0.001017,
+        "max": 0.13788,
+        "p25": 0.00478,
+        "p75": 0.02539
+      }
+    },
+    "tiny_boxes_count": 1,
+    "tiny_boxes_sample": [
+      {
+        "image": "001128.jpg",
+        "class": "dent",
+        "bbox": [
+          0.7754,
+          0.0941,
+          0.0195,
+          0.0336
+        ],
+        "area": 0.000656
+      }
+    ],
+    "overlapping_boxes_count": 0,
+    "overlapping_boxes_sample": [],
+    "fragmented_scratch_count": 5,
+    "fragmented_scratch_sample": [
+      {
+        "image": "000835.jpg",
+        "scratch_count": 3,
+        "total_boxes": 4
+      },
+      {
+        "image": "002241.jpg",
+        "scratch_count": 6,
+        "total_boxes": 6
+      },
+      {
+        "image": "002315.jpg",
+        "scratch_count": 3,
+        "total_boxes": 7
+      },
+      {
+        "image": "002934.jpg",
+        "scratch_count": 3,
+        "total_boxes": 6
+      },
+      {
+        "image": "002954.jpg",
+        "scratch_count": 4,
+        "total_boxes": 5
+      }
+    ]
+  },
+  "test": {
+    "num_images": 45,
+    "num_labels": 45,
+    "instance_counts": {
+      "dent": 49,
+      "scratch": 53,
+      "crack": 13,
+      "glass shatter": 12,
+      "lamp broken": 15,
+      "tire flat": 6
+    },
+    "image_presence": {
+      "scratch": 29,
+      "dent": 30,
+      "crack": 10,
+      "lamp broken": 15,
+      "glass shatter": 12,
+      "tire flat": 6
+    },
+    "resolutions": {
+      "unique_resolutions": [
+        [
+          667,
+          1000
+        ],
+        [
+          761,
+          1000
+        ],
+        [
+          1000,
+          500
+        ],
+        [
+          1000,
+          534
+        ],
+        [
+          1000,
+          563
+        ],
+        [
+          1000,
+          647
+        ],
+        [
+          1000,
+          652
+        ],
+        [
+          1000,
+          654
+        ],
+        [
+          1000,
+          665
+        ],
+        [
+          1000,
+          666
+        ],
+        [
+          1000,
+          667
+        ],
+        [
+          1000,
+          668
+        ],
+        [
+          1000,
+          681
+        ],
+        [
+          1000,
+          694
+        ],
+        [
+          1000,
+          740
+        ],
+        [
+          1000,
+          750
+        ]
+      ],
+      "min_w": 667,
+      "max_w": 1000,
+      "min_h": 500,
+      "max_h": 1000
+    },
+    "area_stats": {
+      "dent": {
+        "count": 49,
+        "mean": 0.09876,
+        "std": 0.11287,
+        "median": 0.05382,
+        "min": 0.000614,
+        "max": 0.48451,
+        "p25": 0.029,
+        "p75": 0.11356
+      },
+      "scratch": {
+        "count": 53,
+        "mean": 0.08487,
+        "std": 0.08542,
+        "median": 0.0565,
+        "min": 0.002608,
+        "max": 0.44074,
+        "p25": 0.02822,
+        "p75": 0.11763
+      },
+      "crack": {
+        "count": 13,
+        "mean": 0.0156,
+        "std": 0.0192,
+        "median": 0.00526,
+        "min": 0.000775,
+        "max": 0.06241,
+        "p25": 0.00364,
+        "p75": 0.01883
+      },
+      "glass shatter": {
+        "count": 12,
+        "mean": 0.38385,
+        "std": 0.35009,
+        "median": 0.26226,
+        "min": 0.036426,
+        "max": 1.0,
+        "p25": 0.08505,
+        "p75": 0.59388
+      },
+      "lamp broken": {
+        "count": 15,
+        "mean": 0.1897,
+        "std": 0.17574,
+        "median": 0.13519,
+        "min": 0.011048,
+        "max": 0.52224,
+        "p25": 0.02926,
+        "p75": 0.35398
+      },
+      "tire flat": {
+        "count": 6,
+        "mean": 0.23155,
+        "std": 0.19394,
+        "median": 0.20445,
+        "min": 0.02178,
+        "max": 0.56641,
+        "p25": 0.05767,
+        "p75": 0.33871
+      }
+    },
+    "tiny_boxes_count": 2,
+    "tiny_boxes_sample": [
+      {
+        "image": "003354.jpg",
+        "class": "crack",
+        "bbox": [
+          0.6403,
+          0.5895,
+          0.0228,
+          0.0339
+        ],
+        "area": 0.000775
+      },
+      {
+        "image": "003743.jpg",
+        "class": "dent",
+        "bbox": [
+          0.546,
+          0.275,
+          0.0226,
+          0.0272
+        ],
+        "area": 0.000614
+      }
+    ],
+    "overlapping_boxes_count": 0,
+    "overlapping_boxes_sample": [],
+    "fragmented_scratch_count": 6,
+    "fragmented_scratch_sample": [
+      {
+        "image": "000042.jpg",
+        "scratch_count": 6,
+        "total_boxes": 12
+      },
+      {
+        "image": "001506.jpg",
+        "scratch_count": 3,
+        "total_boxes": 3
+      },
+      {
+        "image": "001799.jpg",
+        "scratch_count": 4,
+        "total_boxes": 6
+      },
+      {
+        "image": "001800.jpg",
+        "scratch_count": 3,
+        "total_boxes": 3
+      },
+      {
+        "image": "002707.jpg",
+        "scratch_count": 4,
+        "total_boxes": 8
+      },
+      {
+        "image": "003414.jpg",
+        "scratch_count": 3,
+        "total_boxes": 6
+      }
+    ]
+  }
+}

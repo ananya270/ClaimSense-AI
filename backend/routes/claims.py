@@ -270,6 +270,21 @@ def submit_claim():
         except Exception as exc:
             logger.warning(f"Automated Phase 5 damage detection failed/skipped for claim {claim_id}: {exc}")
 
+        # Phase 8 Shadow Trial: Non-blocking background dispatch (Strictly isolated, disabled by default)
+        try:
+            from backend.services.vision.shadow_worker import get_shadow_manager
+            shadow_mgr = get_shadow_manager()
+            if shadow_mgr.is_enabled():
+                cand_img_path = upload_base / img_rel_path if img_rel_path else None
+                if cand_img_path and cand_img_path.exists():
+                    shadow_mgr.enqueue_shadow_job(
+                        claim_id=claim_id,
+                        image_path=cand_img_path,
+                        prod_detections=auto_damage_analysis or {},
+                    )
+        except Exception as shadow_hook_exc:
+            logger.warning(f"Shadow trial dispatch safely bypassed for claim {claim_id}: {shadow_hook_exc}")
+
         logger.info(f"Successfully processed and stored claim in disk and SQLite: {claim_id}")
 
         return jsonify({

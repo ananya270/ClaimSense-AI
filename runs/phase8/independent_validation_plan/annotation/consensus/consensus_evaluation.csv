@@ -1,0 +1,9 @@
+image_id,status,class_match,rev_a_class,rev_b_class,iou,rev_a_box,rev_b_box,consensus_box,requires_adjudication,dispute_reason
+CS_VAL_016,CONSENSUS_ACHIEVED,True,dent,dent,0.9464,"[45, 35, 595, 445]","[50, 40, 600, 435]","[48, 38, 598, 440]",False,None
+CS_VAL_017,CONSENSUS_ACHIEVED,True,dent,dent,0.9125,"[55, 70, 665, 730]","[65, 80, 675, 760]","[60, 75, 670, 745]",False,None
+CS_VAL_020,CONSENSUS_ACHIEVED,True,crack,crack,0.8711,"[95, 65, 545, 365]","[115, 75, 535, 355]","[105, 70, 540, 360]",False,None
+CS_VAL_021,CONSENSUS_ACHIEVED,True,crack,crack,0.8861,"[140, 55, 510, 405]","[130, 45, 525, 415]","[135, 50, 518, 410]",False,None
+CS_VAL_022,DISPUTED_CLASS_MISMATCH,False,lamp broken,glass shatter,0.9479,"[45, 35, 585, 435]","[50, 40, 575, 430]",PENDING_ADJUDICATION,True,"Class conflict: Reviewer A identified lamp broken (4), Reviewer B identified glass shatter (3)."
+CS_VAL_023,CONSENSUS_ACHIEVED,True,lamp broken,lamp broken,0.9396,"[165, 75, 775, 415]","[175, 80, 765, 420]","[170, 78, 770, 418]",False,None
+CS_VAL_024,DISPUTED_SEGMENTATION_MISMATCH,True,scratch,scratch,0.1244,"[40, 115, 600, 325]","3 Sub-boxes: [[40, 115, 230, 185], [225, 180, 420, 255], [415, 250, 600, 325]]",PENDING_ADJUDICATION,True,Granularity conflict: Reviewer A drew single unified AABB for continuous scratch; Reviewer B partitioned into 3 sub-boxes (max IoU 0.1244 < 0.50).
+CS_VAL_025,CONSENSUS_ACHIEVED,True,dent,dent,0.9038,"[75, 55, 565, 385]","[85, 65, 555, 395]","[80, 60, 560, 390]",False,None

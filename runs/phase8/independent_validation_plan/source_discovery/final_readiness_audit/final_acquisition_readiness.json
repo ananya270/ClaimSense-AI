@@ -1,0 +1,158 @@
+{
+  "audit_metadata": {
+    "project": "ClaimSense AI",
+    "version": "1.0-Forensic-Readiness",
+    "audit_date": "2026-11-17",
+    "scope": "Phase 8 Independent Dataset Source-Level Legal & Acquisition Readiness Audit",
+    "target_dataset_name": "CarDD_Independent_Val_v1",
+    "target_image_count": 235,
+    "contingency_buffer": 15,
+    "target_instance_quotas": {
+      "dent": 90,
+      "scratch": 100,
+      "crack": 60,
+      "glass_shatter": 40,
+      "lamp_broken": 45,
+      "tire_flat": 30,
+      "total_instances_min": 365
+    },
+    "strict_execution_boundaries": {
+      "image_downloads_executed": false,
+      "dataset_modifications_executed": false,
+      "model_training_executed": false,
+      "checkpoints_modified": false
+    }
+  },
+  "source_evaluations": [
+    {
+      "source_id": "SRC-01",
+      "source_name": "Car Damage V5",
+      "curator_or_host": "Erkans Workspace (Roboflow Universe)",
+      "evidence_url": "https://universe.roboflow.com/car-damage/car-damage-v5",
+      "repository_license": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+      "asset_level_title_status": "UNVERIFIED_UPLOADER_CHAIN",
+      "classification": "CONDITIONAL",
+      "documented_physical_images": 3001,
+      "allocated_image_quota": 35,
+      "targeted_classes": ["Scratch", "Dent", "Grille/Splitter"],
+      "commercial_rights": "Permitted for internal evaluation under Fair Use; external commercial redistribution prohibited due to unverified uploader copyright",
+      "unresolved_legal_questions": "Roboflow Terms of Service disclaim title warranties and place legal risk on uploaders; uploader did not document individual photographer copyright assignments or PII releases for the 3,001 web-aggregated photographs.",
+      "safeguard_protocol": "Quarantined for internal benchmarking only; mandatory solid PII masking; capped at auxiliary quota."
+    },
+    {
+      "source_id": "SRC-02",
+      "source_name": "Car Parts and Damage Dataset",
+      "curator_or_host": "Humans in the Loop (Root) / DrBimmer (Hugging Face Mirror)",
+      "evidence_url": "https://huggingface.co/datasets/DrBimmer/car-parts-and-damage-dataset",
+      "root_evidence_url": "https://humansintheloop.org/resources/datasets/car-parts-and-car-damages-dataset/",
+      "repository_license": "MIT License (DrBimmer) / CC0 1.0 Universal (Humans in the Loop Root)",
+      "asset_level_title_status": "VERIFIED_INSTITUTIONAL_DEDICATION",
+      "classification": "APPROVED",
+      "documented_physical_images": 1812,
+      "allocated_image_quota": 115,
+      "targeted_classes": ["Crack (Bumper Fascia Splits)", "Lamp Broken", "Scratch", "Dent"],
+      "commercial_rights": "Unconditionally permitted for commercial evaluation, model fine-tuning, weight extraction, and derivative redistribution under CC0 1.0 Section 2",
+      "unresolved_legal_questions": "None. Established institutional creator officially dedicated raw images and polygon annotations to public domain worldwide.",
+      "safeguard_protocol": "Primary anchor source (48.9% of portfolio); standard EXIF strip and solid PII masking; preserve attribution to Humans in the Loop."
+    },
+    {
+      "source_id": "SRC-03",
+      "source_name": "Car Damage Detection",
+      "curator_or_host": "Anuj Shah (Kaggle Community Contributor)",
+      "evidence_url": "https://www.kaggle.com/datasets/anujms/car-damage-detection",
+      "repository_license": "None / Unspecified (Default Kaggle User Submission)",
+      "asset_level_title_status": "UNLICENSED_WEB_SCRAPE",
+      "classification": "REJECTED",
+      "documented_physical_images": 2300,
+      "allocated_image_quota": 0,
+      "targeted_classes": [],
+      "commercial_rights": "PROHIBITED. Third-party photographers retain All Rights Reserved under international copyright law",
+      "unresolved_legal_questions": "Fatal lack of open licensing deed on Kaggle dataset card; dataset is an educational 2018 web scrape lacking commercial permissions or photographer consent.",
+      "safeguard_protocol": "Completely excluded from acquisition pipeline."
+    },
+    {
+      "source_id": "SRC-04",
+      "source_name": "Coco Car Damage Detection Dataset",
+      "curator_or_host": "LPLenka (Kaggle Community Contributor)",
+      "evidence_url": "https://www.kaggle.com/datasets/lplenka/coco-car-damage-detection-dataset",
+      "repository_license": "Creative Commons CC0 1.0 Universal",
+      "asset_level_title_status": "TINY_SCALE_UNVERIFIED_TIRE_COVERAGE",
+      "classification": "CONDITIONAL",
+      "documented_physical_images": 80,
+      "allocated_image_quota": 0,
+      "targeted_classes": [],
+      "commercial_rights": "Self-reported CC0 on Kaggle, but volume is statistically negligible",
+      "unresolved_legal_questions": "Dataset contains exactly 80 total images (not 1,500) and zero flat tires. Ineffective for statistical validation quotas.",
+      "safeguard_protocol": "Deprecated from primary allocation; held in reserve only for minor supplemental bumper checks if necessary."
+    },
+    {
+      "source_id": "SRC-05",
+      "source_name": "Car Damage Dataset (Claims)",
+      "curator_or_host": "Vinay Jose (Kaggle Contributor)",
+      "evidence_url": "https://www.kaggle.com/datasets/vinayjose/car-damage-dataset",
+      "repository_license": "Apache License, Version 2.0 (Self-Reported)",
+      "asset_level_title_status": "UNVERIFIED_CLAIM_AGGREGATION",
+      "classification": "CONDITIONAL",
+      "documented_physical_images": 8080,
+      "allocated_image_quota": 25,
+      "targeted_classes": ["Glass Shatter (Windshields)", "Heavy Impact Dents", "Structural Cracks"],
+      "commercial_rights": "Permitted for internal evaluation under Fair Use; external commercial redistribution prohibited due to unverified uploader copyright",
+      "unresolved_legal_questions": "Uploader aggregated real insurance claim walkaround photos from online portals; chain of copyright title from original insurance adjustors/claimants is unverified.",
+      "safeguard_protocol": "Quarantined for internal benchmarking only; mandatory solid PII masking over registration numbers and VIN tags; capped at auxiliary quota."
+    },
+    {
+      "source_id": "SRC-06",
+      "source_name": "Wikimedia Commons Automotive Collections",
+      "curator_or_host": "Wikimedia Foundation & Global Contributors",
+      "evidence_url": "https://commons.wikimedia.org/wiki/Category:Damaged_automobiles",
+      "secondary_urls": [
+        "https://commons.wikimedia.org/wiki/Category:Flat_tires",
+        "https://commons.wikimedia.org/wiki/Special:Search?query=Automobile+hail+damage",
+        "https://commons.wikimedia.org/wiki/Category:Broken_car_windows"
+      ],
+      "repository_license": "Per-File Deeds: CC0, Public Domain, or CC BY 2.0/3.0/4.0 (Selective Filter)",
+      "asset_level_title_status": "VERIFIED_PER_FILE_CONTRIBUTOR_DEED",
+      "classification": "APPROVED",
+      "documented_physical_images": 10000,
+      "allocated_image_quota": 60,
+      "targeted_classes": ["Tire Flat (25-28 dedicated)", "Dent (15 hail clusters)", "Glass Shatter (10 windshields)", "Lamp Broken (7 collision)"],
+      "commercial_rights": "Fully cleared for commercial evaluation, adaptation, and internal benchmarking under CC0 and CC BY deeds",
+      "unresolved_legal_questions": "Must strictly filter out CC BY-SA (Share-Alike) files to avoid legal debate regarding model weight adaptation copyleft obligations.",
+      "safeguard_protocol": "Primary anchor source for rare classes (25.5% of portfolio); per-file API license verification; preserve photographer attribution in manifest."
+    }
+  ],
+  "revised_portfolio_summary": {
+    "total_target_images": 235,
+    "contingency_buffer_images": 15,
+    "portfolio_distribution": {
+      "tier1_verified_cleared_images": 175,
+      "tier1_verified_percentage": 74.47,
+      "tier2_conditional_quarantined_images": 60,
+      "tier2_conditional_percentage": 25.53,
+      "rejected_images": 0
+    },
+    "projected_target_instance_yields": {
+      "dent": { "target": 90, "projected_yield": 130, "margin_percent": 44.4 },
+      "scratch": { "target": 100, "projected_yield": 140, "margin_percent": 40.0 },
+      "crack": { "target": 60, "projected_yield": 68, "margin_percent": 13.3 },
+      "glass_shatter": { "target": 40, "projected_yield": 46, "margin_percent": 15.0 },
+      "lamp_broken": { "target": 45, "projected_yield": 50, "margin_percent": 11.1 },
+      "tire_flat": { "target": 30, "projected_yield": 32, "margin_percent": 6.7 },
+      "total_instances": { "target": 365, "projected_yield": 466, "margin_percent": 27.7 }
+    }
+  },
+  "privacy_and_provenance_specifications": {
+    "redaction_methodology": "Solid opaque zero-entropy masking ([0,0,0] black box) over all license plates and VIN tags",
+    "exif_metadata_protocol": "Dual-layer architecture: All EXIF stripped from distributed ML images; technical metadata and SHA-256 hashes preserved in secure dataset_manifest.json",
+    "deduplication_pipeline": {
+      "exact_byte_match": "SHA-256 cryptographic hash collision rejection",
+      "perceptual_hash_dhash": "64-bit difference hash with Hamming distance <= 4 flagged as duplicate",
+      "perceptual_hash_phash": "DCT perceptual hash with Hamming distance <= 6 flagged for manual audit"
+    },
+    "annotation_protocol": {
+      "method": "Dual-Blind Independent Review with Senior Adjudicator Resolution",
+      "target_cohen_kappa": 0.85,
+      "bounding_box_iou_threshold": 0.70
+    }
+  }
+}

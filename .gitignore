@@ -1,54 +1,3 @@
-
-# Python Virtual Environment
-.venv/
-venv/
-ENV/
-env/
-
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Environment Variables
-.env
-
-# Data & Uploads (preserve directories via .gitkeep)
-uploads/*
-!uploads/.gitkeep
-reports/*
-!reports/.gitkeep
-models/*
-!models/.gitkeep
-data/sample_claims/*
-!data/sample_claims/.gitkeep
-
-# SQLite database
-*.sqlite3
-*.db
-backend/database/*.db
-backend/database/*.sqlite3
-
-# Logs
-*.log
-logs/
-
-# IDE / Editor artifacts
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS files
-.DS_Store
-Thumbs.db
-
-<<<<<<< HEAD
-# Research Datasets
-# CarDD and FUNSD are excluded due to redistribution restrictions
-datasets/
-
-=======
 # ==========================================
 # PYTHON VIRTUAL ENVIRONMENT
 # ==========================================
@@ -58,7 +7,7 @@ ENV/
 env/
 
 # ==========================================
-# PYTHON CACHE
+# PYTHON CACHE & TESTING
 # ==========================================
 __pycache__/
 *.py[cod]
@@ -87,27 +36,55 @@ reports/*
 !reports/.gitkeep
 
 # ==========================================
-# MODEL WEIGHTS
+# MODEL WEIGHTS & CHECKPOINTS
 # ==========================================
-models/*.pth
-models/*.pt
-models/*.h5
-models/*.onnx
-models/*.weights
+*.pth
+*.pt
+*.h5
+*.onnx
+*.weights
+models/*
+!models/.gitkeep
+runs/**/weights/
 
 # ==========================================
-# RESEARCH DATASETS
-# Keep dataset instructions, not raw datasets
+# RESEARCH DATASETS & IMAGES
+# Keep manifests, reports, documentation
 # ==========================================
 datasets/FUNSD/
 datasets/SROIE/
 datasets/CarDD/
-
+datasets/CarDD_300/
+datasets/CarDD_Expanded_v1/
+datasets/domain_adaptation_dev/
+datasets/exp01_dataset/
+datasets/exp02_dataset/
+datasets/exp03_dataset/
 datasets/**/images/
 datasets/**/annotations/
-
+datasets/**/labels/
+datasets/**/processed/
+datasets/**/provenance/
+datasets/**/raw_restricted/
+datasets/**/rejected/
+datasets/**/batch_01/
+datasets/**/batch_02/
+datasets/**/archive/
 !datasets/README.md
 !datasets/.gitkeep
+!datasets/**/manifests/
+
+# ==========================================
+# TRAINING ARTIFACTS & RAW RUN IMAGES
+# Keep reports, metrics, CSVs, and JSONs
+# ==========================================
+runs/**/*.jpg
+runs/**/*.jpeg
+runs/**/*.png
+runs/detect/
+runs/**/dataset_staging/
+runs/**/gate_o_staging/
+scratch/
 
 # ==========================================
 # LOCAL DATA AND SAMPLE CLAIMS
@@ -125,32 +102,23 @@ data/sample_claims/*
 *.db-shm
 
 # ==========================================
-# BACKUPS
+# BACKUPS, LOGS & TEMPORARY FILES
 # ==========================================
 backups/
 *.bak
 *.backup
-
-# ==========================================
-# LOGS AND TEMPORARY FILES
-# ==========================================
 *.log
 logs/
 temp/
 tmp/
 
 # ==========================================
-# IDE / EDITOR
+# IDE / EDITOR & OS
 # ==========================================
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# ==========================================
-# OPERATING SYSTEM
-# ==========================================
 .DS_Store
 Thumbs.db
 desktop.ini
->>>>>>> 772aeb2 (Phase 4)

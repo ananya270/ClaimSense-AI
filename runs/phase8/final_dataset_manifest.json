@@ -1,0 +1,110 @@
+{
+  "manifest_version": "1.0.0",
+  "dataset_name": "CarDD_Expanded_v1",
+  "created_at": "2026-11-17T10:14:02.143771",
+  "dataset_root": "datasets/CarDD_Expanded_v1",
+  "dataset_config_yaml": "datasets/CarDD_Expanded_v1/dataset.yaml",
+  "class_mapping": {
+    "0": "dent",
+    "1": "scratch",
+    "2": "crack",
+    "3": "glass shatter",
+    "4": "lamp broken",
+    "5": "tire flat"
+  },
+  "splits": {
+    "train": {
+      "image_dir": "datasets/CarDD_Expanded_v1/train/images",
+      "label_dir": "datasets/CarDD_Expanded_v1/train/labels",
+      "image_count": 210,
+      "label_count": 210,
+      "total_instances": 656,
+      "class_distribution": {
+        "dent": 230,
+        "scratch": 204,
+        "crack": 91,
+        "glass shatter": 45,
+        "lamp broken": 64,
+        "tire flat": 22
+      },
+      "applied_annotation_consolidations": 35,
+      "instance_reduction_from_baseline": 58,
+      "linter_status": "PASSED (0 syntax errors, 13 warnings)"
+    },
+    "val": {
+      "image_dir": "datasets/CarDD_Expanded_v1/val/images",
+      "label_dir": "datasets/CarDD_Expanded_v1/val/labels",
+      "image_count": 45,
+      "label_count": 45,
+      "total_instances": 140,
+      "class_distribution": {
+        "dent": 44,
+        "scratch": 60,
+        "crack": 11,
+        "glass shatter": 10,
+        "lamp broken": 10,
+        "tire flat": 5
+      },
+      "is_untouched_mirror_of_cardd_300": true,
+      "linter_status": "PASSED (0 syntax errors, 1 warning)"
+    },
+    "test": {
+      "image_dir": "datasets/CarDD_300/test/images",
+      "label_dir": "datasets/CarDD_300/test/labels",
+      "image_count": 45,
+      "label_count": 45,
+      "total_instances": 148,
+      "class_distribution": {
+        "dent": 49,
+        "scratch": 53,
+        "crack": 13,
+        "glass shatter": 12,
+        "lamp broken": 15,
+        "tire flat": 6
+      },
+      "is_frozen_test_split": true
+    }
+  },
+  "acquisition_pilot_status": {
+    "batch_id": "BATCH_001_EXPANDED_PILOT",
+    "cataloged_images": 100,
+    "allocation": {
+      "crack": 40,
+      "scratch": 35,
+      "dent": 25
+    },
+    "manifest_path": "datasets/CarDD_Expanded_v1/provenance/batch_1_manifest.json",
+    "schema_conformance": "PASSED (100% compliant with provenance_schema.json)",
+    "physical_ingestion_status": "PENDING_PHYSICAL_INGESTION (0 physical image files in raw_incoming)",
+    "dual_review_iaa_iou": 0.887,
+    "action_taken": "Quarantined in staging; not injected into active training tensors until physical files arrive"
+  },
+  "manual_adjudication_status": {
+    "total_quarantined_cases": 78,
+    "scratch_cases": 16,
+    "scratch_action": "Preserved as separate boxes (no consolidation applied)",
+    "dent_cases": 2,
+    "dent_action": "Preserved in 001149.txt (no unapproved deletion applied)",
+    "missing_crack_candidates": 60,
+    "missing_crack_action": "Zero labels added without ground-truth physical verification",
+    "status": "FORMALLY_CLOSED_QUARANTINED"
+  },
+  "leakage_and_integrity_audit": {
+    "train_val_filename_overlap": 0,
+    "train_test_filename_overlap": 0,
+    "val_test_filename_overlap": 0,
+    "train_val_sha256_overlap": 0,
+    "train_test_sha256_overlap": 0,
+    "val_test_sha256_overlap": 0,
+    "bounding_box_out_of_bounds_errors": 0,
+    "image_label_pairing_rate": 1.0
+  },
+  "safeguards_verification": {
+    "production_model_untouched": true,
+    "production_model_path": "models/phase5/best.pt",
+    "production_model_sha256": "90d489e46ff8521edff88d522f0feffa164ac38a53b84700594c02a69e515565",
+    "phase7_verification_engine_frozen": true,
+    "training_executed": false,
+    "model_status": "STRICTLY_PAUSED_AWAITING_APPROVAL"
+  }
+}

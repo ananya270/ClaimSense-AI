@@ -1,0 +1,5 @@
+image_id,dispute_type,reviewer_a_class,reviewer_b_class,reviewer_a_box,reviewer_b_box,resolution,adjudicator_notes
+CS_DA_053,RULE_6_CLASS_MISMATCH,4,3,"[1550, 2100, 5200, 6100]","[1696, 1940, 5346, 6260]",ADJUDICATED_LAMP_BROKEN,"Adjudicator C: Under Specification v1.1 Rule 6, lighting fixture lenses must be classified as Lamp Broken (Class 4), not Glass Shatter (Class 3)."
+CS_DA_058,RULE_6_CLASS_MISMATCH,4,3,"[465, 590, 1261, 1064]","[496, 572, 1292, 1064]",ADJUDICATED_LAMP_BROKEN,Adjudicator C: Enforced Rule 6. Vehicle lighting fixture components belong strictly to Class 4 (Lamp Broken).
+CS_DA_100,TEXTURE_CLASS_MISMATCH,1,2,"[1380, 1150, 3250, 2120]","[1454, 1112, 3324, 2158]",ADJUDICATED_SCRATCH,Adjudicator C: Surface analysis confirms paint abrasion without panel penetration; classified as Scratch (Class 1).
+CS_DA_105,SAFEGUARD_4_GRANULARITY,0,0,"[1150, 1850, 2820, 4520]","[1322, 2127, 2481, 3977]",ADJUDICATED_UNIFIED_AABB,Adjudicator C: Enforced Safeguard 4. Continuous plastic deformation on panel requires unified enclosing AABB.

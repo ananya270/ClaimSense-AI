@@ -137,13 +137,28 @@ class VehicleDamageDetector:
 
     @classmethod
     def get_instance(cls, model_path: Optional[Union[str, Path]] = None) -> "VehicleDamageDetector":
-        """Provides a cached singleton detector. Re-initializes if custom model_path differs."""
+        """Provides a cached singleton detector for authoritative production inference.
+        Guarantees that custom or experimental checkpoints do NOT overwrite the production singleton.
+        """
         if cls._instance is None:
             cls._instance = cls(model_path)
+            return cls._instance
         elif model_path is not None:
             resolved = cls._resolve_model_path(model_path)
-            if resolved != cls._instance.model_path:
-                cls._instance = cls(model_path)
+            if resolved is not None and resolved != cls._instance.model_path:
+                logger.warning(
+                    f"VehicleDamageDetector.get_instance called with distinct path {resolved}. "
+                    f"Instantiating an independent detector instance to strictly preserve the authoritative "
+                    f"production singleton ({cls._instance.model_path})."
+                )
+                return cls(resolved)
+        return cls._instance
+
+    @classmethod
+    def get_production_singleton(cls) -> "VehicleDamageDetector":
+        """Guarantees retrieval of the authoritative production model singleton."""
+        if cls._instance is None:
+            cls._instance = cls()
         return cls._instance
 
     @staticmethod

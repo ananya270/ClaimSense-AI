@@ -1,0 +1,76 @@
+image_id,box_id,class_id,class_name,x1,y1,x2,y2,notes
+CS_DA_046,CS_DA_046_B1,4,lamp broken,1246,1378,2916,2522,Reviewer B: Right front damaged headlamp cluster
+CS_DA_047,CS_DA_047_B1,4,lamp broken,2288,1716,6988,5334,Reviewer B: Macro close-up shattered headlamp unit
+CS_DA_048,CS_DA_048_B1,4,lamp broken,1550,1624,4050,3156,Reviewer B: Front broken headlight assembly
+CS_DA_049,CS_DA_049_B1,4,lamp broken,337,669,1003,1780,Reviewer B: Headlight bucket damage / broken lamp
+CS_DA_050,CS_DA_050_B1,4,lamp broken,669,459,1899,1041,Reviewer B: Front right damaged headlamp fixture
+CS_DA_051,CS_DA_051_B1,4,lamp broken,314,394,914,836,Reviewer B: Vintage front passenger lamp fixture broken
+CS_DA_052,CS_DA_052_B1,4,lamp broken,989,1132,2719,2428,Reviewer B: Van front corner damaged headlight
+CS_DA_053,CS_DA_053_B1,3,glass shatter,1696,1940,5346,6260,Reviewer B: Outer lens glass shattered on lighting assembly
+CS_DA_054,CS_DA_054_B1,4,lamp broken,1022,946,2552,1679,Reviewer B: Submerged truck front damaged headlamp
+CS_DA_055,CS_DA_055_B1,4,lamp broken,247,511,677,983,Reviewer B: Coupe front corner broken lamp assembly
+CS_DA_056,CS_DA_056_B1,4,lamp broken,741,650,2200,1448,Reviewer B: Hatchback broken front headlamp lens
+CS_DA_057,CS_DA_057_B1,4,lamp broken,1203,1213,3399,2423,Reviewer B: Vintage coupe right broken headlamp
+CS_DA_058,CS_DA_058_B1,3,glass shatter,496,572,1292,1064,Reviewer B: Shattered headlamp glass lens
+CS_DA_059,CS_DA_059_B1,4,lamp broken,485,583,1317,1058,Reviewer B: Smashed headlamp blackout fixture
+CS_DA_060,CS_DA_060_B1,4,lamp broken,546,456,1456,1104,Reviewer B: Rear damaged taillight assembly
+CS_DA_061,CS_DA_061_B1,4,lamp broken,165,156,470,400,Reviewer B: Front broken headlamp cowl
+CS_DA_062,CS_DA_062_B1,4,lamp broken,1206,1296,3366,2494,Reviewer B: Lincoln Town Car front broken headlamp
+CS_DA_063,CS_DA_063_B1,4,lamp broken,964,940,2824,2020,Reviewer B: Bluebird front passenger broken lamp
+CS_DA_064,CS_DA_064_B1,4,lamp broken,300,207,800,573,Reviewer B: Safety car broken headlamp fixture
+CS_DA_065,CS_DA_065_B1,4,lamp broken,1240,1224,3510,2736,Reviewer B: Citroen front broken headlamp fixture
+CS_DA_066,CS_DA_066_B1,4,lamp broken,972,970,2703,2104,Reviewer B: Citroen 7CV front shattered lamp
+CS_DA_067,CS_DA_067_B1,4,lamp broken,1058,1105,3028,2325,Reviewer B: Ford Cortina broken front headlamp
+CS_DA_068,CS_DA_068_B1,4,lamp broken,868,961,2385,1920,Reviewer B: Porsche 911 GT3 front broken lamp
+CS_DA_069,CS_DA_069_B1,4,lamp broken,356,363,1053,835,Reviewer B: Alfa Spider front damaged headlamp
+CS_DA_070,CS_DA_070_B1,4,lamp broken,998,1034,2958,2286,Reviewer B: Cortina front passenger broken headlamp
+CS_DA_071,CS_DA_071_B1,5,tire flat,1477,1640,2907,2720,Reviewer B: Rear driver-side deflated flat tire
+CS_DA_072,CS_DA_072_B1,5,tire flat,1334,1501,2704,2559,Reviewer B: Mini Cooper front deflated tire
+CS_DA_073,CS_DA_073_B1,5,tire flat,1407,1582,2837,2628,Reviewer B: Corolla Seca rear flat tire
+CS_DA_074,CS_DA_074_B1,5,tire flat,1234,1378,2594,2522,Reviewer B: Lancia Dedra abandoned flat tire
+CS_DA_075,CS_DA_075_B1,5,tire flat,1276,1438,2676,2582,Reviewer B: Peugeot 405 front deflated flat tire
+CS_DA_076,CS_DA_076_B1,5,tire flat,1307,1468,2737,2622,Reviewer B: Peugeot 405 rear flat tire
+CS_DA_077,CS_DA_077_B1,5,tire flat,592,685,1301,1260,Reviewer B: Discarded deflated tire rim
+CS_DA_078,CS_DA_078_B1,5,tire flat,677,755,1351,1253,Reviewer B: Goodyear racing flat tire
+CS_DA_079,CS_DA_079_B1,5,tire flat,1203,1379,2533,2491,Reviewer B: Autobianchi front flat tire
+CS_DA_080,CS_DA_080_B1,5,tire flat,1233,1409,2573,2521,Reviewer B: Autobianchi rear flat tire
+CS_DA_081,CS_DA_081_B1,5,tire flat,523,1186,1142,2248,Reviewer B: Vintage auto deflated flat tire
+CS_DA_082,CS_DA_082_B1,5,tire flat,1337,1508,2777,2662,Reviewer B: Alfa Romeo 33 front flat tire
+CS_DA_083,CS_DA_083_B1,5,tire flat,154,414,346,804,Reviewer B: Earthquake damaged flat tire
+CS_DA_084,CS_DA_084_B1,5,tire flat,1173,1339,2503,2461,Reviewer B: Country road vehicle flat tire
+CS_DA_085,CS_DA_085_B1,5,tire flat,1298,1449,2650,2490,Reviewer B: Caprice driver side flat tire
+CS_DA_086,CS_DA_086_B1,5,tire flat,1308,1475,2778,2695,Reviewer B: Burned car deflated wheel tire
+CS_DA_087,CS_DA_087_B1,5,tire flat,813,1044,1736,1899,Reviewer B: Karmann Ghia rear flat tire
+CS_DA_088,CS_DA_088_B1,5,tire flat,1380,1536,2880,2724,Reviewer B: Chevy Lumina front flat tire
+CS_DA_089,CS_DA_089_B1,5,tire flat,382,434,833,827,Reviewer B: Bus roadside changing flat tire
+CS_DA_090,CS_DA_090_B1,5,tire flat,712,903,1518,1536,Reviewer B: Coupar MRAP blown deflated tire
+CS_DA_091,CS_DA_091_B1,5,tire flat,1754,1896,3624,3374,Reviewer B: Alfa 147 front deflated flat tire
+CS_DA_092,CS_DA_092_B1,5,tire flat,1642,1780,3942,3690,Reviewer B: Trunk spare tire deflated
+CS_DA_093,CS_DA_093_B1,5,tire flat,1314,1436,2914,2624,Reviewer B: Indy 500 damaged tire puncture
+CS_DA_094,CS_DA_094_B1,5,tire flat,1796,1997,3696,3433,Reviewer B: Alfa 147 rear deflated flat tire
+CS_DA_095,CS_DA_095_B1,5,tire flat,297,330,737,600,Reviewer B: Toyota kaputter flat tire
+CS_DA_096,CS_DA_096_B1,0,dent,1314,1144,2914,2136,Reviewer B: Suzuki Alto door panel impact dent
+CS_DA_097,CS_DA_097_B1,1,scratch,1249,1086,2989,2014,Reviewer B: Suzuki Alto side body linear scratch
+CS_DA_098,CS_DA_098_B1,0,dent,1415,1182,3045,2218,Reviewer B: Citroen BX door panel dent
+CS_DA_099,CS_DA_099_B1,1,scratch,1487,1250,3167,2080,Reviewer B: Citroen BX quarter panel paint scratch
+CS_DA_100,CS_DA_100_B1,2,crack,1454,1112,3324,2158,Reviewer B: Linear fracture crack on door surface
+CS_DA_101,CS_DA_101_B1,0,dent,1286,1110,2946,2190,Reviewer B: Toyota Corolla fender impact dent
+CS_DA_102,CS_DA_102_B1,0,dent,1046,812,2716,1858,Reviewer B: Bumper cover dent deformation
+CS_DA_103,CS_DA_103_B1,2,crack,1954,1554,4554,3346,Reviewer B: Front bumper plastic fracture crack
+CS_DA_104,CS_DA_104_B1,1,scratch,1346,2042,3016,4958,Reviewer B: Car door deep surface paint scratches
+CS_DA_105,CS_DA_105_B1,0,dent,1322,2127,2481,3977,Reviewer B: Tight inner dent concavity
+CS_DA_106,CS_DA_106_B1,0,dent,1246,884,2916,1856,Reviewer B: Chloe car encounter door dent
+CS_DA_107,CS_DA_107_B1,0,dent,1502,1297,3562,2733,Reviewer B: Honda Ridgeline front bumper dent
+CS_DA_108,CS_DA_108_B1,0,dent,794,652,1894,1408,Reviewer B: NYPD car roof/hood impact dent
+CS_DA_109,CS_DA_109_B1,0,dent,865,1092,1995,2678,Reviewer B: Hit-and-run rear quarter dent
+CS_DA_110,CS_DA_110_B1,1,scratch,1352,2071,3172,5029,Reviewer B: Repair shop vehicle body scratches
+CS_DA_111,CS_DA_111_B1,0,dent,508,372,1208,868,Reviewer B: Pickup truck bedside collision dent
+CS_DA_112,CS_DA_112_B1,0,dent,328,267,798,633,Reviewer B: Vintage car front fender dent
+CS_DA_113,CS_DA_113_B1,1,scratch,1038,817,2508,1713,Reviewer B: Scratch built vehicle side paint scrape
+CS_DA_114,CS_DA_114_B1,1,scratch,1080,847,2580,1753,Reviewer B: Scratch built vehicle rear panel scratch
+CS_DA_115,CS_DA_115_B1,2,crack,1534,1322,3634,2908,Reviewer B: Auto wreck structural frame crack fracture
+CS_DA_116,CS_DA_116_B1,2,crack,686,555,1586,1245,Reviewer B: Chevy HHR front bumper split crack
+CS_DA_117,CS_DA_117_B1,1,scratch,1006,692,2406,1448,Reviewer B: Mercedes C200 door surface paint scratch
+CS_DA_118,CS_DA_118_B1,0,dent,822,537,1892,1173,Reviewer B: Sabres vehicle door panel dent
+CS_DA_119,CS_DA_119_B1,0,dent,1393,1034,3223,2296,Reviewer B: Saab Sonett front hood concave dent
+CS_DA_120,CS_DA_120_B1,1,scratch,1962,1155,4762,2915,Reviewer B: Extensive body panel paint scratch

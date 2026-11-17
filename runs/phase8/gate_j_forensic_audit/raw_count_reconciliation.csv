@@ -1,0 +1,19 @@
+model_key,model_name,class_id,class_name,gt_instances,raw_tp,raw_fp,raw_fn,reconciled_gt,status,raw_precision,raw_recall,raw_f1
+production_baseline,Production Baseline (Phase 5),0,dent,9,8,6277,1,9,PASS,0.0013,0.8889,0.0025
+production_baseline,Production Baseline (Phase 5),1,scratch,4,0,100,4,4,PASS,0.0,0.0,0.0
+production_baseline,Production Baseline (Phase 5),2,crack,6,0,2724,6,6,PASS,0.0,0.0,0.0
+production_baseline,Production Baseline (Phase 5),3,glass shatter,13,0,2335,13,13,PASS,0.0,0.0,0.0
+production_baseline,Production Baseline (Phase 5),4,lamp broken,6,0,1697,6,6,PASS,0.0,0.0,0.0
+production_baseline,Production Baseline (Phase 5),5,tire flat,9,0,59,9,9,PASS,0.0,0.0,0.0
+session_2,Phase 8 Session 2,0,dent,9,1,2426,8,9,PASS,0.0004,0.1111,0.0008
+session_2,Phase 8 Session 2,1,scratch,4,0,3390,4,4,PASS,0.0,0.0,0.0
+session_2,Phase 8 Session 2,2,crack,6,0,2105,6,6,PASS,0.0,0.0,0.0
+session_2,Phase 8 Session 2,3,glass shatter,13,2,608,11,13,PASS,0.0033,0.1538,0.0064
+session_2,Phase 8 Session 2,4,lamp broken,6,0,597,6,6,PASS,0.0,0.0,0.0
+session_2,Phase 8 Session 2,5,tire flat,9,0,267,9,9,PASS,0.0,0.0,0.0
+session_4,Phase 8 Session 4,0,dent,9,1,2186,8,9,PASS,0.0005,0.1111,0.0009
+session_4,Phase 8 Session 4,1,scratch,4,0,2776,4,4,PASS,0.0,0.0,0.0
+session_4,Phase 8 Session 4,2,crack,6,1,2219,5,6,PASS,0.0005,0.1667,0.0009
+session_4,Phase 8 Session 4,3,glass shatter,13,3,380,10,13,PASS,0.0078,0.2308,0.0152
+session_4,Phase 8 Session 4,4,lamp broken,6,0,445,6,6,PASS,0.0,0.0,0.0
+session_4,Phase 8 Session 4,5,tire flat,9,0,369,9,9,PASS,0.0,0.0,0.0

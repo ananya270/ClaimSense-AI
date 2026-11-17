@@ -1,0 +1,54 @@
+{
+  "dataset": "CarDD_Expanded_v1",
+  "updated_at": "2026-11-17T10:40:06.408515",
+  "total_images": {
+    "train": 310,
+    "val": 45,
+    "test": 45,
+    "total": 400
+  },
+  "total_instances": {
+    "train": 829,
+    "val": 140,
+    "test": 148,
+    "total": 1117
+  },
+  "splits": {
+    "train": {
+      "images": 310,
+      "instances": 829,
+      "classes": {
+        "tire flat": 22,
+        "crack": 169,
+        "dent": 269,
+        "scratch": 260,
+        "lamp broken": 64,
+        "glass shatter": 45
+      }
+    },
+    "val": {
+      "images": 45,
+      "instances": 140,
+      "classes": {
+        "glass shatter": 10,
+        "scratch": 60,
+        "lamp broken": 10,
+        "tire flat": 5,
+        "dent": 44,
+        "crack": 11
+      }
+    },
+    "test": {
+      "images": 45,
+      "instances": 148,
+      "classes": {
+        "dent": 49,
+        "scratch": 53,
+        "crack": 13,
+        "glass shatter": 12,
+        "lamp broken": 15,
+        "tire flat": 6
+      }
+    }
+  }
+}

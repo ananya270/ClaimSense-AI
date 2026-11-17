@@ -1,0 +1,5 @@
+category,target_quota,acquired_count,tier_1_count,tier_2_count,pct_of_total
+"Clean, Undamaged Vehicles",45,45,45,0,37.5%
+Broken Lamp / Light Assembly,25,25,25,0,20.8%
+Deflated / Flat Tire,25,25,24,1,20.8%
+Minor Cosmetic Damage,25,25,25,0,20.8%

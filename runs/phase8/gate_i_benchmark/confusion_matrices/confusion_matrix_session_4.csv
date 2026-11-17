@@ -1,0 +1,8 @@
+class,dent,scratch,crack,glass shatter,lamp broken,tire flat,background
+dent,1.0,0.0,0.0,0.0,1.0,0.0,2185.0
+scratch,2.0,0.0,1.0,1.0,1.0,0.0,2771.0
+crack,0.0,1.0,1.0,2.0,0.0,0.0,2216.0
+glass shatter,1.0,0.0,0.0,3.0,0.0,0.0,379.0
+lamp broken,0.0,0.0,1.0,0.0,0.0,0.0,444.0
+tire flat,0.0,1.0,0.0,0.0,0.0,0.0,368.0
+background,5.0,2.0,3.0,7.0,4.0,9.0,0.0

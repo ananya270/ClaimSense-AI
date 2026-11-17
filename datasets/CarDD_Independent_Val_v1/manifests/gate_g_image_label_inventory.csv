@@ -1,0 +1,45 @@
+image_id,batch,resolution_tier,primary_damage_category,image_dimensions,image_status,label_file,label_status,pair_status,instance_count,boxes_summary,provenance_status
+CS_VAL_001,batch_01,Tier 1 (Walkaround),Tire Flat,2369x1473,PASS,CS_VAL_001.txt,PASS,PASS,1,"tire flat[0.629,0.711,0.135,0.275]",PASS
+CS_VAL_002,batch_01,Tier 1 (Walkaround),Tire Flat,3264x2448,PASS,CS_VAL_002.txt,PASS,PASS,1,"tire flat[0.326,0.759,0.164,0.251]",PASS
+CS_VAL_003,batch_01,Tier 1 (Walkaround),Tire Flat,3072x2304,PASS,CS_VAL_003.txt,PASS,PASS,1,"tire flat[0.374,0.686,0.169,0.252]",PASS
+CS_VAL_004,batch_01,Tier 1 (Walkaround),Tire Flat,4272x2856,PASS,CS_VAL_004.txt,PASS,PASS,1,"tire flat[0.346,0.710,0.162,0.264]",PASS
+CS_VAL_006,batch_01,Tier 1 (Walkaround),Tire Flat,4272x2848,PASS,CS_VAL_006.txt,PASS,PASS,1,"tire flat[0.367,0.709,0.139,0.232]",PASS
+CS_VAL_007,batch_01,Tier 1 (Walkaround),Tire Flat,4272x2856,PASS,CS_VAL_007.txt,PASS,PASS,1,"tire flat[0.324,0.683,0.153,0.252]",PASS
+CS_VAL_008,batch_01,Tier 1 (Walkaround),Tire Flat,4272x2856,PASS,CS_VAL_008.txt,PASS,PASS,1,"tire flat[0.352,0.692,0.144,0.243]",PASS
+CS_VAL_009,batch_01,Tier 1 (Walkaround),Glass Shatter,6016x4016,PASS,CS_VAL_009.txt,PASS,PASS,1,"glass shatter[0.453,0.438,0.295,0.303]",PASS
+CS_VAL_010,batch_01,Tier 1 (Walkaround),Glass Shatter,6048x4032,PASS,CS_VAL_010.txt,PASS,PASS,1,"glass shatter[0.496,0.479,0.441,0.441]",PASS
+CS_VAL_012,batch_01,Tier 1 (Walkaround),Glass Shatter,1280x960,PASS,CS_VAL_012.txt,PASS,PASS,1,"glass shatter[0.516,0.461,0.578,0.474]",PASS
+CS_VAL_013,batch_01,Tier 1 (Walkaround),Glass Shatter,6016x4016,PASS,CS_VAL_013.txt,PASS,PASS,1,"glass shatter[0.504,0.510,0.489,0.423]",PASS
+CS_VAL_014,batch_01,Tier 1 (Walkaround),Glass Shatter,6048x4032,PASS,CS_VAL_014.txt,PASS,PASS,1,"glass shatter[0.524,0.476,0.473,0.409]",PASS
+CS_VAL_015,batch_01,Tier 1 (Walkaround),Glass Shatter,3000x1993,PASS,CS_VAL_015.txt,PASS,PASS,1,"glass shatter[0.502,0.475,0.572,0.519]",PASS
+CS_VAL_016,batch_01,Tier 2 (Macro Component),Dent,640x480,PASS,CS_VAL_016.txt,PASS,PASS,1,"dent[0.505,0.498,0.859,0.838]",PASS
+CS_VAL_017,batch_01,Tier 2 (Macro Component),Dent,720x960,PASS,CS_VAL_017.txt,PASS,PASS,1,"dent[0.507,0.427,0.847,0.698]",PASS
+CS_VAL_018,batch_01,Tier 1 (Walkaround),Dent,2999x2249,PASS,CS_VAL_018.txt,PASS,PASS,1,"dent[0.499,0.510,0.642,0.496]",PASS
+CS_VAL_019,batch_01,Tier 1 (Walkaround),Dent,3640x2756,PASS,CS_VAL_019.txt,PASS,PASS,2,"glass shatter[0.500,0.370,0.495,0.319]; dent[0.497,0.668,0.588,0.305]",PASS
+CS_VAL_020,batch_01,Tier 2 (Macro Component),Crack,637x419,PASS,CS_VAL_020.txt,PASS,PASS,1,"crack[0.506,0.513,0.683,0.692]",PASS
+CS_VAL_021,batch_01,Tier 2 (Macro Component),Crack,637x440,PASS,CS_VAL_021.txt,PASS,PASS,1,"crack[0.513,0.523,0.601,0.818]",PASS
+CS_VAL_022,batch_01,Tier 2 (Macro Component),Lamp Broken,629x471,PASS,CS_VAL_022.txt,PASS,PASS,1,"lamp broken[0.499,0.499,0.852,0.845]",PASS
+CS_VAL_023,batch_01,Tier 2 (Macro Component),Lamp Broken,881x476,PASS,CS_VAL_023.txt,PASS,PASS,1,"lamp broken[0.533,0.521,0.681,0.714]",PASS
+CS_VAL_024,batch_01,Tier 2 (Macro Component),Scratch,637x442,PASS,CS_VAL_024.txt,PASS,PASS,1,"scratch[0.502,0.498,0.885,0.489]",PASS
+CS_VAL_025,batch_01,Tier 2 (Macro Component),Dent,637x444,PASS,CS_VAL_025.txt,PASS,PASS,1,"dent[0.502,0.507,0.754,0.743]",PASS
+CS_VAL_027,batch_02,Tier 1 (Walkaround),Scratch,4592x3056,PASS,CS_VAL_027.txt,PASS,PASS,1,"scratch[0.523,0.566,0.549,0.209]",PASS
+CS_VAL_028,batch_02,Tier 1 (Walkaround),Scratch,1920x1272,PASS,CS_VAL_028.txt,PASS,PASS,1,"scratch[0.499,0.537,0.633,0.311]",PASS
+CS_VAL_030,batch_02,Tier 1 (Walkaround),Scratch,4272x2848,PASS,CS_VAL_030.txt,PASS,PASS,1,"scratch[0.515,0.527,0.571,0.246]",PASS
+CS_VAL_031,batch_02,Tier 1 (Walkaround),Crack,5456x3632,PASS,CS_VAL_031.txt,PASS,PASS,1,"crack[0.477,0.644,0.486,0.277]",PASS
+CS_VAL_032,batch_02,Tier 1 (Walkaround),Crack,5456x3632,PASS,CS_VAL_032.txt,PASS,PASS,1,"crack[0.539,0.677,0.479,0.275]",PASS
+CS_VAL_033,batch_02,Tier 1 (Walkaround),Crack,2592x1944,PASS,CS_VAL_033.txt,PASS,PASS,1,"crack[0.475,0.592,0.490,0.329]",PASS
+CS_VAL_034,batch_02,Tier 1 (Walkaround),Crack,4825x2960,PASS,CS_VAL_034.txt,PASS,PASS,1,"crack[0.493,0.615,0.506,0.287]",PASS
+CS_VAL_035,batch_02,Tier 1 (Walkaround),Lamp Broken,4386x3272,PASS,CS_VAL_035.txt,PASS,PASS,1,"lamp broken[0.531,0.543,0.407,0.420]",PASS
+CS_VAL_036,batch_02,Tier 1 (Walkaround),Lamp Broken,2048x1365,PASS,CS_VAL_036.txt,PASS,PASS,1,"lamp broken[0.483,0.535,0.449,0.410]",PASS
+CS_VAL_037,batch_02,Tier 1 (Walkaround),Lamp Broken,1024x768,PASS,CS_VAL_037.txt,PASS,PASS,1,"lamp broken[0.498,0.508,0.439,0.430]",PASS
+CS_VAL_038,batch_02,Tier 1 (Walkaround),Lamp Broken,1918x1732,PASS,CS_VAL_038.txt,PASS,PASS,1,"lamp broken[0.501,0.502,0.490,0.462]",PASS
+CS_VAL_040,batch_02,Tier 1 (Walkaround),Dent,3996x2280,PASS,CS_VAL_040.txt,PASS,PASS,2,"glass shatter[0.501,0.346,0.460,0.412]; dent[0.501,0.627,0.691,0.447]",PASS
+CS_VAL_041,batch_02,Tier 1 (Walkaround),Dent,2500x1667,PASS,CS_VAL_041.txt,PASS,PASS,1,"dent[0.499,0.508,0.542,0.501]",PASS
+CS_VAL_042,batch_02,Tier 1 (Walkaround),Dent,2668x3997,PASS,CS_VAL_042.txt,PASS,PASS,1,"dent[0.506,0.544,0.641,0.518]",PASS
+CS_VAL_043,batch_02,Tier 1 (Walkaround),Dent,2292x1523,PASS,CS_VAL_043.txt,PASS,PASS,1,"dent[0.502,0.504,0.624,0.522]",PASS
+CS_VAL_044,batch_02,Tier 1 (Walkaround),Glass Shatter,2448x2448,PASS,CS_VAL_044.txt,PASS,PASS,1,"glass shatter[0.499,0.503,0.570,0.570]",PASS
+CS_VAL_045,batch_02,Tier 1 (Walkaround),Glass Shatter,3728x2236,PASS,CS_VAL_045.txt,PASS,PASS,2,"glass shatter[0.349,0.492,0.279,0.483]; glass shatter[0.649,0.505,0.290,0.492]",PASS
+CS_VAL_046,batch_02,Tier 1 (Walkaround),Glass Shatter,2048x1365,PASS,CS_VAL_046.txt,PASS,PASS,1,"glass shatter[0.502,0.504,0.564,0.524]",PASS
+CS_VAL_047,batch_02,Tier 1 (Walkaround),Glass Shatter,1011x763,PASS,CS_VAL_047.txt,PASS,PASS,1,"glass shatter[0.500,0.503,0.554,0.573]",PASS
+CS_VAL_048,batch_02,Tier 1 (Walkaround),Tire Flat,3344x1862,PASS,CS_VAL_048.txt,PASS,PASS,1,"tire flat[0.496,0.655,0.278,0.354]",PASS
+CS_VAL_049,batch_02,Tier 1 (Walkaround),Tire Flat,3072x2304,PASS,CS_VAL_049.txt,PASS,PASS,1,"tire flat[0.498,0.667,0.309,0.319]",PASS

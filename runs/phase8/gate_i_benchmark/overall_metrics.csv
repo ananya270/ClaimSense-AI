@@ -1,0 +1,4 @@
+model_key,model_name,pooled_map50,pooled_map50_95,pooled_precision,pooled_recall,pooled_f1,composite_map50,composite_map50_95,composite_f1,latency_mean_ms,fps
+production_baseline,Production Baseline (Phase 5),0.0016,0.0004,0.169,0.24,0.1984,0.0103,0.0032,0.2239,131.42,7.6
+session_2,Phase 8 Session 2,0.0019,0.0003,0.3473,0.0128,0.0247,0.0019,0.0003,0.1428,80.89,12.4
+session_4,Phase 8 Session 4,0.006,0.0008,0.1894,0.0256,0.0452,0.0054,0.0007,0.1549,85.69,11.7

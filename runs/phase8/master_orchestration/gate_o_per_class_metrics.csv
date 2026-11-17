@@ -1,0 +1,37 @@
+model_key,model_name,class_id,class_name,pooled_ap50,tier1_ap50,tier2_ap50,composite_ap50
+prod_baseline,Production Baseline (Phase 5),0,dent,0.0058,0.0037,0.0485,0.0171
+prod_baseline,Production Baseline (Phase 5),1,scratch,0.0,0.0,0.0,0.0
+prod_baseline,Production Baseline (Phase 5),2,crack,0.0025,0.0,0.0796,0.0239
+prod_baseline,Production Baseline (Phase 5),3,glass shatter,0.0015,0.002,0.0,0.0014
+prod_baseline,Production Baseline (Phase 5),4,lamp broken,0.0,0.0,0.0,0.0
+prod_baseline,Production Baseline (Phase 5),5,tire flat,0.0,0.0,0.0,0.0
+session_2,Phase 8 Session 2,0,dent,0.0013,0.0025,0.0,0.0017
+session_2,Phase 8 Session 2,1,scratch,0.0003,0.0,0.0062,0.0019
+session_2,Phase 8 Session 2,2,crack,0.0,0.0,0.0,0.0
+session_2,Phase 8 Session 2,3,glass shatter,0.0099,0.0096,0.0,0.0067
+session_2,Phase 8 Session 2,4,lamp broken,0.0,0.0,0.0,0.0
+session_2,Phase 8 Session 2,5,tire flat,0.0,0.0,0.0,0.0
+session_4,Phase 8 Session 4,0,dent,0.0009,0.0011,0.0026,0.0015
+session_4,Phase 8 Session 4,1,scratch,0.0003,0.0,0.0082,0.0025
+session_4,Phase 8 Session 4,2,crack,0.001,0.0003,0.0025,0.001
+session_4,Phase 8 Session 4,3,glass shatter,0.0339,0.0365,0.0,0.0255
+session_4,Phase 8 Session 4,4,lamp broken,0.0,0.0,0.0,0.0
+session_4,Phase 8 Session 4,5,tire flat,0.0,0.0,0.0,0.0
+exp01,Phase 8 EXP01 (Negative Mining),0,dent,0.0038,0.0012,0.0223,0.0076
+exp01,Phase 8 EXP01 (Negative Mining),1,scratch,0.0002,0.0003,0.0,0.0002
+exp01,Phase 8 EXP01 (Negative Mining),2,crack,0.0,0.0,0.0,0.0
+exp01,Phase 8 EXP01 (Negative Mining),3,glass shatter,0.0087,0.0096,0.0,0.0067
+exp01,Phase 8 EXP01 (Negative Mining),4,lamp broken,0.0,0.0,0.0,0.0
+exp01,Phase 8 EXP01 (Negative Mining),5,tire flat,0.0,0.0,0.0,0.0
+exp02,Phase 8 EXP02 (Rare Class),0,dent,0.0088,0.0165,0.0,0.0115
+exp02,Phase 8 EXP02 (Rare Class),1,scratch,0.0084,0.0052,0.0269,0.0117
+exp02,Phase 8 EXP02 (Rare Class),2,crack,0.0005,0.0002,0.0029,0.001
+exp02,Phase 8 EXP02 (Rare Class),3,glass shatter,0.032,0.0352,0.0,0.0246
+exp02,Phase 8 EXP02 (Rare Class),4,lamp broken,0.019,0.0374,0.0,0.0261
+exp02,Phase 8 EXP02 (Rare Class),5,tire flat,0.0083,0.0105,0.0,0.0073
+exp03,Phase 8 EXP03 (Unified MultiScale),0,dent,0.0064,0.0017,0.0257,0.0089
+exp03,Phase 8 EXP03 (Unified MultiScale),1,scratch,0.0036,0.0013,0.0243,0.0082
+exp03,Phase 8 EXP03 (Unified MultiScale),2,crack,0.0,0.0,0.0,0.0
+exp03,Phase 8 EXP03 (Unified MultiScale),3,glass shatter,0.0104,0.0116,0.0052,0.0097
+exp03,Phase 8 EXP03 (Unified MultiScale),4,lamp broken,0.0049,0.0117,0.0,0.0082
+exp03,Phase 8 EXP03 (Unified MultiScale),5,tire flat,0.0053,0.0071,0.0,0.005

@@ -1,0 +1,1310 @@
+{
+  "manifest_version": "1.0.0",
+  "integration_timestamp": "2026-11-17T10:40:06.405295",
+  "approved_scope": "Integration of 100 official CarDD train2017 images into CarDD_Expanded_v1/train",
+  "pre_integration_train_count": 210,
+  "integrated_count": 100,
+  "post_integration_train_count": 310,
+  "total_train_instances": 829,
+  "class_distribution_train": {
+    "tire flat": 22,
+    "crack": 169,
+    "dent": 269,
+    "scratch": 260,
+    "lamp broken": 64,
+    "glass shatter": 45
+  },
+  "class_distribution_val": {
+    "glass shatter": 10,
+    "scratch": 60,
+    "lamp broken": 10,
+    "tire flat": 5,
+    "dent": 44,
+    "crack": 11
+  },
+  "class_distribution_test": {
+    "dent": 49,
+    "scratch": 53,
+    "crack": 13,
+    "glass shatter": 12,
+    "lamp broken": 15,
+    "tire flat": 6
+  },
+  "rollback_file_list": [
+    "000032.jpg",
+    "000101.jpg",
+    "000131.jpg",
+    "000359.jpg",
+    "000365.jpg",
+    "000377.jpg",
+    "000391.jpg",
+    "000510.jpg",
+    "000548.jpg",
+    "000558.jpg",
+    "000581.jpg",
+    "000590.jpg",
+    "000615.jpg",
+    "000756.jpg",
+    "000845.jpg",
+    "000884.jpg",
+    "000916.jpg",
+    "000991.jpg",
+    "000998.jpg",
+    "001027.jpg",
+    "001158.jpg",
+    "001238.jpg",
+    "001239.jpg",
+    "001304.jpg",
+    "001319.jpg",
+    "001344.jpg",
+    "001433.jpg",
+    "001447.jpg",
+    "001452.jpg",
+    "001465.jpg",
+    "001471.jpg",
+    "001526.jpg",
+    "001605.jpg",
+    "001645.jpg",
+    "001646.jpg",
+    "001763.jpg",
+    "001767.jpg",
+    "001882.jpg",
+    "001887.jpg",
+    "001919.jpg",
+    "001943.jpg",
+    "001949.jpg",
+    "001950.jpg",
+    "001961.jpg",
+    "001973.jpg",
+    "001985.jpg",
+    "001986.jpg",
+    "002019.jpg",
+    "002044.jpg",
+    "002079.jpg",
+    "002173.jpg",
+    "002210.jpg",
+    "002225.jpg",
+    "002228.jpg",
+    "002443.jpg",
+    "002471.jpg",
+    "002492.jpg",
+    "002512.jpg",
+    "002551.jpg",
+    "002554.jpg",
+    "002555.jpg",
+    "002556.jpg",
+    "002557.jpg",
+    "002558.jpg",
+    "002572.jpg",
+    "002669.jpg",
+    "002681.jpg",
+    "002732.jpg",
+    "002782.jpg",
+    "002850.jpg",
+    "002856.jpg",
+    "002863.jpg",
+    "002874.jpg",
+    "002897.jpg",
+    "002943.jpg",
+    "002966.jpg",
+    "002989.jpg",
+    "003107.jpg",
+    "003339.jpg",
+    "003396.jpg",
+    "003459.jpg",
+    "003490.jpg",
+    "003491.jpg",
+    "003530.jpg",
+    "003597.jpg",
+    "003604.jpg",
+    "003629.jpg",
+    "003639.jpg",
+    "003652.jpg",
+    "003665.jpg",
+    "003670.jpg",
+    "003674.jpg",
+    "003675.jpg",
+    "003681.jpg",
+    "003693.jpg",
+    "003694.jpg",
+    "003700.jpg",
+    "003758.jpg",
+    "003759.jpg",
+    "003865.jpg"
+  ],
+  "integrated_images": [
+    {
+      "filename": "000032.jpg",
+      "stem": "000032",
+      "sha256": "df88cf8fbe039eaf0a256b72ea1513a165b5442754ed71a214e8e01bfd4bfbd9",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "000101.jpg",
+      "stem": "000101",
+      "sha256": "297a79800dede9cce5d751aadd4482467984a54753192945959508d7804e44a8",
+      "width": 1000,
+      "height": 750,
+      "instances": 1,
+      "classes": [
+        "dent"
+      ]
+    },
+    {
+      "filename": "000131.jpg",
+      "stem": "000131",
+      "sha256": "e73a8e2032eb52a9032f3ce8d026d54478ad244f500c3df0eaa9e188b70573f7",
+      "width": 1000,
+      "height": 664,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "000359.jpg",
+      "stem": "000359",
+      "sha256": "68bfa02a789f091be113b8f377cdf144bc2c5bc8e95b7085c8c8be34333623c5",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "000365.jpg",
+      "stem": "000365",
+      "sha256": "216c4f9c4354f41dd83528b9152b0ed86d01537ef46d706668b79a03216218d6",
+      "width": 1000,
+      "height": 662,
+      "instances": 3,
+      "classes": [
+        "dent",
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "filename": "000377.jpg",
+      "stem": "000377",
+      "sha256": "f643c39fb290e8f709ff984e5cd978b065c7436fe58b32525b0e5e4f88a46701",
+      "width": 1000,
+      "height": 666,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "000391.jpg",
+      "stem": "000391",
+      "sha256": "cca80745a0baecfe113db07e44866e6d4f8535f902a6c51c41b090dfdfc66281",
+      "width": 667,
+      "height": 1000,
+      "instances": 2,
+      "classes": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "000510.jpg",
+      "stem": "000510",
+      "sha256": "c1041fd077f61ee9fdd9373fffdf86f034d7899da06401b168ef2401fc738c2f",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "000548.jpg",
+      "stem": "000548",
+      "sha256": "1a1930b687bca092581b471f7f4586b7e6eee6b900c330cb9d88f15e8c4ce04e",
+      "width": 1000,
+      "height": 667,
+      "instances": 2,
+      "classes": [
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "filename": "000558.jpg",
+      "stem": "000558",
+      "sha256": "e28e0c1db8b066f7b36b3dd1f0dff8dc31e216fc770c47710c2adbd2c72bb192",
+      "width": 1000,
+      "height": 667,
+      "instances": 2,
+      "classes": [
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "filename": "000581.jpg",
+      "stem": "000581",
+      "sha256": "3f29d7898b82108f3e2157ec0a99dc0636c26a93d2153e84a0dd953dacf4ca64",
+      "width": 1000,
+      "height": 750,
+      "instances": 3,
+      "classes": [
+        "dent",
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "filename": "000590.jpg",
+      "stem": "000590",
+      "sha256": "03849cc61f8a530e3fcb984dcfb2a6725e034f1d78eafcfe6dbd0aa7df646ca5",
+      "width": 1000,
+      "height": 661,
+      "instances": 3,
+      "classes": [
+        "dent",
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "filename": "000615.jpg",
+      "stem": "000615",
+      "sha256": "cccda2dce0f67268ebb79c142bdc8108d2a08a47f96d878f43791a741c88eda4",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "dent"
+      ]
+    },
+    {
+      "filename": "000756.jpg",
+      "stem": "000756",
+      "sha256": "abbc033e300caa6d257366e401728fb9f1f1e1c49b752829802eec8c1119d73a",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "dent"
+      ]
+    },
+    {
+      "filename": "000845.jpg",
+      "stem": "000845",
+      "sha256": "4444b79e7f8ee34f2ec7a10122f9209a7b21d1132e8ddac5162ae1fe604612eb",
+      "width": 1000,
+      "height": 750,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "000884.jpg",
+      "stem": "000884",
+      "sha256": "919f2fd37c42e5cc36297ec84681ba42d19825702bb9158fe14591c51515c14e",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "000916.jpg",
+      "stem": "000916",
+      "sha256": "45463479ea27152bb2473a40267201c2d9c9f687b53e903fd6f82cc5c736e569",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "dent"
+      ]
+    },
+    {
+      "filename": "000991.jpg",
+      "stem": "000991",
+      "sha256": "3fd2e2ebfa0d7d06829d1d466e6368e2b000eee72902c28c50158cfa70d157ef",
+      "width": 1000,
+      "height": 750,
+      "instances": 2,
+      "classes": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "000998.jpg",
+      "stem": "000998",
+      "sha256": "10bd183ba653cecad1132761b2b341373898c9f5f38eb3ef717db71cf49db2bb",
+      "width": 1000,
+      "height": 750,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "001027.jpg",
+      "stem": "001027",
+      "sha256": "2cb9b57f1183ede42520425cd10394f2c7cf8992ca836940bdd285d99cd1ab71",
+      "width": 1000,
+      "height": 750,
+      "instances": 2,
+      "classes": [
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "filename": "001158.jpg",
+      "stem": "001158",
+      "sha256": "658ec25b11020d797b0a123c75d153a3a1cb2ffbfea2a426f21dc005110309ab",
+      "width": 1000,
+      "height": 664,
+      "instances": 1,
+      "classes": [
+        "dent"
+      ]
+    },
+    {
+      "filename": "001238.jpg",
+      "stem": "001238",
+      "sha256": "37dfbbcacc20f5b31a649e752dda4639d8d90bf608f73dd4941f443cd549c6e3",
+      "width": 1000,
+      "height": 750,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "001239.jpg",
+      "stem": "001239",
+      "sha256": "e289dcf1ba8b390fb2dfe812dbf5151dfa625de4657a4a91720e9f5f9237a884",
+      "width": 1000,
+      "height": 667,
+      "instances": 3,
+      "classes": [
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "001304.jpg",
+      "stem": "001304",
+      "sha256": "82f47f1ef3ef36a93e62c272b19b6fddf83ddc62dc1924ae00fe97bd77d3aaa0",
+      "width": 1000,
+      "height": 664,
+      "instances": 1,
+      "classes": [
+        "dent"
+      ]
+    },
+    {
+      "filename": "001319.jpg",
+      "stem": "001319",
+      "sha256": "73754e3764362262be595fc56652bf3dc68496f6e3a924b6aeefdb0bd0a12a9e",
+      "width": 1000,
+      "height": 667,
+      "instances": 3,
+      "classes": [
+        "scratch",
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "filename": "001344.jpg",
+      "stem": "001344",
+      "sha256": "f63b663dc5907b7cefffbced78e9f87c034198b2f06a72e436f0cd6c7c6c2595",
+      "width": 1000,
+      "height": 751,
+      "instances": 4,
+      "classes": [
+        "crack",
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "001433.jpg",
+      "stem": "001433",
+      "sha256": "44c01a93f4ae3eaea77dd120f2bc3b99eb98deedb12adf452bbf0b7b1becbc8c",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "001447.jpg",
+      "stem": "001447",
+      "sha256": "ebc44efc073fde1264dbc451f034c107aade71ce24d0f60420f430ce0d7216eb",
+      "width": 1000,
+      "height": 750,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "001452.jpg",
+      "stem": "001452",
+      "sha256": "375899f02a1005864524025c7779621c0ac01e14dc574c7df4ca86e8d30c5e12",
+      "width": 750,
+      "height": 1000,
+      "instances": 7,
+      "classes": [
+        "crack",
+        "crack",
+        "crack",
+        "crack",
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "001465.jpg",
+      "stem": "001465",
+      "sha256": "a6f243c70fe039b7532c4e9c275ea129c444f9e1b473abacaa6ab9a198f190f4",
+      "width": 1000,
+      "height": 750,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "001471.jpg",
+      "stem": "001471",
+      "sha256": "bcd9ab7a66cd7a4352ceb301cb67df36205b242cf376e4b26054b73eecbb0f3b",
+      "width": 1000,
+      "height": 871,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "001526.jpg",
+      "stem": "001526",
+      "sha256": "737f5afa8165b77163ed3ef11356f408f2a460151c166accfb13ad9fb3deee53",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "dent"
+      ]
+    },
+    {
+      "filename": "001605.jpg",
+      "stem": "001605",
+      "sha256": "64edc577a6f92d76457e2190ff9c0c3e942f6fdfde0dd6af8a63b8d2016c0de2",
+      "width": 1000,
+      "height": 664,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "001645.jpg",
+      "stem": "001645",
+      "sha256": "c9ecabe54b1ad6f768b238a7f6d8e8203f641390afbf9e65b42cadbba2792fea",
+      "width": 1000,
+      "height": 648,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "001646.jpg",
+      "stem": "001646",
+      "sha256": "d962098cdf048cadda18a07a9223b0144c13efe1ef4fe1e680371657e0e853ad",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "001763.jpg",
+      "stem": "001763",
+      "sha256": "e4d8babcdff5013176e3c9dafe7ae413642ae895c2a6d3e401b49d6128c51f5e",
+      "width": 1000,
+      "height": 667,
+      "instances": 2,
+      "classes": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "001767.jpg",
+      "stem": "001767",
+      "sha256": "8abd2e71c3828d697c53ffdfd1de351e202ca0a377b0b977a445b25c1eac80f4",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "001882.jpg",
+      "stem": "001882",
+      "sha256": "7bc044d8976fd0b13d524d0a524184f74e8f0e2315ac5e3660a7ca0f6c57ca11",
+      "width": 1000,
+      "height": 750,
+      "instances": 1,
+      "classes": [
+        "dent"
+      ]
+    },
+    {
+      "filename": "001887.jpg",
+      "stem": "001887",
+      "sha256": "27f6f27b89a7aef5ea4af9f50a747622a28220c4506c4c485e76b54c6fbfa8a6",
+      "width": 1000,
+      "height": 667,
+      "instances": 3,
+      "classes": [
+        "scratch",
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "filename": "001919.jpg",
+      "stem": "001919",
+      "sha256": "4d0e5981444f13d8567f66a7269913c39879f4d6b66c527407431e07ed8c674b",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "001943.jpg",
+      "stem": "001943",
+      "sha256": "5a0bf0a15784da541b757204aaa343b4cbd5aa60ead5bf6cf17e7e2089119e41",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "dent"
+      ]
+    },
+    {
+      "filename": "001949.jpg",
+      "stem": "001949",
+      "sha256": "0398b7a0195284a03cc4bb2895e3bcd9e93e49b21c8687129709fcbd8fc55072",
+      "width": 1000,
+      "height": 668,
+      "instances": 4,
+      "classes": [
+        "crack",
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "001950.jpg",
+      "stem": "001950",
+      "sha256": "85515b417354a730134c9802c8e322afc54cff29d5b7e41d37297a0f05ed04b2",
+      "width": 668,
+      "height": 1000,
+      "instances": 3,
+      "classes": [
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "001961.jpg",
+      "stem": "001961",
+      "sha256": "19bb90a59588cbba5018b5db876f1f76624d775bdef3ee567816e7fc19b47aec",
+      "width": 1000,
+      "height": 667,
+      "instances": 3,
+      "classes": [
+        "dent",
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "filename": "001973.jpg",
+      "stem": "001973",
+      "sha256": "d401bafecb460b11aa5d8e3e9ec72e19784b5eb2031ba9905a2c2610b94526b6",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "001985.jpg",
+      "stem": "001985",
+      "sha256": "e873531acd1ee3c3705d6e10774a1dbf9b22e9a0be7deff746235af030366fac",
+      "width": 1000,
+      "height": 667,
+      "instances": 2,
+      "classes": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "001986.jpg",
+      "stem": "001986",
+      "sha256": "83df5d2c6996d4bab60e41c8ea5ad418c35ad67024af3ab9ea2a4b1728416bff",
+      "width": 1000,
+      "height": 667,
+      "instances": 2,
+      "classes": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "002019.jpg",
+      "stem": "002019",
+      "sha256": "15dba8117ba41f2b156e682ebc1f112bdbaa7dacf44c1f3938947103268da440",
+      "width": 1000,
+      "height": 667,
+      "instances": 2,
+      "classes": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "filename": "002044.jpg",
+      "stem": "002044",
+      "sha256": "9665f7d7cd1f9b0a41c0ef460e5c939fd2c43ae9cc805d204f6260c1522f3ead",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "dent"
+      ]
+    },
+    {
+      "filename": "002079.jpg",
+      "stem": "002079",
+      "sha256": "4c6528a5f9294800802b86f70fbcf389e7049fe3e83605cfa99c50c594dc16d8",
+      "width": 1000,
+      "height": 1000,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "002173.jpg",
+      "stem": "002173",
+      "sha256": "ad68b791067af3eeca93538f2c9cb843445d6b83ad43065c2202ada5703b07dc",
+      "width": 1000,
+      "height": 667,
+      "instances": 2,
+      "classes": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "filename": "002210.jpg",
+      "stem": "002210",
+      "sha256": "d84b29f157b896061f00c66b4d3117aed7e00a08458ef9ea59575c023f86f148",
+      "width": 1000,
+      "height": 667,
+      "instances": 2,
+      "classes": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "filename": "002225.jpg",
+      "stem": "002225",
+      "sha256": "948e84bf0202314110cdfd37519ee61c2b2c5bd401f36f30cf4cf22d18eddc0e",
+      "width": 1000,
+      "height": 745,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "002228.jpg",
+      "stem": "002228",
+      "sha256": "d2839022f3340f456e63d5ae93c835be055b8e1b0e457309e5288723a55bee30",
+      "width": 1000,
+      "height": 739,
+      "instances": 3,
+      "classes": [
+        "scratch",
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "filename": "002443.jpg",
+      "stem": "002443",
+      "sha256": "bc05e8b4fe5b794e5cafc52cf04a2530e66c5ae69e37adfa0ef0baa74f47b41f",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "dent"
+      ]
+    },
+    {
+      "filename": "002471.jpg",
+      "stem": "002471",
+      "sha256": "6bf8e7f3f09392839570918fe3dc865971233db538d2c90131d2221b3f6dd0e6",
+      "width": 1000,
+      "height": 667,
+      "instances": 2,
+      "classes": [
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "filename": "002492.jpg",
+      "stem": "002492",
+      "sha256": "ebf637ae323ce5197299de11a10b030ab692014e34c2bf1a3ad182d8ec73845b",
+      "width": 1000,
+      "height": 750,
+      "instances": 2,
+      "classes": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "filename": "002512.jpg",
+      "stem": "002512",
+      "sha256": "addd2a22cd3da360e5af69cb6d06dd8d0ea69cf946247c4fc60a407f8f4df421",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "dent"
+      ]
+    },
+    {
+      "filename": "002551.jpg",
+      "stem": "002551",
+      "sha256": "512909afe85d270c0c68298f907563b2797d193490db38549f76b916a0f39fdb",
+      "width": 1000,
+      "height": 750,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "002554.jpg",
+      "stem": "002554",
+      "sha256": "49f72d76e9485e2dbb5c3cd118ab1308135cbc15ec5be6ca78b3a01dac6be3d7",
+      "width": 1000,
+      "height": 750,
+      "instances": 4,
+      "classes": [
+        "crack",
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "002555.jpg",
+      "stem": "002555",
+      "sha256": "e6ae7fad56e0d9ef29df88316243cacd41c0b55355e2637178a038a246702443",
+      "width": 1000,
+      "height": 750,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "002556.jpg",
+      "stem": "002556",
+      "sha256": "1e0bc88e94ad91cc37c8be6c0e6d6b18d904f0ce6e5359c3d64c677b5511e9d2",
+      "width": 1000,
+      "height": 750,
+      "instances": 2,
+      "classes": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "002557.jpg",
+      "stem": "002557",
+      "sha256": "1a8405f94ccc513c60a292952786509797e19c923471f723145ef306832e0ed1",
+      "width": 1000,
+      "height": 750,
+      "instances": 3,
+      "classes": [
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "002558.jpg",
+      "stem": "002558",
+      "sha256": "8a7bc536e14f45100935ab85a461d7042357960394326f15857e97a52fefdd4b",
+      "width": 1000,
+      "height": 750,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "002572.jpg",
+      "stem": "002572",
+      "sha256": "729a4ad644e58da4a3d9524539d5232db9864de1964a80453986bfba14edde91",
+      "width": 1000,
+      "height": 667,
+      "instances": 2,
+      "classes": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "002669.jpg",
+      "stem": "002669",
+      "sha256": "6d5f1af4d634397a3c03ff3b847c1e44230b139262b79b71402184aef4478070",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "002681.jpg",
+      "stem": "002681",
+      "sha256": "589c25c460b5daea3402377542e73cae50ad572afc68254ce78568fc58e8cf2d",
+      "width": 1000,
+      "height": 667,
+      "instances": 2,
+      "classes": [
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "filename": "002732.jpg",
+      "stem": "002732",
+      "sha256": "fc48a75a6a3e42752604c6b90216da9fadb95da81d3e7f5c2dae2a002101c412",
+      "width": 667,
+      "height": 1000,
+      "instances": 6,
+      "classes": [
+        "crack",
+        "crack",
+        "crack",
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "002782.jpg",
+      "stem": "002782",
+      "sha256": "67a3bc208ec5dd766af670a23f6aed1084ff4af1c92ff2c9649fa6245d4286f6",
+      "width": 1000,
+      "height": 664,
+      "instances": 1,
+      "classes": [
+        "dent"
+      ]
+    },
+    {
+      "filename": "002850.jpg",
+      "stem": "002850",
+      "sha256": "519e288da801eedc71924876d25dd8092ef86e8bdf23fd59bdd67a5cafb56c99",
+      "width": 1000,
+      "height": 667,
+      "instances": 3,
+      "classes": [
+        "scratch",
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "filename": "002856.jpg",
+      "stem": "002856",
+      "sha256": "cde7f04f1793c0d786eec9753683b3c0fb8419e1827a65cd0106fa8b92902cc4",
+      "width": 1000,
+      "height": 667,
+      "instances": 2,
+      "classes": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "filename": "002863.jpg",
+      "stem": "002863",
+      "sha256": "d4e5eb733c93a80fd510163db941ebc4082647fd979781fe952849fca12500b7",
+      "width": 1000,
+      "height": 638,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "002874.jpg",
+      "stem": "002874",
+      "sha256": "b3ed8d1890d0e40719bada99f811907521803b339472d28db6d2808407943b4e",
+      "width": 1000,
+      "height": 750,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "002897.jpg",
+      "stem": "002897",
+      "sha256": "4810b22b1e286d6593f104109c6728f388b92fb65aeafd7fc073172cf8757564",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "dent"
+      ]
+    },
+    {
+      "filename": "002943.jpg",
+      "stem": "002943",
+      "sha256": "f93510c01649a740156b05fa7d44a9c58d169eb4e86d2232b41206fa267a01e3",
+      "width": 1000,
+      "height": 668,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "002966.jpg",
+      "stem": "002966",
+      "sha256": "7b41dfb18393ede4fd76a3fd44661027a97e767a900dfa8661063d48c0d0bc7c",
+      "width": 1000,
+      "height": 662,
+      "instances": 1,
+      "classes": [
+        "dent"
+      ]
+    },
+    {
+      "filename": "002989.jpg",
+      "stem": "002989",
+      "sha256": "b53f39ba89e63a7233edfc3d8e86bcfeb836e8f77bd655a83372e8dd2c63df23",
+      "width": 1000,
+      "height": 668,
+      "instances": 2,
+      "classes": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "003107.jpg",
+      "stem": "003107",
+      "sha256": "15465116465345d00c42f808ae4315571571262cf09ac3da825e773ca76f9abc",
+      "width": 1000,
+      "height": 667,
+      "instances": 2,
+      "classes": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "filename": "003339.jpg",
+      "stem": "003339",
+      "sha256": "3a13145b69d79fb6a5d694f861335735483e31c85dcea52c2ce0367f83161480",
+      "width": 750,
+      "height": 1000,
+      "instances": 4,
+      "classes": [
+        "crack",
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "003396.jpg",
+      "stem": "003396",
+      "sha256": "034ca357c61bc75f9517bad1f0b25cba23d5e2df5f4681ce52bc97bfe0a3d796",
+      "width": 1000,
+      "height": 750,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "003459.jpg",
+      "stem": "003459",
+      "sha256": "af5739e5e9221521b8716c05eb89871aa145990e05b8354555560c347af88c7b",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "003490.jpg",
+      "stem": "003490",
+      "sha256": "72eac2eaff28c7f438893c1db9cb5da06c86c1dec2a47a9aa9d9841551013723",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "003491.jpg",
+      "stem": "003491",
+      "sha256": "7810a484aa6fa80759580cc7e7fc7f5f5b0c14d0214158237abd2e047ecbff26",
+      "width": 750,
+      "height": 1000,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "003530.jpg",
+      "stem": "003530",
+      "sha256": "82e751ef6c9ebc76a611966ff5f4ecd99ae0c0c9b18593ebf151ce6c435eadcd",
+      "width": 1000,
+      "height": 750,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "003597.jpg",
+      "stem": "003597",
+      "sha256": "1a5929e3120c9b4b6aaef6493488a6bc17cc805f7775ae3c224af9cb2b5a3c06",
+      "width": 1000,
+      "height": 667,
+      "instances": 2,
+      "classes": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "filename": "003604.jpg",
+      "stem": "003604",
+      "sha256": "27a3e2cbe8b955e83cfc619f22d9a94cfd86ad26a2697c20a4dbb766af32260f",
+      "width": 1000,
+      "height": 667,
+      "instances": 2,
+      "classes": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "filename": "003629.jpg",
+      "stem": "003629",
+      "sha256": "b3537fc5593bafd3217cd860027e330ac54c8f34afb6fb9eb54948dea996329a",
+      "width": 1000,
+      "height": 636,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "003639.jpg",
+      "stem": "003639",
+      "sha256": "157f1c442bfa91a5e379c056f2a4aa3d04727476b0c08ee76caf78d30937afc7",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "003652.jpg",
+      "stem": "003652",
+      "sha256": "e9960d3849e150c5a636deb953acb0cccfdee45f4ed92fe3f09ce7c771845d91",
+      "width": 1000,
+      "height": 750,
+      "instances": 2,
+      "classes": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "filename": "003665.jpg",
+      "stem": "003665",
+      "sha256": "1a46666548e00b8a74ef29b74c58fbca73242de982b36e755a006468b5f3d50d",
+      "width": 1000,
+      "height": 750,
+      "instances": 2,
+      "classes": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "filename": "003670.jpg",
+      "stem": "003670",
+      "sha256": "f07948357c937a63f62185155f3e08ab3622f71c054252f6b78d70b6d1319037",
+      "width": 1000,
+      "height": 644,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "003674.jpg",
+      "stem": "003674",
+      "sha256": "082f15c7a37c28b799a739546d44847121f4e6052272b13b1deb84363feb46fc",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "003675.jpg",
+      "stem": "003675",
+      "sha256": "4935fef32e2b06720f6fd0a427eb11fb13d42b0dd23617fa48997c8cdb223b52",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "003681.jpg",
+      "stem": "003681",
+      "sha256": "dd326c04ea17c96186639e28256cae3deda2f87230412d5a2653523ba71a72e8",
+      "width": 1000,
+      "height": 667,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "003693.jpg",
+      "stem": "003693",
+      "sha256": "86540366dccbc4fa0a355a9c22efb74efc841adb9a2b685f17b65e5700298e44",
+      "width": 1000,
+      "height": 750,
+      "instances": 1,
+      "classes": [
+        "scratch"
+      ]
+    },
+    {
+      "filename": "003694.jpg",
+      "stem": "003694",
+      "sha256": "4099a992f480bc8dada377957698a72028ad76ebb985d0d4bde6e4e46f3ba8f7",
+      "width": 1000,
+      "height": 664,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "003700.jpg",
+      "stem": "003700",
+      "sha256": "d315e90d971aacbc58b7bb2a1fb4af812388740062583f84e95fd3c8b448a194",
+      "width": 1000,
+      "height": 750,
+      "instances": 4,
+      "classes": [
+        "scratch",
+        "scratch",
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "filename": "003758.jpg",
+      "stem": "003758",
+      "sha256": "53648e1d721ffaf5d451c9652c17de74c10606bd01b052afb8839b07722db949",
+      "width": 1000,
+      "height": 667,
+      "instances": 2,
+      "classes": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "filename": "003759.jpg",
+      "stem": "003759",
+      "sha256": "945330f51285e32f42e7020ed60374ef0a0eeec674ad8314dd9f45085dbca82b",
+      "width": 1000,
+      "height": 837,
+      "instances": 1,
+      "classes": [
+        "crack"
+      ]
+    },
+    {
+      "filename": "003865.jpg",
+      "stem": "003865",
+      "sha256": "5d7840cb7082cd160e31b6cc23965ee3ca84a601a57ec845285e29afb29b3626",
+      "width": 1000,
+      "height": 667,
+      "instances": 2,
+      "classes": [
+        "dent",
+        "dent"
+      ]
+    }
+  ]
+}

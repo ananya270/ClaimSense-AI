@@ -1,0 +1,10 @@
+model_key,model_name,split,reported_precision,recomputed_precision,precision_delta,reported_recall,recomputed_recall,recall_delta,reported_f1,recomputed_f1,f1_delta,reported_map50,recomputed_map50,map50_delta,reported_map50_95,recomputed_map50_95,map50_95_delta,audit_classification,audit_notes
+production_baseline,Production Baseline (Phase 5),Tier 1 (Walkaround),0.1678,0.1678,0.0,0.203,0.203,0.0,0.1838,0.1837,0.0001,0.001,0.001,0.0,0.0002,0.0002,0.0,PASS,Ultralytics harmonic F1 verified from P and R.
+production_baseline,Production Baseline (Phase 5),Tier 2 (Macro),0.2743,0.2743,0.0,0.375,0.375,0.0,0.3169,0.3168,0.0001,0.032,0.032,0.0,0.0101,0.0101,0.0,PASS,Ultralytics harmonic F1 verified from P and R.
+production_baseline,Production Baseline (Phase 5),Empirical Pooled,0.169,0.169,0.0,0.24,0.24,0.0,0.1984,0.1983,0.0001,0.0016,0.0016,0.0,0.0004,0.0004,0.0,PASS,Ultralytics harmonic F1 verified from P and R.
+session_2,Phase 8 Session 2,Tier 1 (Walkaround),0.6819,0.6819,0.0,0.0128,0.0128,0.0,0.0252,0.0251,0.0001,0.002,0.002,0.0,0.0003,0.0003,0.0,PASS,Ultralytics harmonic F1 verified from P and R.
+session_2,Phase 8 Session 2,Tier 2 (Macro),0.0004,0.0004,0.0,0.25,0.25,0.0,0.0007,0.0008,0.0001,0.0016,0.0016,0.0,0.0003,0.0003,0.0,WARNING,Ultralytics harmonic F1 verified from P and R.
+session_2,Phase 8 Session 2,Empirical Pooled,0.3473,0.3473,0.0,0.0128,0.0128,0.0,0.0247,0.0247,0.0,0.0019,0.0019,0.0,0.0003,0.0003,0.0,PASS,Ultralytics harmonic F1 verified from P and R.
+session_4,Phase 8 Session 4,Tier 1 (Walkaround),0.1929,0.1929,0.0,0.0256,0.0256,0.0,0.0453,0.0452,0.0001,0.0063,0.0063,0.0,0.0008,0.0008,0.0,WARNING,Ultralytics harmonic F1 verified from P and R.
+session_4,Phase 8 Session 4,Tier 2 (Macro),0.002,0.002,0.0,0.5417,0.5417,0.0,0.0041,0.004,0.0001,0.0033,0.0033,0.0,0.0006,0.0006,0.0,WARNING,Ultralytics harmonic F1 verified from P and R.
+session_4,Phase 8 Session 4,Empirical Pooled,0.1894,0.1894,0.0,0.0256,0.0256,0.0,0.0452,0.0451,0.0001,0.006,0.006,0.0,0.0008,0.0008,0.0,PASS,Ultralytics harmonic F1 verified from P and R.

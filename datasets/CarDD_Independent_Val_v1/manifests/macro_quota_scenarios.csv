@@ -1,0 +1,9 @@
+scenario_name,total_dataset_size,tier_1_count,tier_2_count,actual_macro_percentage,quota_ceiling,quota_compliance,additional_tier_1_needed,notes
+Batch 1 Actual Status Quo,23,15,8,34.78%,30.00%,EXCEEDS_QUOTA (+4.78%),4,"In Batch 1 alone, 8/23 exceeds 30%. Requires 4 more Tier 1 images to achieve <= 30%."
+Minimum Compliant Dataset Size,27,19,8,29.63%,30.00%,COMPLIANT,4,Smallest dataset size that absorbs all 8 Batch 1 macro images within 30% ceiling.
+Full Target N=200 (Max 30% Macro),200,140,60,30.00%,30.00%,COMPLIANT,125,Final N=200 utilizing full 30% macro allowance. Requires 125 more Tier 1 and 52 more Tier 2.
+Full Target N=200 (Frozen Macro = 8),200,192,8,4.00%,30.00%,COMPLIANT,177,No further macro acquisitions after Batch 1. Requires 177 more Tier 1 images.
+Target N=220 (Max 30% Macro),220,154,66,30.00%,30.00%,COMPLIANT,139,Midpoint target N=220 utilizing full 30% macro quota. Requires 139 more Tier 1 images.
+Target N=220 (Frozen Macro = 8),220,212,8,3.64%,30.00%,COMPLIANT,197,Midpoint target N=220 with no further macro acquisitions. Requires 197 more Tier 1 images.
+Upper Target N=250 (Max 30% Macro),250,175,75,30.00%,30.00%,COMPLIANT,160,Upper bound target N=250 utilizing full 30% macro quota. Requires 160 more Tier 1 images.
+Upper Target N=250 (Frozen Macro = 8),250,242,8,3.20%,30.00%,COMPLIANT,227,Upper bound target N=250 with no further macro acquisitions. Requires 227 more Tier 1 images.

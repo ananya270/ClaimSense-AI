@@ -1,0 +1,37 @@
+{
+  "execution_date": "2026-11-17 12:31:07",
+  "tire_flat": {
+    "total_inspected": 181,
+    "approved_candidates_cc0_pd_cc_by": 86,
+    "excluded_candidates_cc_by_sa_gfdl": 95,
+    "approved_file_sample": [
+      "File:'52 Ford Sedan.jpg",
+      "File:'95-'98 Ford Explorer With Flat Tire.JPG",
+      "File:1953 Chrysler Imperial (5832921647).jpg",
+      "File:1977 Datsun 180B (10899901566).jpg",
+      "File:1977 Datsun 180B (10899928115).jpg",
+      "File:1978 Ford Cortina (TE) L 4 sedan (2015-07-14) 01.jpg",
+      "File:1978 Ford Cortina (TE) L 4 sedan (2015-07-14) 02.jpg",
+      "File:1979 Honda Civic (7319282064).jpg",
+      "File:1982 Austin Morris Mini HL (16168382460).jpg",
+      "File:1982 Austin Morris Mini HL (16353999171).jpg"
+    ]
+  },
+  "glass_shatter": {
+    "total_inspected": 104,
+    "approved_candidates_cc0_pd_cc_by": 38,
+    "excluded_candidates_cc_by_sa_gfdl": 66,
+    "approved_file_sample": [
+      "File:-059 - Glass Car (24719680503).jpg",
+      "File:168 not forgotten... (9380374686).jpg",
+      "File:A bullet shattered multiple layers of the bullet-proof glass on this seized vehicle.png",
+      "File:A view of a car that was demolished when a car bomb exploded behind the 435th Tactical Air Wing Headquarters. The shattered windows of Building 350, a barracks, can be seen in the b - DPLA - 0d2fcd116d81ce771d62548a3dfce034.jpeg",
+      "File:Abandoned green car with broken window.jpg",
+      "File:An automobile that has sustained damage following a mob attack in Caracas, Venezuela, targeting Vice President Richard Nixon. Close-up of shattered windows.jpg",
+      "File:Aston Martin DBS (Quantum of Solace) bullet-impacts-on-front-glass National Motor Museum, Beaulieu.jpg",
+      "File:Bastille voiture caillassee 487325197 c345be19d0 o d.jpg",
+      "File:Bomba Maritimo Las Arenas Ertzaintza.jpg",
+      "File:Broken car window in salvage yard with debris and damaged interior seen through windshield.jpg"
+    ]
+  }
+}

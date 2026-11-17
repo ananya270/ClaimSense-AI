@@ -1,0 +1,16 @@
+image_id,width,height,class_id,class_name,x1,y1,x2,y2,box_width,box_height,box_area_px,occupancy_pct,x_center_norm,y_center_norm,w_norm,h_norm,notes
+CS_VAL_001,2369,1473,5,tire flat,1320,840,1660,1260,340,420,142800,4.09%,0.628957,0.712831,0.143520,0.285132,Ford Explorer deflated flat rear tire.
+CS_VAL_002,3264,2448,5,tire flat,780,1540,1340,2180,560,640,358400,4.49%,0.324755,0.759804,0.171569,0.261438,Chrysler classic deflated front tire.
+CS_VAL_003,3072,2304,5,tire flat,880,1280,1420,1880,540,600,324000,4.58%,0.374349,0.685764,0.175781,0.260417,Datsun 180B punctured rear tire.
+CS_VAL_004,4272,2856,5,tire flat,1120,1640,1840,2420,720,780,561600,4.60%,0.346442,0.710784,0.168539,0.273109,Ford Cortina flat front tire on rim.
+CS_VAL_006,4272,2848,5,tire flat,1260,1680,1880,2360,620,680,421600,3.47%,0.367509,0.709270,0.145131,0.238764,Austin Mini flat tire.
+CS_VAL_007,4272,2856,5,tire flat,1040,1580,1720,2320,680,740,503200,4.12%,0.323034,0.682773,0.159176,0.259104,Holden Camira flat tire on pavement.
+CS_VAL_008,4272,2856,5,tire flat,1180,1620,1820,2340,640,720,460800,3.78%,0.351124,0.693277,0.149813,0.252101,Toyota Corolla flat tire.
+CS_VAL_009,6016,4016,3,glass shatter,1820,1140,3640,2380,1820,1240,2256800,9.34%,0.453790,0.438247,0.302527,0.308765,Abandoned car broken door window glass.
+CS_VAL_010,6048,4032,3,glass shatter,1640,1020,4360,2840,2720,1820,4950400,20.30%,0.496032,0.478671,0.449735,0.451389,Junkyard vehicle shattered windshield glass.
+CS_VAL_012,1280,960,3,glass shatter,280,210,1040,680,760,470,357200,29.07%,0.515625,0.463542,0.593750,0.489583,Spiderweb cracked vehicle windshield.
+CS_VAL_013,6016,4016,3,glass shatter,1540,1180,4520,2920,2980,1740,5185200,21.46%,0.503657,0.510458,0.495346,0.433267,Smashed front laminated windshield glass.
+CS_VAL_014,6048,4032,3,glass shatter,1720,1080,4620,2760,2900,1680,4872000,19.98%,0.524140,0.476190,0.479497,0.416667,Junkyard shattered windshield glass.
+CS_VAL_015,3000,1993,3,glass shatter,640,420,2380,1480,1740,1060,1844400,30.85%,0.503333,0.476668,0.580000,0.531862,FEMA truck hail-shattered front windshield.
+CS_VAL_018,2999,2249,0,dent,520,580,2480,1720,1960,1140,2234400,33.13%,0.500167,0.511338,0.653551,0.506892,Colorado storm hail dent cluster on hood/roof.
+CS_VAL_019,3640,2756,0,dent,740,1420,2880,2260,2140,840,1797600,17.92%,0.497253,0.667634,0.587912,0.304790,Rear decklid and cowl hail dent impressions.

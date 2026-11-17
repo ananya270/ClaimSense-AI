@@ -1,0 +1,7 @@
+evaluation_domain,class_name,prod_tp,prod_fp,prod_fn,prod_precision,prod_recall,prod_f1,exp02_tp,exp02_fp,exp02_fn,exp02_precision,exp02_recall,exp02_f1,delta_f1
+Combined Ground-Truth (75 imgs),dent,26,4093,27,0.0063,0.4906,0.0125,11,9,42,0.55,0.2075,0.3014,0.2889
+Combined Ground-Truth (75 imgs),scratch,0,13,55,0.0,0.0,0.0,6,12,49,0.3333,0.1091,0.1644,0.1644
+Combined Ground-Truth (75 imgs),crack,0,1139,14,0.0,0.0,0.0,0,0,14,0.0,0.0,0.0,0.0
+Combined Ground-Truth (75 imgs),glass shatter,4,494,8,0.008,0.3333,0.0157,4,3,8,0.5714,0.3333,0.4211,0.4054
+Combined Ground-Truth (75 imgs),lamp broken,3,763,18,0.0039,0.1429,0.0076,3,3,18,0.5,0.1429,0.2222,0.2146
+Combined Ground-Truth (75 imgs),tire flat,0,1,12,0.0,0.0,0.0,3,2,9,0.6,0.25,0.3529,0.3529

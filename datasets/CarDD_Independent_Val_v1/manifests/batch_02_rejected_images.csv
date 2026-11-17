@@ -1,0 +1,5 @@
+id,title,reason,cat
+CS_VAL_026,File:74 Plymouth Scamp (7332447716).jpg,BLUR_VARIANCE_35.0_LT_50,Scratch
+CS_VAL_029,File:1985 Ford Escort Van 1.6 Automatic (8962910374).jpg,BLUR_VARIANCE_47.7_LT_50,Scratch
+CS_VAL_039,File:FEMA - 44376 - truck windshield with hail damage in OK.jpg,SHA256_COLLISION_BATCH1,Dent
+CS_VAL_050,File:Black car with flat tire parked on gravel near abandoned area.jpg,BLUR_VARIANCE_28.7_LT_50,Tire Flat

@@ -1,0 +1,90 @@
+{
+  "SMOKE_CLM_CS_DA_001": {
+    "record_id": 1,
+    "claim_id": "SMOKE_CLM_CS_DA_001",
+    "image_filename": "CS_DA_001.jpg",
+    "model_a_true_identity": "Production",
+    "model_b_true_identity": "EXP02",
+    "prod_box_count": 33,
+    "exp02_box_count": 0,
+    "disagreement_status": "EXP02_MISSED_PROD",
+    "disagreement_severity": "HIGH"
+  },
+  "SMOKE_CLM_CS_DA_002": {
+    "record_id": 2,
+    "claim_id": "SMOKE_CLM_CS_DA_002",
+    "image_filename": "CS_DA_002.jpg",
+    "model_a_true_identity": "Production",
+    "model_b_true_identity": "EXP02",
+    "prod_box_count": 39,
+    "exp02_box_count": 0,
+    "disagreement_status": "EXP02_MISSED_PROD",
+    "disagreement_severity": "HIGH"
+  },
+  "SMOKE_CLM_CS_DA_003": {
+    "record_id": 3,
+    "claim_id": "SMOKE_CLM_CS_DA_003",
+    "image_filename": "CS_DA_003.jpg",
+    "model_a_true_identity": "EXP02",
+    "model_b_true_identity": "Production",
+    "prod_box_count": 36,
+    "exp02_box_count": 0,
+    "disagreement_status": "EXP02_MISSED_PROD",
+    "disagreement_severity": "HIGH"
+  },
+  "SMOKE_CLM_CS_DA_005": {
+    "record_id": 4,
+    "claim_id": "SMOKE_CLM_CS_DA_005",
+    "image_filename": "CS_DA_005.jpg",
+    "model_a_true_identity": "EXP02",
+    "model_b_true_identity": "Production",
+    "prod_box_count": 42,
+    "exp02_box_count": 0,
+    "disagreement_status": "EXP02_MISSED_PROD",
+    "disagreement_severity": "HIGH"
+  },
+  "SMOKE_CLM_CARDD_000023": {
+    "record_id": 5,
+    "claim_id": "SMOKE_CLM_CARDD_000023",
+    "image_filename": "000023.jpg",
+    "model_a_true_identity": "Production",
+    "model_b_true_identity": "EXP02",
+    "prod_box_count": 31,
+    "exp02_box_count": 1,
+    "disagreement_status": "COUNT_DISPARITY",
+    "disagreement_severity": "MEDIUM"
+  },
+  "SMOKE_CLM_CARDD_000042": {
+    "record_id": 6,
+    "claim_id": "SMOKE_CLM_CARDD_000042",
+    "image_filename": "000042.jpg",
+    "model_a_true_identity": "Production",
+    "model_b_true_identity": "EXP02",
+    "prod_box_count": 47,
+    "exp02_box_count": 2,
+    "disagreement_status": "COUNT_DISPARITY",
+    "disagreement_severity": "MEDIUM"
+  },
+  "SMOKE_CLM_CARDD_000152": {
+    "record_id": 7,
+    "claim_id": "SMOKE_CLM_CARDD_000152",
+    "image_filename": "000152.jpg",
+    "model_a_true_identity": "Production",
+    "model_b_true_identity": "EXP02",
+    "prod_box_count": 28,
+    "exp02_box_count": 1,
+    "disagreement_status": "COUNT_DISPARITY",
+    "disagreement_severity": "MEDIUM"
+  },
+  "SMOKE_CLM_CARDD_000224": {
+    "record_id": 8,
+    "claim_id": "SMOKE_CLM_CARDD_000224",
+    "image_filename": "000224.jpg",
+    "model_a_true_identity": "EXP02",
+    "model_b_true_identity": "Production",
+    "prod_box_count": 37,
+    "exp02_box_count": 2,
+    "disagreement_status": "COUNT_DISPARITY",
+    "disagreement_severity": "MEDIUM"
+  }
+}

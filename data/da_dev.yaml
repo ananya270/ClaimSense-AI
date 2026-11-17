@@ -1,0 +1,13 @@
+# ClaimSense AI - Domain Adaptation Dev Set (30 images)
+path: c:/Users/ansh9/Desktop/Claimsense Ai/datasets/domain_adaptation_dev
+train: images
+val: images
+
+nc: 6
+names:
+  0: dent
+  1: scratch
+  2: crack
+  3: glass shatter
+  4: lamp broken
+  5: tire flat

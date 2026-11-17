@@ -1,0 +1,848 @@
+{
+  "model_role": "SHADOW_VALIDATION_ONLY",
+  "model_checkpoint": "c:\\Users\\ansh9\\Desktop\\Claimsense Ai\\runs\\phase8\\domain_adaptation\\exp02_rare_class\\weights\\best.pt",
+  "sha256": "68e2b58ec7759427808621debc9a8d725a9e4c1fbc57a2102cd239a8ca14f006",
+  "operational_threshold": 0.25,
+  "timestamp": "2026-11-17T18:07:00.171891",
+  "mean_latency_ms": 174.54,
+  "peak_vram_mb": 45.14,
+  "predictions": {
+    "dev:CS_DA_004.jpg": [],
+    "dev:CS_DA_010.jpg": [],
+    "dev:CS_DA_011.jpg": [],
+    "dev:CS_DA_013.jpg": [],
+    "dev:CS_DA_019.jpg": [],
+    "dev:CS_DA_022.jpg": [],
+    "dev:CS_DA_024.jpg": [],
+    "dev:CS_DA_029.jpg": [],
+    "dev:CS_DA_033.jpg": [],
+    "dev:CS_DA_034.jpg": [],
+    "dev:CS_DA_037.jpg": [],
+    "dev:CS_DA_051.jpg": [],
+    "dev:CS_DA_053.jpg": [],
+    "dev:CS_DA_054.jpg": [],
+    "dev:CS_DA_056.jpg": [],
+    "dev:CS_DA_064.jpg": [],
+    "dev:CS_DA_068.jpg": [],
+    "dev:CS_DA_071.jpg": [],
+    "dev:CS_DA_072.jpg": [],
+    "dev:CS_DA_080.jpg": [],
+    "dev:CS_DA_084.jpg": [],
+    "dev:CS_DA_085.jpg": [],
+    "dev:CS_DA_095.jpg": [
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.4013,
+        "bbox": [
+          2.89,
+          183.02,
+          731.26,
+          533.55
+        ]
+      }
+    ],
+    "dev:CS_DA_096.jpg": [],
+    "dev:CS_DA_097.jpg": [],
+    "dev:CS_DA_101.jpg": [
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.3166,
+        "bbox": [
+          227.28,
+          693.27,
+          2501.06,
+          2316.04
+        ]
+      }
+    ],
+    "dev:CS_DA_103.jpg": [],
+    "dev:CS_DA_105.jpg": [],
+    "dev:CS_DA_109.jpg": [
+      {
+        "class_id": 4,
+        "class_name": "lamp broken",
+        "confidence": 0.3271,
+        "bbox": [
+          1.76,
+          29.51,
+          1004.89,
+          904.14
+        ]
+      }
+    ],
+    "dev:CS_DA_113.jpg": [
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.3644,
+        "bbox": [
+          939.95,
+          724.17,
+          1951.93,
+          1052.2
+        ]
+      }
+    ],
+    "cardd:000023.jpg": [
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.5181,
+        "bbox": [
+          272.05,
+          167.64,
+          626.41,
+          461.75
+        ]
+      }
+    ],
+    "cardd:000042.jpg": [
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.3633,
+        "bbox": [
+          226.06,
+          260.31,
+          802.4,
+          419.04
+        ]
+      },
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.3262,
+        "bbox": [
+          235.73,
+          75.97,
+          534.21,
+          129.1
+        ]
+      }
+    ],
+    "cardd:000152.jpg": [
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.3531,
+        "bbox": [
+          495.65,
+          184.64,
+          786.85,
+          406.01
+        ]
+      }
+    ],
+    "cardd:000224.jpg": [
+      {
+        "class_id": 3,
+        "class_name": "glass shatter",
+        "confidence": 0.7433,
+        "bbox": [
+          0.0,
+          126.63,
+          993.49,
+          420.97
+        ]
+      },
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.2717,
+        "bbox": [
+          11.07,
+          526.07,
+          1000.0,
+          667.0
+        ]
+      }
+    ],
+    "cardd:000330.jpg": [
+      {
+        "class_id": 3,
+        "class_name": "glass shatter",
+        "confidence": 0.9188,
+        "bbox": [
+          5.19,
+          3.2,
+          991.7,
+          626.15
+        ]
+      }
+    ],
+    "cardd:000353.jpg": [
+      {
+        "class_id": 5,
+        "class_name": "tire flat",
+        "confidence": 0.3302,
+        "bbox": [
+          366.4,
+          59.02,
+          878.44,
+          533.68
+        ]
+      }
+    ],
+    "cardd:000513.jpg": [
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.4628,
+        "bbox": [
+          46.61,
+          188.42,
+          215.87,
+          378.72
+        ]
+      }
+    ],
+    "cardd:000687.jpg": [
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.4678,
+        "bbox": [
+          283.94,
+          405.21,
+          993.98,
+          746.6
+        ]
+      }
+    ],
+    "cardd:000834.jpg": [
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.3225,
+        "bbox": [
+          0.0,
+          288.84,
+          941.32,
+          577.62
+        ]
+      }
+    ],
+    "cardd:000965.jpg": [
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.7017,
+        "bbox": [
+          220.32,
+          447.5,
+          355.35,
+          555.96
+        ]
+      },
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.47,
+        "bbox": [
+          417.0,
+          329.91,
+          769.38,
+          624.15
+        ]
+      },
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.2908,
+        "bbox": [
+          203.59,
+          446.4,
+          352.13,
+          659.94
+        ]
+      }
+    ],
+    "cardd:000969.jpg": [],
+    "cardd:001071.jpg": [
+      {
+        "class_id": 5,
+        "class_name": "tire flat",
+        "confidence": 0.272,
+        "bbox": [
+          455.83,
+          111.73,
+          828.43,
+          580.41
+        ]
+      }
+    ],
+    "cardd:001118.jpg": [
+      {
+        "class_id": 3,
+        "class_name": "glass shatter",
+        "confidence": 0.9321,
+        "bbox": [
+          161.67,
+          5.66,
+          998.77,
+          668.0
+        ]
+      }
+    ],
+    "cardd:001236.jpg": [
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.2771,
+        "bbox": [
+          145.56,
+          28.86,
+          269.71,
+          249.24
+        ]
+      }
+    ],
+    "cardd:001493.jpg": [
+      {
+        "class_id": 5,
+        "class_name": "tire flat",
+        "confidence": 0.4166,
+        "bbox": [
+          555.48,
+          400.79,
+          662.94,
+          619.53
+        ]
+      },
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.3922,
+        "bbox": [
+          362.04,
+          190.61,
+          604.95,
+          353.82
+        ]
+      },
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.2829,
+        "bbox": [
+          135.01,
+          142.29,
+          485.43,
+          453.3
+        ]
+      }
+    ],
+    "cardd:001506.jpg": [],
+    "cardd:001617.jpg": [
+      {
+        "class_id": 4,
+        "class_name": "lamp broken",
+        "confidence": 0.8601,
+        "bbox": [
+          0.37,
+          210.06,
+          509.1,
+          419.26
+        ]
+      },
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.5414,
+        "bbox": [
+          140.17,
+          323.87,
+          820.79,
+          529.6
+        ]
+      },
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.4947,
+        "bbox": [
+          3.8,
+          355.08,
+          597.74,
+          589.44
+        ]
+      }
+    ],
+    "cardd:001665.jpg": [],
+    "cardd:001799.jpg": [],
+    "cardd:001800.jpg": [
+      {
+        "class_id": 3,
+        "class_name": "glass shatter",
+        "confidence": 0.6974,
+        "bbox": [
+          266.19,
+          1.78,
+          1000.0,
+          642.41
+        ]
+      }
+    ],
+    "cardd:001874.jpg": [
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.3985,
+        "bbox": [
+          525.31,
+          58.01,
+          857.0,
+          432.12
+        ]
+      },
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.2648,
+        "bbox": [
+          72.09,
+          8.21,
+          634.34,
+          667.58
+        ]
+      }
+    ],
+    "cardd:001917.jpg": [],
+    "cardd:001967.jpg": [
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.3873,
+        "bbox": [
+          484.03,
+          259.93,
+          791.73,
+          471.86
+        ]
+      },
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.3662,
+        "bbox": [
+          6.53,
+          4.75,
+          479.58,
+          404.33
+        ]
+      }
+    ],
+    "cardd:002252.jpg": [
+      {
+        "class_id": 4,
+        "class_name": "lamp broken",
+        "confidence": 0.8751,
+        "bbox": [
+          555.79,
+          109.84,
+          982.02,
+          265.98
+        ]
+      },
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.2622,
+        "bbox": [
+          26.4,
+          78.33,
+          975.34,
+          628.88
+        ]
+      }
+    ],
+    "cardd:002314.jpg": [],
+    "cardd:002409.jpg": [
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.3604,
+        "bbox": [
+          306.67,
+          259.17,
+          560.92,
+          487.57
+        ]
+      }
+    ],
+    "cardd:002422.jpg": [
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.3386,
+        "bbox": [
+          314.7,
+          177.62,
+          586.02,
+          423.58
+        ]
+      }
+    ],
+    "cardd:002475.jpg": [
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.3405,
+        "bbox": [
+          317.36,
+          238.6,
+          750.36,
+          572.77
+        ]
+      }
+    ],
+    "cardd:002661.jpg": [
+      {
+        "class_id": 3,
+        "class_name": "glass shatter",
+        "confidence": 0.3902,
+        "bbox": [
+          0.0,
+          1.68,
+          1000.0,
+          444.36
+        ]
+      },
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.2755,
+        "bbox": [
+          0.0,
+          2.97,
+          995.92,
+          472.35
+        ]
+      }
+    ],
+    "cardd:002707.jpg": [],
+    "cardd:002801.jpg": [],
+    "cardd:002961.jpg": [
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.641,
+        "bbox": [
+          164.7,
+          0.0,
+          826.34,
+          651.51
+        ]
+      }
+    ],
+    "cardd:003226.jpg": [
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.3033,
+        "bbox": [
+          347.63,
+          549.31,
+          659.38,
+          834.23
+        ]
+      }
+    ],
+    "cardd:003233.jpg": [],
+    "cardd:003338.jpg": [],
+    "cardd:003354.jpg": [
+      {
+        "class_id": 4,
+        "class_name": "lamp broken",
+        "confidence": 0.9476,
+        "bbox": [
+          347.71,
+          21.59,
+          707.97,
+          264.83
+        ]
+      }
+    ],
+    "cardd:003399.jpg": [
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.2999,
+        "bbox": [
+          174.12,
+          47.75,
+          394.32,
+          327.22
+        ]
+      }
+    ],
+    "cardd:003414.jpg": [
+      {
+        "class_id": 4,
+        "class_name": "lamp broken",
+        "confidence": 0.6882,
+        "bbox": [
+          328.38,
+          118.49,
+          890.29,
+          350.79
+        ]
+      },
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.6742,
+        "bbox": [
+          7.34,
+          317.37,
+          969.43,
+          663.33
+        ]
+      }
+    ],
+    "cardd:003418.jpg": [
+      {
+        "class_id": 3,
+        "class_name": "glass shatter",
+        "confidence": 0.2584,
+        "bbox": [
+          0.0,
+          0.0,
+          1000.0,
+          718.39
+        ]
+      }
+    ],
+    "cardd:003734.jpg": [
+      {
+        "class_id": 4,
+        "class_name": "lamp broken",
+        "confidence": 0.5769,
+        "bbox": [
+          462.66,
+          177.81,
+          847.76,
+          344.76
+        ]
+      }
+    ],
+    "cardd:003743.jpg": [
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.8959,
+        "bbox": [
+          9.27,
+          103.25,
+          519.06,
+          518.29
+        ]
+      },
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.5338,
+        "bbox": [
+          522.98,
+          104.38,
+          911.11,
+          470.9
+        ]
+      },
+      {
+        "class_id": 5,
+        "class_name": "tire flat",
+        "confidence": 0.5078,
+        "bbox": [
+          901.39,
+          189.86,
+          1000.0,
+          482.73
+        ]
+      }
+    ],
+    "cardd:003812.jpg": [
+      {
+        "class_id": 3,
+        "class_name": "glass shatter",
+        "confidence": 0.9459,
+        "bbox": [
+          38.83,
+          80.88,
+          735.12,
+          521.19
+        ]
+      },
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.5178,
+        "bbox": [
+          491.64,
+          376.92,
+          1000.0,
+          672.65
+        ]
+      }
+    ],
+    "cardd:003829.jpg": [],
+    "cardd:003872.jpg": [
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.3341,
+        "bbox": [
+          404.29,
+          226.98,
+          887.2,
+          482.27
+        ]
+      }
+    ],
+    "cardd:003925.jpg": [
+      {
+        "class_id": 5,
+        "class_name": "tire flat",
+        "confidence": 0.5893,
+        "bbox": [
+          343.44,
+          436.56,
+          450.64,
+          693.13
+        ]
+      },
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.4285,
+        "bbox": [
+          359.96,
+          322.14,
+          884.41,
+          620.41
+        ]
+      },
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.2616,
+        "bbox": [
+          360.71,
+          325.71,
+          949.19,
+          617.01
+        ]
+      }
+    ],
+    "claim:CLM-20261114-4FIM/replacement_vehicle_image_Screenshot_2026-11-16_094916.jpg": [],
+    "claim:CLM-20261114-4FIM/Screenshot 2026-11-16 094916.png": [],
+    "claim:CLM-20261116-3RXF/vehicle_image_images.jpg": [
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.4825,
+        "bbox": [
+          106.42,
+          24.32,
+          700.0,
+          365.04
+        ]
+      }
+    ],
+    "claim:CLM-20261116-I79C/vehicle_image_000042.jpg": [
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.3633,
+        "bbox": [
+          226.06,
+          260.31,
+          802.4,
+          419.04
+        ]
+      },
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.3262,
+        "bbox": [
+          235.73,
+          75.97,
+          534.21,
+          129.1
+        ]
+      }
+    ],
+    "claim:CLM-20261116-KCM0/replacement_vehicle_image_WhatsApp_Image_2026-11-16_at_8.10.46_PM.jpeg": [],
+    "claim:CLM-20261116-KCM0/vehicle_image_rear_bumper_damage.jpg": [],
+    "claim:CLM-20261116-KE4Z/vehicle_image_images.jpg": [
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.4825,
+        "bbox": [
+          106.42,
+          24.32,
+          700.0,
+          365.04
+        ]
+      }
+    ],
+    "claim:CLM-20261116-OGY4/vehicle_image_000023.jpg": [
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.5181,
+        "bbox": [
+          272.05,
+          167.64,
+          626.41,
+          461.75
+        ]
+      }
+    ],
+    "claim:CLM-20261116-TM4G/replacement_vehicle_image_WhatsApp_Image_2026-11-16_at_8.10.46_PM.jpeg": [],
+    "claim:CLM-20261116-TM4G/vehicle_image_rear_bumper_damage.jpg": [],
+    "claim:CLM-20261116-YP8N/vehicle_image_000042.jpg": [
+      {
+        "class_id": 1,
+        "class_name": "scratch",
+        "confidence": 0.3633,
+        "bbox": [
+          226.06,
+          260.31,
+          802.4,
+          419.04
+        ]
+      },
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.3262,
+        "bbox": [
+          235.73,
+          75.97,
+          534.21,
+          129.1
+        ]
+      }
+    ],
+    "claim:CLM-20261116-YQSC/vehicle_image_000023.jpg": [
+      {
+        "class_id": 0,
+        "class_name": "dent",
+        "confidence": 0.5181,
+        "bbox": [
+          272.05,
+          167.64,
+          626.41,
+          461.75
+        ]
+      }
+    ],
+    "claim:CLM-20261116-ZG28/replacement_vehicle_image_WhatsApp_Image_2026-11-16_at_8.10.46_PM.jpeg": [],
+    "claim:CLM-20261116-ZG28/vehicle_image_rear_bumper_damage.jpg": []
+  }
+}

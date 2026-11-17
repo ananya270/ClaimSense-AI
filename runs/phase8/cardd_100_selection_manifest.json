@@ -1,0 +1,2000 @@
+{
+  "manifest_version": "1.0.0",
+  "dataset_source": "Official CarDD COCO train2017",
+  "source_path": "C:\\Users\\ansh9\\Downloads\\CarDD_release\\CarDD_release\\CarDD_COCO",
+  "total_selected": 100,
+  "target_breakdown": {
+    "crack_priority": 40,
+    "scratch_priority": 35,
+    "dent_priority": 25
+  },
+  "instance_breakdown": {
+    "crack": 78,
+    "scratch": 56,
+    "dent": 39
+  },
+  "duplicate_audit": {
+    "exact_sha256_collisions": 0,
+    "near_duplicate_candidates_dist_le_5": 0,
+    "status": "PASSED (Zero exact duplicates, zero near-duplicates)"
+  },
+  "bounding_box_audit": {
+    "boundary_violations": 0,
+    "status": "PASSED (All bboxes within image dimensions)"
+  },
+  "selected_images": [
+    {
+      "selection_index": 1,
+      "selection_id": "EXP-OFFICIAL-001",
+      "file_name": "001646.jpg",
+      "coco_image_id": 1646,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "d962098cdf048cadda18a07a9223b0144c13efe1ef4fe1e680371657e0e853ad",
+      "dhash": "90cf489699ecccf0",
+      "min_hamming_dist_to_cardd_300": 15,
+      "closest_cardd_300_image": "000289.jpg",
+      "closest_cardd_300_split": "val",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 2,
+      "selection_id": "EXP-OFFICIAL-002",
+      "file_name": "003759.jpg",
+      "coco_image_id": 3759,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 837,
+      "sha256": "945330f51285e32f42e7020ed60374ef0a0eeec674ad8314dd9f45085dbca82b",
+      "dhash": "c0d870d8c8b4dc31",
+      "min_hamming_dist_to_cardd_300": 15,
+      "closest_cardd_300_image": "002468.jpg",
+      "closest_cardd_300_split": "val",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 3,
+      "selection_id": "EXP-OFFICIAL-003",
+      "file_name": "003758.jpg",
+      "coco_image_id": 3758,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "53648e1d721ffaf5d451c9652c17de74c10606bd01b052afb8839b07722db949",
+      "dhash": "24c46038980cceca",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "000014.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 4,
+      "selection_id": "EXP-OFFICIAL-004",
+      "file_name": "002555.jpg",
+      "coco_image_id": 2555,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "e6ae7fad56e0d9ef29df88316243cacd41c0b55355e2637178a038a246702443",
+      "dhash": "bdb939f97bc3870f",
+      "min_hamming_dist_to_cardd_300": 20,
+      "closest_cardd_300_image": "000262.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 5,
+      "selection_id": "EXP-OFFICIAL-005",
+      "file_name": "002556.jpg",
+      "coco_image_id": 2556,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "1e0bc88e94ad91cc37c8be6c0e6d6b18d904f0ce6e5359c3d64c677b5511e9d2",
+      "dhash": "9cb6e40000112149",
+      "min_hamming_dist_to_cardd_300": 19,
+      "closest_cardd_300_image": "002475.jpg",
+      "closest_cardd_300_split": "test",
+      "annotation_count": 2,
+      "classes_present": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 6,
+      "selection_id": "EXP-OFFICIAL-006",
+      "file_name": "002558.jpg",
+      "coco_image_id": 2558,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "8a7bc536e14f45100935ab85a461d7042357960394326f15857e97a52fefdd4b",
+      "dhash": "f071f3b373c70f3f",
+      "min_hamming_dist_to_cardd_300": 15,
+      "closest_cardd_300_image": "003964.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 7,
+      "selection_id": "EXP-OFFICIAL-007",
+      "file_name": "002732.jpg",
+      "coco_image_id": 2732,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 667,
+      "height": 1000,
+      "sha256": "fc48a75a6a3e42752604c6b90216da9fadb95da81d3e7f5c2dae2a002101c412",
+      "dhash": "0622078e28c220c0",
+      "min_hamming_dist_to_cardd_300": 18,
+      "closest_cardd_300_image": "001799.jpg",
+      "closest_cardd_300_split": "test",
+      "annotation_count": 6,
+      "classes_present": [
+        "crack",
+        "crack",
+        "crack",
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 8,
+      "selection_id": "EXP-OFFICIAL-008",
+      "file_name": "001645.jpg",
+      "coco_image_id": 1645,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 648,
+      "sha256": "c9ecabe54b1ad6f768b238a7f6d8e8203f641390afbf9e65b42cadbba2792fea",
+      "dhash": "e6dcc803ebeffad6",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "003022.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 9,
+      "selection_id": "EXP-OFFICIAL-009",
+      "file_name": "002557.jpg",
+      "coco_image_id": 2557,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "1a8405f94ccc513c60a292952786509797e19c923471f723145ef306832e0ed1",
+      "dhash": "03ebe084982c8c48",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "003252.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 3,
+      "classes_present": [
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 10,
+      "selection_id": "EXP-OFFICIAL-010",
+      "file_name": "001452.jpg",
+      "coco_image_id": 1452,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 750,
+      "height": 1000,
+      "sha256": "375899f02a1005864524025c7779621c0ac01e14dc574c7df4ca86e8d30c5e12",
+      "dhash": "ecc8cd8caca4b6b2",
+      "min_hamming_dist_to_cardd_300": 18,
+      "closest_cardd_300_image": "001967.jpg",
+      "closest_cardd_300_split": "test",
+      "annotation_count": 7,
+      "classes_present": [
+        "crack",
+        "crack",
+        "crack",
+        "crack",
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 11,
+      "selection_id": "EXP-OFFICIAL-011",
+      "file_name": "003339.jpg",
+      "coco_image_id": 3339,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 750,
+      "height": 1000,
+      "sha256": "3a13145b69d79fb6a5d694f861335735483e31c85dcea52c2ce0367f83161480",
+      "dhash": "0136fc831efe973f",
+      "min_hamming_dist_to_cardd_300": 22,
+      "closest_cardd_300_image": "002114.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 4,
+      "classes_present": [
+        "crack",
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 12,
+      "selection_id": "EXP-OFFICIAL-012",
+      "file_name": "000359.jpg",
+      "coco_image_id": 359,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "68bfa02a789f091be113b8f377cdf144bc2c5bc8e95b7085c8c8be34333623c5",
+      "dhash": "041c7ccce9c9387c",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "002007.jpg",
+      "closest_cardd_300_split": "val",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 13,
+      "selection_id": "EXP-OFFICIAL-013",
+      "file_name": "001949.jpg",
+      "coco_image_id": 1949,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 668,
+      "sha256": "0398b7a0195284a03cc4bb2895e3bcd9e93e49b21c8687129709fcbd8fc55072",
+      "dhash": "1a1ad9f0f0987034",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "000934.jpg",
+      "closest_cardd_300_split": "val",
+      "annotation_count": 4,
+      "classes_present": [
+        "crack",
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 14,
+      "selection_id": "EXP-OFFICIAL-014",
+      "file_name": "001986.jpg",
+      "coco_image_id": 1986,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "83df5d2c6996d4bab60e41c8ea5ad418c35ad67024af3ab9ea2a4b1728416bff",
+      "dhash": "e4c686e6e58d9f7f",
+      "min_hamming_dist_to_cardd_300": 20,
+      "closest_cardd_300_image": "001967.jpg",
+      "closest_cardd_300_split": "test",
+      "annotation_count": 2,
+      "classes_present": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 15,
+      "selection_id": "EXP-OFFICIAL-015",
+      "file_name": "000884.jpg",
+      "coco_image_id": 884,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "919f2fd37c42e5cc36297ec84681ba42d19825702bb9158fe14591c51515c14e",
+      "dhash": "98989890908888a0",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "000441.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 16,
+      "selection_id": "EXP-OFFICIAL-016",
+      "file_name": "000845.jpg",
+      "coco_image_id": 845,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "4444b79e7f8ee34f2ec7a10122f9209a7b21d1132e8ddac5162ae1fe604612eb",
+      "dhash": "3930431352662425",
+      "min_hamming_dist_to_cardd_300": 15,
+      "closest_cardd_300_image": "000395.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 17,
+      "selection_id": "EXP-OFFICIAL-017",
+      "file_name": "002554.jpg",
+      "coco_image_id": 2554,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "49f72d76e9485e2dbb5c3cd118ab1308135cbc15ec5be6ca78b3a01dac6be3d7",
+      "dhash": "a4ac3c200909111b",
+      "min_hamming_dist_to_cardd_300": 19,
+      "closest_cardd_300_image": "000721.jpg",
+      "closest_cardd_300_split": "val",
+      "annotation_count": 4,
+      "classes_present": [
+        "crack",
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 18,
+      "selection_id": "EXP-OFFICIAL-018",
+      "file_name": "002572.jpg",
+      "coco_image_id": 2572,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "729a4ad644e58da4a3d9524539d5232db9864de1964a80453986bfba14edde91",
+      "dhash": "9f04700f2c10e0e0",
+      "min_hamming_dist_to_cardd_300": 19,
+      "closest_cardd_300_image": "002018.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 19,
+      "selection_id": "EXP-OFFICIAL-019",
+      "file_name": "000377.jpg",
+      "coco_image_id": 377,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 666,
+      "sha256": "f643c39fb290e8f709ff984e5cd978b065c7436fe58b32525b0e5e4f88a46701",
+      "dhash": "7878ec61fce97c72",
+      "min_hamming_dist_to_cardd_300": 19,
+      "closest_cardd_300_image": "001808.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 20,
+      "selection_id": "EXP-OFFICIAL-020",
+      "file_name": "001344.jpg",
+      "coco_image_id": 1344,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 751,
+      "sha256": "f63b663dc5907b7cefffbced78e9f87c034198b2f06a72e436f0cd6c7c6c2595",
+      "dhash": "684c4869701090c0",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "000721.jpg",
+      "closest_cardd_300_split": "val",
+      "annotation_count": 4,
+      "classes_present": [
+        "crack",
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 21,
+      "selection_id": "EXP-OFFICIAL-021",
+      "file_name": "003694.jpg",
+      "coco_image_id": 3694,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 664,
+      "sha256": "4099a992f480bc8dada377957698a72028ad76ebb985d0d4bde6e4e46f3ba8f7",
+      "dhash": "595173d6731a0707",
+      "min_hamming_dist_to_cardd_300": 18,
+      "closest_cardd_300_image": "000395.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 22,
+      "selection_id": "EXP-OFFICIAL-022",
+      "file_name": "001950.jpg",
+      "coco_image_id": 1950,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 668,
+      "height": 1000,
+      "sha256": "85515b417354a730134c9802c8e322afc54cff29d5b7e41d37297a0f05ed04b2",
+      "dhash": "3fc7f65c8d0c469f",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "002961.jpg",
+      "closest_cardd_300_split": "test",
+      "annotation_count": 3,
+      "classes_present": [
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 23,
+      "selection_id": "EXP-OFFICIAL-023",
+      "file_name": "003396.jpg",
+      "coco_image_id": 3396,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "034ca357c61bc75f9517bad1f0b25cba23d5e2df5f4681ce52bc97bfe0a3d796",
+      "dhash": "0d2e06260e4c0e0f",
+      "min_hamming_dist_to_cardd_300": 19,
+      "closest_cardd_300_image": "000003.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 24,
+      "selection_id": "EXP-OFFICIAL-024",
+      "file_name": "001919.jpg",
+      "coco_image_id": 1919,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "4d0e5981444f13d8567f66a7269913c39879f4d6b66c527407431e07ed8c674b",
+      "dhash": "fa8e92c3fb93d7fe",
+      "min_hamming_dist_to_cardd_300": 22,
+      "closest_cardd_300_image": "000262.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 25,
+      "selection_id": "EXP-OFFICIAL-025",
+      "file_name": "002551.jpg",
+      "coco_image_id": 2551,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "512909afe85d270c0c68298f907563b2797d193490db38549f76b916a0f39fdb",
+      "dhash": "df3dff77c4cc7cff",
+      "min_hamming_dist_to_cardd_300": 16,
+      "closest_cardd_300_image": "002802.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 26,
+      "selection_id": "EXP-OFFICIAL-026",
+      "file_name": "000991.jpg",
+      "coco_image_id": 991,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "3fd2e2ebfa0d7d06829d1d466e6368e2b000eee72902c28c50158cfa70d157ef",
+      "dhash": "26204e02e02d0000",
+      "min_hamming_dist_to_cardd_300": 20,
+      "closest_cardd_300_image": "000907.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 27,
+      "selection_id": "EXP-OFFICIAL-027",
+      "file_name": "001238.jpg",
+      "coco_image_id": 1238,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "37dfbbcacc20f5b31a649e752dda4639d8d90bf608f73dd4941f443cd549c6e3",
+      "dhash": "bffeeefc79080500",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "003252.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 28,
+      "selection_id": "EXP-OFFICIAL-028",
+      "file_name": "001433.jpg",
+      "coco_image_id": 1433,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "44c01a93f4ae3eaea77dd120f2bc3b99eb98deedb12adf452bbf0b7b1becbc8c",
+      "dhash": "f13ac1f0f37bce63",
+      "min_hamming_dist_to_cardd_300": 19,
+      "closest_cardd_300_image": "001401.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 29,
+      "selection_id": "EXP-OFFICIAL-029",
+      "file_name": "002669.jpg",
+      "coco_image_id": 2669,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "6d5f1af4d634397a3c03ff3b847c1e44230b139262b79b71402184aef4478070",
+      "dhash": "c284c8608298a042",
+      "min_hamming_dist_to_cardd_300": 18,
+      "closest_cardd_300_image": "001490.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 30,
+      "selection_id": "EXP-OFFICIAL-030",
+      "file_name": "001447.jpg",
+      "coco_image_id": 1447,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "ebc44efc073fde1264dbc451f034c107aade71ce24d0f60420f430ce0d7216eb",
+      "dhash": "6563616033388cc1",
+      "min_hamming_dist_to_cardd_300": 19,
+      "closest_cardd_300_image": "003600.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 31,
+      "selection_id": "EXP-OFFICIAL-031",
+      "file_name": "000032.jpg",
+      "coco_image_id": 32,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "df88cf8fbe039eaf0a256b72ea1513a165b5442754ed71a214e8e01bfd4bfbd9",
+      "dhash": "d0c4e4a620d2d272",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "000792.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 32,
+      "selection_id": "EXP-OFFICIAL-032",
+      "file_name": "000510.jpg",
+      "coco_image_id": 510,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "c1041fd077f61ee9fdd9373fffdf86f034d7899da06401b168ef2401fc738c2f",
+      "dhash": "e86c307909c9f9d3",
+      "min_hamming_dist_to_cardd_300": 18,
+      "closest_cardd_300_image": "001863.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 33,
+      "selection_id": "EXP-OFFICIAL-033",
+      "file_name": "001985.jpg",
+      "coco_image_id": 1985,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "e873531acd1ee3c3705d6e10774a1dbf9b22e9a0be7deff746235af030366fac",
+      "dhash": "c051581c0c89978a",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "002518.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 34,
+      "selection_id": "EXP-OFFICIAL-034",
+      "file_name": "002989.jpg",
+      "coco_image_id": 2989,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 668,
+      "sha256": "b53f39ba89e63a7233edfc3d8e86bcfeb836e8f77bd655a83372e8dd2c63df23",
+      "dhash": "bcc4c87c3b3c243e",
+      "min_hamming_dist_to_cardd_300": 19,
+      "closest_cardd_300_image": "000014.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 35,
+      "selection_id": "EXP-OFFICIAL-035",
+      "file_name": "000391.jpg",
+      "coco_image_id": 391,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 667,
+      "height": 1000,
+      "sha256": "cca80745a0baecfe113db07e44866e6d4f8535f902a6c51c41b090dfdfc66281",
+      "dhash": "1c8cd823cf8f7c1a",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "000349.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 36,
+      "selection_id": "EXP-OFFICIAL-036",
+      "file_name": "001973.jpg",
+      "coco_image_id": 1973,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "d401bafecb460b11aa5d8e3e9ec72e19784b5eb2031ba9905a2c2610b94526b6",
+      "dhash": "5875361e4ecdd79d",
+      "min_hamming_dist_to_cardd_300": 22,
+      "closest_cardd_300_image": "003414.jpg",
+      "closest_cardd_300_split": "test",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 37,
+      "selection_id": "EXP-OFFICIAL-037",
+      "file_name": "003670.jpg",
+      "coco_image_id": 3670,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 644,
+      "sha256": "f07948357c937a63f62185155f3e08ab3622f71c054252f6b78d70b6d1319037",
+      "dhash": "3388c6f1fcdeff7f",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "002801.jpg",
+      "closest_cardd_300_split": "test",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 38,
+      "selection_id": "EXP-OFFICIAL-038",
+      "file_name": "001239.jpg",
+      "coco_image_id": 1239,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "e289dcf1ba8b390fb2dfe812dbf5151dfa625de4657a4a91720e9f5f9237a884",
+      "dhash": "98d8d8f0f0f8dcfc",
+      "min_hamming_dist_to_cardd_300": 14,
+      "closest_cardd_300_image": "002468.jpg",
+      "closest_cardd_300_split": "val",
+      "annotation_count": 3,
+      "classes_present": [
+        "crack",
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 39,
+      "selection_id": "EXP-OFFICIAL-039",
+      "file_name": "000998.jpg",
+      "coco_image_id": 998,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "10bd183ba653cecad1132761b2b341373898c9f5f38eb3ef717db71cf49db2bb",
+      "dhash": "3e2e2ccecfadad3e",
+      "min_hamming_dist_to_cardd_300": 20,
+      "closest_cardd_300_image": "000677.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 40,
+      "selection_id": "EXP-OFFICIAL-040",
+      "file_name": "001763.jpg",
+      "coco_image_id": 1763,
+      "source_split": "train2017",
+      "priority_category": "crack_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "e4d8babcdff5013176e3c9dafe7ae413642ae895c2a6d3e401b49d6128c51f5e",
+      "dhash": "8ef0c98c0c0d0503",
+      "min_hamming_dist_to_cardd_300": 19,
+      "closest_cardd_300_image": "002250.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "crack",
+        "crack"
+      ]
+    },
+    {
+      "selection_index": 41,
+      "selection_id": "EXP-OFFICIAL-041",
+      "file_name": "002210.jpg",
+      "coco_image_id": 2210,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "d84b29f157b896061f00c66b4d3117aed7e00a08458ef9ea59575c023f86f148",
+      "dhash": "0c0484b436360623",
+      "min_hamming_dist_to_cardd_300": 16,
+      "closest_cardd_300_image": "003925.jpg",
+      "closest_cardd_300_split": "test",
+      "annotation_count": 2,
+      "classes_present": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 42,
+      "selection_id": "EXP-OFFICIAL-042",
+      "file_name": "002856.jpg",
+      "coco_image_id": 2856,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "cde7f04f1793c0d786eec9753683b3c0fb8419e1827a65cd0106fa8b92902cc4",
+      "dhash": "141679c8a3c1cc9e",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "001771.jpg",
+      "closest_cardd_300_split": "val",
+      "annotation_count": 2,
+      "classes_present": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 43,
+      "selection_id": "EXP-OFFICIAL-043",
+      "file_name": "003604.jpg",
+      "coco_image_id": 3604,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "27a3e2cbe8b955e83cfc619f22d9a94cfd86ad26a2697c20a4dbb766af32260f",
+      "dhash": "01051d8c0ccd8f1f",
+      "min_hamming_dist_to_cardd_300": 19,
+      "closest_cardd_300_image": "000399.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 44,
+      "selection_id": "EXP-OFFICIAL-044",
+      "file_name": "003459.jpg",
+      "coco_image_id": 3459,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "af5739e5e9221521b8716c05eb89871aa145990e05b8354555560c347af88c7b",
+      "dhash": "a6a7cc0898e4989f",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "002123.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 45,
+      "selection_id": "EXP-OFFICIAL-045",
+      "file_name": "003681.jpg",
+      "coco_image_id": 3681,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "dd326c04ea17c96186639e28256cae3deda2f87230412d5a2653523ba71a72e8",
+      "dhash": "16362eacace0c0c0",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "003237.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 46,
+      "selection_id": "EXP-OFFICIAL-046",
+      "file_name": "003665.jpg",
+      "coco_image_id": 3665,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "1a46666548e00b8a74ef29b74c58fbca73242de982b36e755a006468b5f3d50d",
+      "dhash": "83070d11674c1933",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "003883.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 47,
+      "selection_id": "EXP-OFFICIAL-047",
+      "file_name": "001465.jpg",
+      "coco_image_id": 1465,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "a6f243c70fe039b7532c4e9c275ea129c444f9e1b473abacaa6ab9a198f190f4",
+      "dhash": "060e060606060206",
+      "min_hamming_dist_to_cardd_300": 14,
+      "closest_cardd_300_image": "003925.jpg",
+      "closest_cardd_300_split": "test",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 48,
+      "selection_id": "EXP-OFFICIAL-048",
+      "file_name": "002863.jpg",
+      "coco_image_id": 2863,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 638,
+      "sha256": "d4e5eb733c93a80fd510163db941ebc4082647fd979781fe952849fca12500b7",
+      "dhash": "6fedfbfbfbf9fdfd",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "000376.jpg",
+      "closest_cardd_300_split": "val",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 49,
+      "selection_id": "EXP-OFFICIAL-049",
+      "file_name": "002492.jpg",
+      "coco_image_id": 2492,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "ebf637ae323ce5197299de11a10b030ab692014e34c2bf1a3ad182d8ec73845b",
+      "dhash": "0e0606060b1b8eaf",
+      "min_hamming_dist_to_cardd_300": 18,
+      "closest_cardd_300_image": "001132.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 50,
+      "selection_id": "EXP-OFFICIAL-050",
+      "file_name": "003639.jpg",
+      "coco_image_id": 3639,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "157f1c442bfa91a5e379c056f2a4aa3d04727476b0c08ee76caf78d30937afc7",
+      "dhash": "6f378bca8e6327b6",
+      "min_hamming_dist_to_cardd_300": 19,
+      "closest_cardd_300_image": "003512.jpg",
+      "closest_cardd_300_split": "val",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 51,
+      "selection_id": "EXP-OFFICIAL-051",
+      "file_name": "002943.jpg",
+      "coco_image_id": 2943,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 668,
+      "sha256": "f93510c01649a740156b05fa7d44a9c58d169eb4e86d2232b41206fa267a01e3",
+      "dhash": "71e2c0b0b0c0c060",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "002218.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 52,
+      "selection_id": "EXP-OFFICIAL-052",
+      "file_name": "002079.jpg",
+      "coco_image_id": 2079,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 1000,
+      "sha256": "4c6528a5f9294800802b86f70fbcf389e7049fe3e83605cfa99c50c594dc16d8",
+      "dhash": "a0c0e0c7cf0b8cce",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "001667.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 53,
+      "selection_id": "EXP-OFFICIAL-053",
+      "file_name": "003490.jpg",
+      "coco_image_id": 3490,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "72eac2eaff28c7f438893c1db9cb5da06c86c1dec2a47a9aa9d9841551013723",
+      "dhash": "78b0bc98c9cd4c34",
+      "min_hamming_dist_to_cardd_300": 20,
+      "closest_cardd_300_image": "001948.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 54,
+      "selection_id": "EXP-OFFICIAL-054",
+      "file_name": "002019.jpg",
+      "coco_image_id": 2019,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "15dba8117ba41f2b156e682ebc1f112bdbaa7dacf44c1f3938947103268da440",
+      "dhash": "f6f7e3f5f4c4c404",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "002123.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 55,
+      "selection_id": "EXP-OFFICIAL-055",
+      "file_name": "002225.jpg",
+      "coco_image_id": 2225,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 745,
+      "sha256": "948e84bf0202314110cdfd37519ee61c2b2c5bd401f36f30cf4cf22d18eddc0e",
+      "dhash": "8038dfc3a4499815",
+      "min_hamming_dist_to_cardd_300": 22,
+      "closest_cardd_300_image": "003279.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 56,
+      "selection_id": "EXP-OFFICIAL-056",
+      "file_name": "003530.jpg",
+      "coco_image_id": 3530,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "82e751ef6c9ebc76a611966ff5f4ecd99ae0c0c9b18593ebf151ce6c435eadcd",
+      "dhash": "840008c4d9c96e9e",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "001515.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 57,
+      "selection_id": "EXP-OFFICIAL-057",
+      "file_name": "003693.jpg",
+      "coco_image_id": 3693,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "86540366dccbc4fa0a355a9c22efb74efc841adb9a2b685f17b65e5700298e44",
+      "dhash": "fcf8389cd8d9f9f9",
+      "min_hamming_dist_to_cardd_300": 15,
+      "closest_cardd_300_image": "001917.jpg",
+      "closest_cardd_300_split": "test",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 58,
+      "selection_id": "EXP-OFFICIAL-058",
+      "file_name": "002173.jpg",
+      "coco_image_id": 2173,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "ad68b791067af3eeca93538f2c9cb843445d6b83ad43065c2202ada5703b07dc",
+      "dhash": "bc36e0c00000840f",
+      "min_hamming_dist_to_cardd_300": 20,
+      "closest_cardd_300_image": "001207.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 59,
+      "selection_id": "EXP-OFFICIAL-059",
+      "file_name": "003107.jpg",
+      "coco_image_id": 3107,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "15465116465345d00c42f808ae4315571571262cf09ac3da825e773ca76f9abc",
+      "dhash": "787878f8f0b8d8e8",
+      "min_hamming_dist_to_cardd_300": 16,
+      "closest_cardd_300_image": "002468.jpg",
+      "closest_cardd_300_split": "val",
+      "annotation_count": 2,
+      "classes_present": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 60,
+      "selection_id": "EXP-OFFICIAL-060",
+      "file_name": "003700.jpg",
+      "coco_image_id": 3700,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "d315e90d971aacbc58b7bb2a1fb4af812388740062583f84e95fd3c8b448a194",
+      "dhash": "000082a28283869c",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "001515.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 4,
+      "classes_present": [
+        "scratch",
+        "scratch",
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 61,
+      "selection_id": "EXP-OFFICIAL-061",
+      "file_name": "000131.jpg",
+      "coco_image_id": 131,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 664,
+      "sha256": "e73a8e2032eb52a9032f3ce8d026d54478ad244f500c3df0eaa9e188b70573f7",
+      "dhash": "7e9ed6f0d3676c49",
+      "min_hamming_dist_to_cardd_300": 20,
+      "closest_cardd_300_image": "001608.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 62,
+      "selection_id": "EXP-OFFICIAL-062",
+      "file_name": "002874.jpg",
+      "coco_image_id": 2874,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "b3ed8d1890d0e40719bada99f811907521803b339472d28db6d2808407943b4e",
+      "dhash": "00041d3074191353",
+      "min_hamming_dist_to_cardd_300": 18,
+      "closest_cardd_300_image": "002250.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 63,
+      "selection_id": "EXP-OFFICIAL-063",
+      "file_name": "001605.jpg",
+      "coco_image_id": 1605,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 664,
+      "sha256": "64edc577a6f92d76457e2190ff9c0c3e942f6fdfde0dd6af8a63b8d2016c0de2",
+      "dhash": "818694f03419c96d",
+      "min_hamming_dist_to_cardd_300": 20,
+      "closest_cardd_300_image": "003593.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 64,
+      "selection_id": "EXP-OFFICIAL-064",
+      "file_name": "003652.jpg",
+      "coco_image_id": 3652,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "e9960d3849e150c5a636deb953acb0cccfdee45f4ed92fe3f09ce7c771845d91",
+      "dhash": "fffffcfdfffffeff",
+      "min_hamming_dist_to_cardd_300": 15,
+      "closest_cardd_300_image": "002847.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 65,
+      "selection_id": "EXP-OFFICIAL-065",
+      "file_name": "003491.jpg",
+      "coco_image_id": 3491,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 750,
+      "height": 1000,
+      "sha256": "7810a484aa6fa80759580cc7e7fc7f5f5b0c14d0214158237abd2e047ecbff26",
+      "dhash": "6e088e12108493c7",
+      "min_hamming_dist_to_cardd_300": 18,
+      "closest_cardd_300_image": "000119.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 66,
+      "selection_id": "EXP-OFFICIAL-066",
+      "file_name": "001887.jpg",
+      "coco_image_id": 1887,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "27f6f27b89a7aef5ea4af9f50a747622a28220c4506c4c485e76b54c6fbfa8a6",
+      "dhash": "38bd3bcbeee667cf",
+      "min_hamming_dist_to_cardd_300": 18,
+      "closest_cardd_300_image": "002921.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 3,
+      "classes_present": [
+        "scratch",
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 67,
+      "selection_id": "EXP-OFFICIAL-067",
+      "file_name": "003629.jpg",
+      "coco_image_id": 3629,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 636,
+      "sha256": "b3537fc5593bafd3217cd860027e330ac54c8f34afb6fb9eb54948dea996329a",
+      "dhash": "c0c6da0e070f4300",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "003037.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 68,
+      "selection_id": "EXP-OFFICIAL-068",
+      "file_name": "001767.jpg",
+      "coco_image_id": 1767,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "8abd2e71c3828d697c53ffdfd1de351e202ca0a377b0b977a445b25c1eac80f4",
+      "dhash": "130e060e0e098080",
+      "min_hamming_dist_to_cardd_300": 18,
+      "closest_cardd_300_image": "001826.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 69,
+      "selection_id": "EXP-OFFICIAL-069",
+      "file_name": "001319.jpg",
+      "coco_image_id": 1319,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "73754e3764362262be595fc56652bf3dc68496f6e3a924b6aeefdb0bd0a12a9e",
+      "dhash": "c8ec84f67a1d0d86",
+      "min_hamming_dist_to_cardd_300": 18,
+      "closest_cardd_300_image": "003593.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 3,
+      "classes_present": [
+        "scratch",
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 70,
+      "selection_id": "EXP-OFFICIAL-070",
+      "file_name": "002228.jpg",
+      "coco_image_id": 2228,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 739,
+      "sha256": "d2839022f3340f456e63d5ae93c835be055b8e1b0e457309e5288723a55bee30",
+      "dhash": "c0c060a0f0d8686c",
+      "min_hamming_dist_to_cardd_300": 12,
+      "closest_cardd_300_image": "002218.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 3,
+      "classes_present": [
+        "scratch",
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 71,
+      "selection_id": "EXP-OFFICIAL-071",
+      "file_name": "003674.jpg",
+      "coco_image_id": 3674,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "082f15c7a37c28b799a739546d44847121f4e6052272b13b1deb84363feb46fc",
+      "dhash": "acecdcbcdcc37276",
+      "min_hamming_dist_to_cardd_300": 18,
+      "closest_cardd_300_image": "002118.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 72,
+      "selection_id": "EXP-OFFICIAL-072",
+      "file_name": "002850.jpg",
+      "coco_image_id": 2850,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "519e288da801eedc71924876d25dd8092ef86e8bdf23fd59bdd67a5cafb56c99",
+      "dhash": "b02260de8c9c1e88",
+      "min_hamming_dist_to_cardd_300": 18,
+      "closest_cardd_300_image": "003610.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 3,
+      "classes_present": [
+        "scratch",
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 73,
+      "selection_id": "EXP-OFFICIAL-073",
+      "file_name": "003597.jpg",
+      "coco_image_id": 3597,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "1a5929e3120c9b4b6aaef6493488a6bc17cc805f7775ae3c224af9cb2b5a3c06",
+      "dhash": "df7cbcdcfc58ecff",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "002847.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "scratch",
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 74,
+      "selection_id": "EXP-OFFICIAL-074",
+      "file_name": "003675.jpg",
+      "coco_image_id": 3675,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "4935fef32e2b06720f6fd0a427eb11fb13d42b0dd23617fa48997c8cdb223b52",
+      "dhash": "f6f277637a3a737f",
+      "min_hamming_dist_to_cardd_300": 18,
+      "closest_cardd_300_image": "003964.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 75,
+      "selection_id": "EXP-OFFICIAL-075",
+      "file_name": "001471.jpg",
+      "coco_image_id": 1471,
+      "source_split": "train2017",
+      "priority_category": "scratch_priority",
+      "width": 1000,
+      "height": 871,
+      "sha256": "bcd9ab7a66cd7a4352ceb301cb67df36205b242cf376e4b26054b73eecbb0f3b",
+      "dhash": "304030b0b2282486",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "002049.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "scratch"
+      ]
+    },
+    {
+      "selection_index": 76,
+      "selection_id": "EXP-OFFICIAL-076",
+      "file_name": "000548.jpg",
+      "coco_image_id": 548,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "1a1930b687bca092581b471f7f4586b7e6eee6b900c330cb9d88f15e8c4ce04e",
+      "dhash": "87991d376ed9f10b",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "003941.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 77,
+      "selection_id": "EXP-OFFICIAL-077",
+      "file_name": "000756.jpg",
+      "coco_image_id": 756,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "abbc033e300caa6d257366e401728fb9f1f1e1c49b752829802eec8c1119d73a",
+      "dhash": "8cc0d86a3c365e3f",
+      "min_hamming_dist_to_cardd_300": 20,
+      "closest_cardd_300_image": "001266.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 78,
+      "selection_id": "EXP-OFFICIAL-078",
+      "file_name": "000916.jpg",
+      "coco_image_id": 916,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "45463479ea27152bb2473a40267201c2d9c9f687b53e903fd6f82cc5c736e569",
+      "dhash": "8f3c64e2d0848ac0",
+      "min_hamming_dist_to_cardd_300": 19,
+      "closest_cardd_300_image": "001490.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 79,
+      "selection_id": "EXP-OFFICIAL-079",
+      "file_name": "002443.jpg",
+      "coco_image_id": 2443,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "bc05e8b4fe5b794e5cafc52cf04a2530e66c5ae69e37adfa0ef0baa74f47b41f",
+      "dhash": "01059c868362a69c",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "001799.jpg",
+      "closest_cardd_300_split": "test",
+      "annotation_count": 1,
+      "classes_present": [
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 80,
+      "selection_id": "EXP-OFFICIAL-080",
+      "file_name": "002782.jpg",
+      "coco_image_id": 2782,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 664,
+      "sha256": "67a3bc208ec5dd766af670a23f6aed1084ff4af1c92ff2c9649fa6245d4286f6",
+      "dhash": "0f30683606c2f131",
+      "min_hamming_dist_to_cardd_300": 22,
+      "closest_cardd_300_image": "000414.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 81,
+      "selection_id": "EXP-OFFICIAL-081",
+      "file_name": "001304.jpg",
+      "coco_image_id": 1304,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 664,
+      "sha256": "82f47f1ef3ef36a93e62c272b19b6fddf83ddc62dc1924ae00fe97bd77d3aaa0",
+      "dhash": "c0340e83c369b8ca",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "002252.jpg",
+      "closest_cardd_300_split": "test",
+      "annotation_count": 1,
+      "classes_present": [
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 82,
+      "selection_id": "EXP-OFFICIAL-082",
+      "file_name": "001943.jpg",
+      "coco_image_id": 1943,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "5a0bf0a15784da541b757204aaa343b4cbd5aa60ead5bf6cf17e7e2089119e41",
+      "dhash": "9ff7e66cd8820f7f",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "003422.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 83,
+      "selection_id": "EXP-OFFICIAL-083",
+      "file_name": "002512.jpg",
+      "coco_image_id": 2512,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "addd2a22cd3da360e5af69cb6d06dd8d0ea69cf946247c4fc60a407f8f4df421",
+      "dhash": "9fc5c7a6d4c1c743",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "001253.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 84,
+      "selection_id": "EXP-OFFICIAL-084",
+      "file_name": "001027.jpg",
+      "coco_image_id": 1027,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "2cb9b57f1183ede42520425cd10394f2c7cf8992ca836940bdd285d99cd1ab71",
+      "dhash": "50184849c9c8ca88",
+      "min_hamming_dist_to_cardd_300": 18,
+      "closest_cardd_300_image": "001515.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 85,
+      "selection_id": "EXP-OFFICIAL-085",
+      "file_name": "002966.jpg",
+      "coco_image_id": 2966,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 662,
+      "sha256": "7b41dfb18393ede4fd76a3fd44661027a97e767a900dfa8661063d48c0d0bc7c",
+      "dhash": "ce8f8ef0fc6c964e",
+      "min_hamming_dist_to_cardd_300": 22,
+      "closest_cardd_300_image": "000441.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 86,
+      "selection_id": "EXP-OFFICIAL-086",
+      "file_name": "002044.jpg",
+      "coco_image_id": 2044,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "9665f7d7cd1f9b0a41c0ef460e5c939fd2c43ae9cc805d204f6260c1522f3ead",
+      "dhash": "0187e6d9cc68750f",
+      "min_hamming_dist_to_cardd_300": 20,
+      "closest_cardd_300_image": "001545.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 87,
+      "selection_id": "EXP-OFFICIAL-087",
+      "file_name": "000558.jpg",
+      "coco_image_id": 558,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "e28e0c1db8b066f7b36b3dd1f0dff8dc31e216fc770c47710c2adbd2c72bb192",
+      "dhash": "cdaff3997aeb9428",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "000940.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 88,
+      "selection_id": "EXP-OFFICIAL-088",
+      "file_name": "000590.jpg",
+      "coco_image_id": 590,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 661,
+      "sha256": "03849cc61f8a530e3fcb984dcfb2a6725e034f1d78eafcfe6dbd0aa7df646ca5",
+      "dhash": "d961b04cd91d2123",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "002475.jpg",
+      "closest_cardd_300_split": "test",
+      "annotation_count": 3,
+      "classes_present": [
+        "dent",
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 89,
+      "selection_id": "EXP-OFFICIAL-089",
+      "file_name": "001882.jpg",
+      "coco_image_id": 1882,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "7bc044d8976fd0b13d524d0a524184f74e8f0e2315ac5e3660a7ca0f6c57ca11",
+      "dhash": "0000010206a6f9f8",
+      "min_hamming_dist_to_cardd_300": 16,
+      "closest_cardd_300_image": "001799.jpg",
+      "closest_cardd_300_split": "test",
+      "annotation_count": 1,
+      "classes_present": [
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 90,
+      "selection_id": "EXP-OFFICIAL-090",
+      "file_name": "001158.jpg",
+      "coco_image_id": 1158,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 664,
+      "sha256": "658ec25b11020d797b0a123c75d153a3a1cb2ffbfea2a426f21dc005110309ab",
+      "dhash": "fdf489999b32f67c",
+      "min_hamming_dist_to_cardd_300": 20,
+      "closest_cardd_300_image": "001903.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 91,
+      "selection_id": "EXP-OFFICIAL-091",
+      "file_name": "002471.jpg",
+      "coco_image_id": 2471,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "6bf8e7f3f09392839570918fe3dc865971233db538d2c90131d2221b3f6dd0e6",
+      "dhash": "6029735f3f74d4f7",
+      "min_hamming_dist_to_cardd_300": 20,
+      "closest_cardd_300_image": "002018.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 92,
+      "selection_id": "EXP-OFFICIAL-092",
+      "file_name": "002897.jpg",
+      "coco_image_id": 2897,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "4810b22b1e286d6593f104109c6728f388b92fb65aeafd7fc073172cf8757564",
+      "dhash": "9fc3d37333a3bab9",
+      "min_hamming_dist_to_cardd_300": 20,
+      "closest_cardd_300_image": "001075.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 93,
+      "selection_id": "EXP-OFFICIAL-093",
+      "file_name": "000581.jpg",
+      "coco_image_id": 581,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "3f29d7898b82108f3e2157ec0a99dc0636c26a93d2153e84a0dd953dacf4ca64",
+      "dhash": "4c4c3035e185c5e5",
+      "min_hamming_dist_to_cardd_300": 18,
+      "closest_cardd_300_image": "000126.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 3,
+      "classes_present": [
+        "dent",
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 94,
+      "selection_id": "EXP-OFFICIAL-094",
+      "file_name": "003865.jpg",
+      "coco_image_id": 3865,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "5d7840cb7082cd160e31b6cc23965ee3ca84a601a57ec845285e29afb29b3626",
+      "dhash": "18341e25c756723c",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "000583.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 95,
+      "selection_id": "EXP-OFFICIAL-095",
+      "file_name": "000101.jpg",
+      "coco_image_id": 101,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 750,
+      "sha256": "297a79800dede9cce5d751aadd4482467984a54753192945959508d7804e44a8",
+      "dhash": "40606020c1c3672c",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "001515.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 96,
+      "selection_id": "EXP-OFFICIAL-096",
+      "file_name": "002681.jpg",
+      "coco_image_id": 2681,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "589c25c460b5daea3402377542e73cae50ad572afc68254ce78568fc58e8cf2d",
+      "dhash": "68da9c1ad8d8dbd2",
+      "min_hamming_dist_to_cardd_300": 19,
+      "closest_cardd_300_image": "003847.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 2,
+      "classes_present": [
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 97,
+      "selection_id": "EXP-OFFICIAL-097",
+      "file_name": "001961.jpg",
+      "coco_image_id": 1961,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "19bb90a59588cbba5018b5db876f1f76624d775bdef3ee567816e7fc19b47aec",
+      "dhash": "4b53932144c85146",
+      "min_hamming_dist_to_cardd_300": 20,
+      "closest_cardd_300_image": "001493.jpg",
+      "closest_cardd_300_split": "test",
+      "annotation_count": 3,
+      "classes_present": [
+        "dent",
+        "dent",
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 98,
+      "selection_id": "EXP-OFFICIAL-098",
+      "file_name": "000615.jpg",
+      "coco_image_id": 615,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "cccda2dce0f67268ebb79c142bdc8108d2a08a47f96d878f43791a741c88eda4",
+      "dhash": "f8e1587e6623838c",
+      "min_hamming_dist_to_cardd_300": 21,
+      "closest_cardd_300_image": "001207.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 99,
+      "selection_id": "EXP-OFFICIAL-099",
+      "file_name": "001526.jpg",
+      "coco_image_id": 1526,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 667,
+      "sha256": "737f5afa8165b77163ed3ef11356f408f2a460151c166accfb13ad9fb3deee53",
+      "dhash": "b6f19a67c8983733",
+      "min_hamming_dist_to_cardd_300": 22,
+      "closest_cardd_300_image": "002295.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 1,
+      "classes_present": [
+        "dent"
+      ]
+    },
+    {
+      "selection_index": 100,
+      "selection_id": "EXP-OFFICIAL-100",
+      "file_name": "000365.jpg",
+      "coco_image_id": 365,
+      "source_split": "train2017",
+      "priority_category": "dent_priority",
+      "width": 1000,
+      "height": 662,
+      "sha256": "216c4f9c4354f41dd83528b9152b0ed86d01537ef46d706668b79a03216218d6",
+      "dhash": "c9db99f188d9f0f1",
+      "min_hamming_dist_to_cardd_300": 17,
+      "closest_cardd_300_image": "003839.jpg",
+      "closest_cardd_300_split": "train",
+      "annotation_count": 3,
+      "classes_present": [
+        "dent",
+        "dent",
+        "dent"
+      ]
+    }
+  ]
+}

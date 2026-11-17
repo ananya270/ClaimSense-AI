@@ -1,0 +1,558 @@
+{
+  "session_2": {
+    "conf_0_10": {
+      "total_fp": 168,
+      "categories": {
+        "specular_reflection_or_highlight": 47,
+        "panel_seam_or_body_line": 23,
+        "paint_blemish_or_surface_mark": 62,
+        "trim_or_wheel_edge": 4,
+        "glass_edge_or_wiper": 9,
+        "unassigned_background": 12
+      },
+      "samples": [
+        {
+          "type": "background",
+          "image": "000023.jpg",
+          "pred_cls": "dent",
+          "conf": 0.3008,
+          "bbox": [
+            0.2701,
+            0.2119,
+            0.5641,
+            0.4338
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000023.jpg",
+          "pred_cls": "scratch",
+          "conf": 0.1242,
+          "bbox": [
+            0.4141,
+            0.4186,
+            0.6344,
+            0.6118
+          ]
+        },
+        {
+          "type": "cross_class",
+          "image": "000042.jpg",
+          "pred_cls": "glass shatter",
+          "gt_cls": "scratch",
+          "conf": 0.3804,
+          "bbox": [
+            0.2852,
+            0.3934,
+            0.8664,
+            0.6241
+          ],
+          "iou_with_gt": 0.474
+        },
+        {
+          "type": "cross_class",
+          "image": "000042.jpg",
+          "pred_cls": "dent",
+          "gt_cls": "scratch",
+          "conf": 0.1152,
+          "bbox": [
+            0.1945,
+            0.1164,
+            0.5148,
+            0.2033
+          ],
+          "iou_with_gt": 0.6822
+        },
+        {
+          "type": "background",
+          "image": "000042.jpg",
+          "pred_cls": "dent",
+          "conf": 0.6919,
+          "bbox": [
+            0.0392,
+            0.356,
+            0.1605,
+            0.5995
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000042.jpg",
+          "pred_cls": "dent",
+          "conf": 0.647,
+          "bbox": [
+            0.1877,
+            0.404,
+            0.3314,
+            0.6663
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000042.jpg",
+          "pred_cls": "crack",
+          "conf": 0.5718,
+          "bbox": [
+            0.8555,
+            0.6704,
+            0.9133,
+            0.7933
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000042.jpg",
+          "pred_cls": "scratch",
+          "conf": 0.4387,
+          "bbox": [
+            0.0016,
+            0.7998,
+            0.2777,
+            0.9965
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000042.jpg",
+          "pred_cls": "crack",
+          "conf": 0.259,
+          "bbox": [
+            0.8391,
+            0.6663,
+            0.9203,
+            0.9731
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000042.jpg",
+          "pred_cls": "scratch",
+          "conf": 0.1772,
+          "bbox": [
+            0.0,
+            0.7494,
+            0.1844,
+            1.0
+          ]
+        }
+      ]
+    },
+    "conf_0_25": {
+      "total_fp": 55,
+      "categories": {
+        "specular_reflection_or_highlight": 15,
+        "panel_seam_or_body_line": 4,
+        "paint_blemish_or_surface_mark": 21,
+        "trim_or_wheel_edge": 1,
+        "glass_edge_or_wiper": 3,
+        "unassigned_background": 5
+      },
+      "samples": [
+        {
+          "type": "background",
+          "image": "000023.jpg",
+          "pred_cls": "dent",
+          "conf": 0.3008,
+          "bbox": [
+            0.2701,
+            0.2119,
+            0.5641,
+            0.4338
+          ]
+        },
+        {
+          "type": "cross_class",
+          "image": "000042.jpg",
+          "pred_cls": "glass shatter",
+          "gt_cls": "scratch",
+          "conf": 0.3804,
+          "bbox": [
+            0.2852,
+            0.3934,
+            0.8664,
+            0.6241
+          ],
+          "iou_with_gt": 0.474
+        },
+        {
+          "type": "background",
+          "image": "000042.jpg",
+          "pred_cls": "dent",
+          "conf": 0.6919,
+          "bbox": [
+            0.0392,
+            0.356,
+            0.1605,
+            0.5995
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000042.jpg",
+          "pred_cls": "dent",
+          "conf": 0.647,
+          "bbox": [
+            0.1877,
+            0.404,
+            0.3314,
+            0.6663
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000042.jpg",
+          "pred_cls": "crack",
+          "conf": 0.5718,
+          "bbox": [
+            0.8555,
+            0.6704,
+            0.9133,
+            0.7933
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000042.jpg",
+          "pred_cls": "scratch",
+          "conf": 0.4387,
+          "bbox": [
+            0.0016,
+            0.7998,
+            0.2777,
+            0.9965
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000042.jpg",
+          "pred_cls": "crack",
+          "conf": 0.259,
+          "bbox": [
+            0.8391,
+            0.6663,
+            0.9203,
+            0.9731
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000353.jpg",
+          "pred_cls": "scratch",
+          "conf": 0.5137,
+          "bbox": [
+            0.2879,
+            0.1425,
+            0.377,
+            0.337
+          ]
+        },
+        {
+          "type": "cross_class",
+          "image": "000513.jpg",
+          "pred_cls": "glass shatter",
+          "gt_cls": "scratch",
+          "conf": 0.4524,
+          "bbox": [
+            0.1813,
+            0.256,
+            0.6672,
+            0.483
+          ],
+          "iou_with_gt": 0.9061
+        },
+        {
+          "type": "background",
+          "image": "000513.jpg",
+          "pred_cls": "crack",
+          "conf": 0.3057,
+          "bbox": [
+            0.2672,
+            0.7518,
+            0.2867,
+            0.822
+          ]
+        }
+      ]
+    }
+  },
+  "session_4": {
+    "conf_0_10": {
+      "total_fp": 171,
+      "categories": {
+        "specular_reflection_or_highlight": 36,
+        "panel_seam_or_body_line": 21,
+        "paint_blemish_or_surface_mark": 61,
+        "trim_or_wheel_edge": 12,
+        "glass_edge_or_wiper": 9,
+        "unassigned_background": 18
+      },
+      "samples": [
+        {
+          "type": "background",
+          "image": "000023.jpg",
+          "pred_cls": "tire flat",
+          "conf": 0.3442,
+          "bbox": [
+            0.0352,
+            0.4467,
+            0.4078,
+            0.9854
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000023.jpg",
+          "pred_cls": "lamp broken",
+          "conf": 0.2837,
+          "bbox": [
+            0.5086,
+            0.2522,
+            0.5773,
+            0.4046
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000023.jpg",
+          "pred_cls": "scratch",
+          "conf": 0.1136,
+          "bbox": [
+            0.4523,
+            0.4274,
+            0.632,
+            0.6083
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000023.jpg",
+          "pred_cls": "scratch",
+          "conf": 0.1136,
+          "bbox": [
+            0.418,
+            0.4327,
+            0.632,
+            0.685
+          ]
+        },
+        {
+          "type": "cross_class",
+          "image": "000042.jpg",
+          "pred_cls": "glass shatter",
+          "gt_cls": "scratch",
+          "conf": 0.3774,
+          "bbox": [
+            0.2998,
+            0.3888,
+            0.825,
+            0.6253
+          ],
+          "iou_with_gt": 0.5116
+        },
+        {
+          "type": "cross_class",
+          "image": "000042.jpg",
+          "pred_cls": "lamp broken",
+          "gt_cls": "dent",
+          "conf": 0.272,
+          "bbox": [
+            0.0267,
+            0.3571,
+            0.1932,
+            0.6112
+          ],
+          "iou_with_gt": 0.6016
+        },
+        {
+          "type": "cross_class",
+          "image": "000042.jpg",
+          "pred_cls": "dent",
+          "gt_cls": "scratch",
+          "conf": 0.2012,
+          "bbox": [
+            0.2426,
+            0.1129,
+            0.5094,
+            0.2014
+          ],
+          "iou_with_gt": 0.6013
+        },
+        {
+          "type": "cross_class",
+          "image": "000042.jpg",
+          "pred_cls": "crack",
+          "gt_cls": "scratch",
+          "conf": 0.1389,
+          "bbox": [
+            0.3281,
+            0.7178,
+            0.3965,
+            0.7904
+          ],
+          "iou_with_gt": 0.5252
+        },
+        {
+          "type": "background",
+          "image": "000042.jpg",
+          "pred_cls": "scratch",
+          "conf": 0.2666,
+          "bbox": [
+            0.002,
+            0.8021,
+            0.2734,
+            1.0
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000042.jpg",
+          "pred_cls": "lamp broken",
+          "conf": 0.1598,
+          "bbox": [
+            0.025,
+            0.1235,
+            0.2234,
+            0.7395
+          ]
+        }
+      ]
+    },
+    "conf_0_25": {
+      "total_fp": 62,
+      "categories": {
+        "specular_reflection_or_highlight": 11,
+        "panel_seam_or_body_line": 5,
+        "paint_blemish_or_surface_mark": 22,
+        "trim_or_wheel_edge": 8,
+        "glass_edge_or_wiper": 3,
+        "unassigned_background": 7
+      },
+      "samples": [
+        {
+          "type": "background",
+          "image": "000023.jpg",
+          "pred_cls": "tire flat",
+          "conf": 0.3442,
+          "bbox": [
+            0.0352,
+            0.4467,
+            0.4078,
+            0.9854
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000023.jpg",
+          "pred_cls": "lamp broken",
+          "conf": 0.2837,
+          "bbox": [
+            0.5086,
+            0.2522,
+            0.5773,
+            0.4046
+          ]
+        },
+        {
+          "type": "cross_class",
+          "image": "000042.jpg",
+          "pred_cls": "glass shatter",
+          "gt_cls": "scratch",
+          "conf": 0.3774,
+          "bbox": [
+            0.2998,
+            0.3888,
+            0.825,
+            0.6253
+          ],
+          "iou_with_gt": 0.5116
+        },
+        {
+          "type": "cross_class",
+          "image": "000042.jpg",
+          "pred_cls": "lamp broken",
+          "gt_cls": "dent",
+          "conf": 0.272,
+          "bbox": [
+            0.0267,
+            0.3571,
+            0.1932,
+            0.6112
+          ],
+          "iou_with_gt": 0.6016
+        },
+        {
+          "type": "background",
+          "image": "000042.jpg",
+          "pred_cls": "scratch",
+          "conf": 0.2666,
+          "bbox": [
+            0.002,
+            0.8021,
+            0.2734,
+            1.0
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000152.jpg",
+          "pred_cls": "tire flat",
+          "conf": 0.3276,
+          "bbox": [
+            0.2043,
+            0.5511,
+            0.4941,
+            0.9771
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000152.jpg",
+          "pred_cls": "crack",
+          "conf": 0.283,
+          "bbox": [
+            0.7133,
+            0.5059,
+            0.807,
+            0.5874
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000152.jpg",
+          "pred_cls": "dent",
+          "conf": 0.2622,
+          "bbox": [
+            0.2889,
+            0.2713,
+            0.8031,
+            0.6185
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000330.jpg",
+          "pred_cls": "crack",
+          "conf": 0.2991,
+          "bbox": [
+            0.4176,
+            0.7869,
+            0.452,
+            0.8384
+          ]
+        },
+        {
+          "type": "background",
+          "image": "000353.jpg",
+          "pred_cls": "scratch",
+          "conf": 0.6748,
+          "bbox": [
+            0.2934,
+            0.1344,
+            0.3777,
+            0.3264
+          ]
+        }
+      ]
+    }
+  }
+}

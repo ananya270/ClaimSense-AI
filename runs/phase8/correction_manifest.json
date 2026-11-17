@@ -1,0 +1,584 @@
+{
+  "dataset": "CarDD_Expanded_v1",
+  "split": "train",
+  "total_images_in_split": 210,
+  "total_label_files": 210,
+  "corrections_applied_count": 35,
+  "corrections_breakdown": {
+    "scratch_consolidations": 34,
+    "dent_consolidations": 1
+  },
+  "reclassified_to_manual_review_count": 5,
+  "reclassified_cases": [
+    {
+      "image": "000118.jpg",
+      "reason": "Area expansion 2.27x or merged area 0.49 exceeds tightness limits."
+    },
+    {
+      "image": "000512.jpg",
+      "reason": "Area expansion 2.85x or merged area 0.31 exceeds tightness limits."
+    },
+    {
+      "image": "001724.jpg",
+      "reason": "Area expansion 1.23x or merged area 0.40 exceeds tightness limits."
+    },
+    {
+      "image": "001875.jpg",
+      "reason": "Area expansion 1.90x or merged area 0.40 exceeds tightness limits."
+    },
+    {
+      "image": "002921.jpg",
+      "reason": "Area expansion 2.64x or merged area 0.09 exceeds tightness limits."
+    }
+  ],
+  "corrections": [
+    {
+      "image": "000014.jpg",
+      "label_file": "000014.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.85665000 0.64890555 0.20824000 0.27034483",
+        "1 0.80197500 0.42162669 0.11385000 0.10526237"
+      ],
+      "staged_annotation": "1 0.852900 0.576500 0.215700 0.415100",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "000112.jpg",
+      "label_file": "000112.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 4,
+      "original_boxes": [
+        "1 0.21588000 0.94338500 0.43176000 0.11323000",
+        "1 0.09949333 0.67366000 0.19898667 0.06492000",
+        "1 0.19847333 0.76244500 0.12393333 0.05599000",
+        "1 0.42301333 0.88068000 0.15237333 0.04590000"
+      ],
+      "staged_annotation": "1 0.249600 0.820600 0.499200 0.358800",
+      "reason": "Consolidated 4 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "000126.jpg",
+      "label_file": "000126.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 3,
+      "original_boxes": [
+        "1 0.09198000 0.30390555 0.14910000 0.23311844",
+        "1 0.11105500 0.54950525 0.09733000 0.07550225",
+        "1 0.24710000 0.51032234 0.11578000 0.41563718"
+      ],
+      "staged_annotation": "1 0.161200 0.452700 0.287600 0.530800",
+      "reason": "Consolidated 3 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "000485.jpg",
+      "label_file": "000485.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.53829085 0.67648500 0.53223388 0.22387000",
+        "1 0.77716642 0.47715500 0.17274363 0.19577000"
+      ],
+      "staged_annotation": "1 0.567900 0.583800 0.591400 0.409100",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "000494.jpg",
+      "label_file": "000494.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.16349000 0.96908667 0.21392000 0.06182667",
+        "1 0.58159500 0.89106000 0.41713000 0.21788000"
+      ],
+      "staged_annotation": "1 0.423300 0.891100 0.733600 0.217900",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "000583.jpg",
+      "label_file": "000583.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.47252000 0.62345881 0.32524000 0.47944602",
+        "1 0.40567000 0.36885653 0.23490000 0.19609375"
+      ],
+      "staged_annotation": "1 0.461700 0.567000 0.346900 0.592400",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "000779.jpg",
+      "label_file": "000779.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.43913000 0.79100450 0.13270000 0.05331334",
+        "1 0.77131000 0.82365817 0.20902000 0.35268366"
+      ],
+      "staged_annotation": "1 0.624300 0.823700 0.503000 0.352700",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "000792.jpg",
+      "label_file": "000792.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 5,
+      "original_boxes": [
+        "1 0.05933000 0.39688906 0.11866000 0.15968516",
+        "1 0.29386000 0.48673163 0.17172000 0.28476762",
+        "1 0.23054500 0.79749625 0.08499000 0.21715142",
+        "1 0.20669500 0.41196402 0.17779000 0.12482759",
+        "1 0.18162000 0.14604948 0.36324000 0.22235382"
+      ],
+      "staged_annotation": "1 0.189900 0.470500 0.379700 0.871200",
+      "reason": "Consolidated 5 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "000870.jpg",
+      "label_file": "000870.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 4,
+      "original_boxes": [
+        "1 0.28865500 0.52053223 0.32091000 0.32898051",
+        "1 0.63254000 0.50103448 0.09106000 0.25355322",
+        "1 0.85898500 0.59010495 0.28203000 0.08842579",
+        "1 0.87243000 0.40416042 0.25514000 0.09881559"
+      ],
+      "staged_annotation": "1 0.564100 0.519900 0.871800 0.330300",
+      "reason": "Consolidated 4 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "000874.jpg",
+      "label_file": "000874.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.93095500 0.55039711 0.13809000 0.05754513",
+        "1 0.91214500 0.70430505 0.17571000 0.09990975"
+      ],
+      "staged_annotation": "1 0.912100 0.637900 0.175700 0.232600",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "000901.jpg",
+      "label_file": "000901.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.63991000 0.54506217 0.56028000 0.34507993",
+        "1 0.90140500 0.72530195 0.10667000 0.22182948"
+      ],
+      "staged_annotation": "1 0.657300 0.604400 0.595000 0.463700",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "001153.jpg",
+      "label_file": "001153.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 3,
+      "original_boxes": [
+        "1 0.29336500 0.75167350 0.19675000 0.49665301",
+        "1 0.57053000 0.69646858 0.22550000 0.39099727",
+        "1 0.86991500 0.91561475 0.16317000 0.16877049"
+      ],
+      "staged_annotation": "1 0.573200 0.750500 0.756500 0.499000",
+      "reason": "Consolidated 3 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "001337.jpg",
+      "label_file": "001337.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.29031500 0.65547000 0.58063000 0.36322000",
+        "1 0.55299000 0.38473000 0.29744000 0.15730000"
+      ],
+      "staged_annotation": "1 0.350900 0.571600 0.701700 0.531000",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "001427.jpg",
+      "label_file": "001427.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.47837331 0.55548500 0.36970015 0.07541000",
+        "1 0.67296102 0.65447000 0.53110945 0.14934000"
+      ],
+      "staged_annotation": "1 0.616000 0.623500 0.645000 0.211400",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "001485.jpg",
+      "label_file": "001485.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 3,
+      "original_boxes": [
+        "1 0.22187500 0.52377333 0.14743000 0.12965333",
+        "1 0.60351500 0.49846667 0.59297000 0.18280000",
+        "1 0.88279000 0.66422667 0.23442000 0.19448000"
+      ],
+      "staged_annotation": "1 0.574100 0.584300 0.851800 0.354400",
+      "reason": "Consolidated 3 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "001608.jpg",
+      "label_file": "001608.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.57964018 0.46705500 0.14392804 0.36677000",
+        "1 0.54390555 0.82323500 0.19155922 0.18537000"
+      ],
+      "staged_annotation": "1 0.549900 0.599800 0.203500 0.632300",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "001760.jpg",
+      "label_file": "001760.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.13031500 0.84205128 0.26063000 0.11544160",
+        "1 0.19073500 0.48928063 0.35965000 0.30762108"
+      ],
+      "staged_annotation": "1 0.185300 0.617600 0.370600 0.564300",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "001869.jpg",
+      "label_file": "001869.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.29196500 0.80826577 0.18495000 0.03148649",
+        "1 0.32467000 0.67715465 0.18590000 0.15746246"
+      ],
+      "staged_annotation": "1 0.308600 0.711200 0.218100 0.225600",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "001902.jpg",
+      "label_file": "001902.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 4,
+      "original_boxes": [
+        "1 0.49264000 0.95173163 0.17128000 0.09653673",
+        "1 0.45818000 0.88108696 0.09358000 0.14148426",
+        "1 0.65868000 0.55250375 0.20426000 0.60743628",
+        "1 0.79895000 0.36169415 0.09152000 0.24869565"
+      ],
+      "staged_annotation": "1 0.625900 0.618700 0.437700 0.762700",
+      "reason": "Consolidated 4 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "001948.jpg",
+      "label_file": "001948.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.37204500 0.76275112 0.21393000 0.26412294",
+        "1 0.59855500 0.67098951 0.49535000 0.25211394"
+      ],
+      "staged_annotation": "1 0.555700 0.719900 0.581100 0.349900",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "002018.jpg",
+      "label_file": "002018.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 3,
+      "original_boxes": [
+        "1 0.66273500 0.45336582 0.13077000 0.03410795",
+        "1 0.66629500 0.87852324 0.20469000 0.24295352",
+        "1 0.80116500 0.85934783 0.39767000 0.28130435"
+      ],
+      "staged_annotation": "1 0.782000 0.718200 0.436100 0.563700",
+      "reason": "Consolidated 3 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "002114.jpg",
+      "label_file": "002114.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 3,
+      "original_boxes": [
+        "1 0.10538000 0.77096667 0.16716000 0.45806667",
+        "1 0.25924500 0.92504000 0.16375000 0.08869333",
+        "1 0.45208000 0.61243333 0.41194000 0.26836000"
+      ],
+      "staged_annotation": "1 0.339900 0.739100 0.636300 0.521700",
+      "reason": "Consolidated 3 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "002123.jpg",
+      "label_file": "002123.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.42781000 0.81095952 0.09544000 0.13385307",
+        "1 0.44414000 0.52433283 0.05254000 0.13169415"
+      ],
+      "staged_annotation": "1 0.427800 0.668200 0.095400 0.419400",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "002249.jpg",
+      "label_file": "002249.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 3,
+      "original_boxes": [
+        "1 0.31928000 0.60464715 0.03582000 0.11680180",
+        "1 0.54802500 0.80288288 0.09415000 0.07990991",
+        "1 0.55928500 0.63921922 0.18013000 0.24126126"
+      ],
+      "staged_annotation": "1 0.475400 0.680700 0.348000 0.324200",
+      "reason": "Consolidated 3 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "002595.jpg",
+      "label_file": "002595.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.27767500 0.81086072 0.18419000 0.33918623",
+        "1 0.53962000 0.60170579 0.25412000 0.21305164"
+      ],
+      "staged_annotation": "1 0.426100 0.737800 0.481100 0.485300",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "002802.jpg",
+      "label_file": "002802.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 3,
+      "original_boxes": [
+        "1 0.48548500 0.31449775 0.38177000 0.14392804",
+        "1 0.51842000 0.62829085 0.43646000 0.35646177",
+        "1 0.48535000 0.09449025 0.42838000 0.18898051"
+      ],
+      "staged_annotation": "1 0.503900 0.403300 0.465500 0.806500",
+      "reason": "Consolidated 3 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "003237.jpg",
+      "label_file": "003237.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.38947000 0.84390000 0.26070000 0.31220000",
+        "1 0.86866500 0.94236667 0.17035000 0.11526667"
+      ],
+      "staged_annotation": "1 0.606500 0.843900 0.694700 0.312200",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "003305.jpg",
+      "label_file": "003305.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 3,
+      "original_boxes": [
+        "1 0.68535500 0.59207646 0.45003000 0.18130435",
+        "1 0.75379000 0.76794603 0.27352000 0.11493253",
+        "1 0.84693500 0.92051724 0.22799000 0.10106447"
+      ],
+      "staged_annotation": "1 0.710600 0.736200 0.500600 0.469600",
+      "reason": "Consolidated 3 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "003356.jpg",
+      "label_file": "003356.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.26661169 0.56392500 0.04458771 0.14175000",
+        "1 0.47616192 0.53072000 0.23481259 0.25970000"
+      ],
+      "staged_annotation": "1 0.418900 0.530700 0.349300 0.259700",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "003610.jpg",
+      "label_file": "003610.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.54672500 0.55927176 0.48867000 0.67367673",
+        "1 0.63411000 0.72399645 0.30914000 0.47516874"
+      ],
+      "staged_annotation": "1 0.546700 0.592000 0.488700 0.739100",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "003733.jpg",
+      "label_file": "003733.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.55898000 0.51759000 0.39404000 0.13316000",
+        "1 0.80109333 0.43436000 0.12365333 0.04994000"
+      ],
+      "staged_annotation": "1 0.612400 0.496800 0.501000 0.174800",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "003826.jpg",
+      "label_file": "003826.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 3,
+      "original_boxes": [
+        "1 0.29733500 0.32867515 0.07629000 0.05636228",
+        "1 0.34641500 0.53810629 0.16537000 0.31938623",
+        "1 0.44608000 0.59047156 0.06020000 0.31594311"
+      ],
+      "staged_annotation": "1 0.367700 0.524500 0.217000 0.447900",
+      "reason": "Consolidated 3 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "003847.jpg",
+      "label_file": "003847.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 4,
+      "original_boxes": [
+        "1 0.07856500 0.27661169 0.15713000 0.18902549",
+        "1 0.29535500 0.80823838 0.16943000 0.29263868",
+        "1 0.27652500 0.28980510 0.24671000 0.16785607",
+        "1 0.40024000 0.39287106 0.23520000 0.38478261"
+      ],
+      "staged_annotation": "1 0.258900 0.568300 0.517800 0.772500",
+      "reason": "Consolidated 4 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "003860.jpg",
+      "label_file": "003860.txt",
+      "damage_class": "scratch",
+      "class_id": 1,
+      "action": "CONSOLIDATED_SCRATCH",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 2,
+      "original_boxes": [
+        "1 0.61191500 0.50742129 0.61233000 0.25550225",
+        "1 0.60102000 0.84388306 0.46568000 0.12032984"
+      ],
+      "staged_annotation": "1 0.611900 0.641900 0.612300 0.524400",
+      "reason": "Consolidated 2 fragmented sub-boxes into a single tightly bounded continuous scratch box."
+    },
+    {
+      "image": "000265.jpg",
+      "label_file": "000265.txt",
+      "damage_class": "dent",
+      "class_id": 0,
+      "action": "CONSOLIDATED_DENT",
+      "reviewer_decision": "APPROVED",
+      "original_annotations_count": 5,
+      "original_boxes": [
+        "0 0.01225500 0.65358321 0.01701000 0.01190405",
+        "0 0.01537500 0.57151424 0.02325000 0.02125937",
+        "0 0.01764000 0.61658171 0.02552000 0.02125937",
+        "0 0.03466000 0.53367316 0.02326000 0.02380810",
+        "0 0.07521500 0.69694903 0.05445000 0.03401799"
+      ],
+      "staged_annotation": "0 0.023500 0.593600 0.045000 0.131900",
+      "reason": "Merged 4 sub-15px edge dent boxes into a single parent dent bounding box to eliminate anchor noise while preserving true panel deformation."
+    }
+  ]
+}

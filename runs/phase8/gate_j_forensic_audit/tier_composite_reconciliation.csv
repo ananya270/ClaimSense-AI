@@ -1,0 +1,16 @@
+model_key,model_name,metric_name,tier1_val,tier2_val,composite_formula,expected_composite,reported_composite,delta,status,notes
+production_baseline,Production Baseline (Phase 5),Precision,0.1678,0.2743,0.70 * Tier1 + 0.30 * Tier2,0.1997,0.1998,0.0001,WARNING,Linear weighted combination strictly verified.
+production_baseline,Production Baseline (Phase 5),Recall,0.203,0.375,0.70 * Tier1 + 0.30 * Tier2,0.2546,0.2546,0.0,PASS,Linear weighted combination strictly verified.
+production_baseline,Production Baseline (Phase 5),mAP@50,0.001,0.032,0.70 * Tier1 + 0.30 * Tier2,0.0103,0.0103,0.0,PASS,Linear weighted combination strictly verified.
+production_baseline,Production Baseline (Phase 5),mAP@50:95,0.0002,0.0101,0.70 * Tier1 + 0.30 * Tier2,0.0032,0.0032,0.0,PASS,Linear weighted combination strictly verified.
+production_baseline,Production Baseline (Phase 5),F1-Score,0.1838,0.3169,Harmonic Mean of Composite Precision and Composite Recall,0.2239,0.2239,0.0,PASS,Harmonic mean of composite P and R (mathematically sound vs linear avg of F1).
+session_2,Phase 8 Session 2,Precision,0.6819,0.0004,0.70 * Tier1 + 0.30 * Tier2,0.4774,0.4775,0.0001,PASS,Linear weighted combination strictly verified.
+session_2,Phase 8 Session 2,Recall,0.0128,0.25,0.70 * Tier1 + 0.30 * Tier2,0.084,0.084,0.0,PASS,Linear weighted combination strictly verified.
+session_2,Phase 8 Session 2,mAP@50,0.002,0.0016,0.70 * Tier1 + 0.30 * Tier2,0.0019,0.0019,0.0,PASS,Linear weighted combination strictly verified.
+session_2,Phase 8 Session 2,mAP@50:95,0.0003,0.0003,0.70 * Tier1 + 0.30 * Tier2,0.0003,0.0003,0.0,PASS,Linear weighted combination strictly verified.
+session_2,Phase 8 Session 2,F1-Score,0.0252,0.0007,Harmonic Mean of Composite Precision and Composite Recall,0.1429,0.1428,0.0001,PASS,Harmonic mean of composite P and R (mathematically sound vs linear avg of F1).
+session_4,Phase 8 Session 4,Precision,0.1929,0.002,0.70 * Tier1 + 0.30 * Tier2,0.1356,0.1356,0.0,PASS,Linear weighted combination strictly verified.
+session_4,Phase 8 Session 4,Recall,0.0256,0.5417,0.70 * Tier1 + 0.30 * Tier2,0.1804,0.1804,0.0,PASS,Linear weighted combination strictly verified.
+session_4,Phase 8 Session 4,mAP@50,0.0063,0.0033,0.70 * Tier1 + 0.30 * Tier2,0.0054,0.0054,0.0,PASS,Linear weighted combination strictly verified.
+session_4,Phase 8 Session 4,mAP@50:95,0.0008,0.0006,0.70 * Tier1 + 0.30 * Tier2,0.0007,0.0007,0.0,PASS,Linear weighted combination strictly verified.
+session_4,Phase 8 Session 4,F1-Score,0.0453,0.0041,Harmonic Mean of Composite Precision and Composite Recall,0.1548,0.1549,0.0001,WARNING,Harmonic mean of composite P and R (mathematically sound vs linear avg of F1).

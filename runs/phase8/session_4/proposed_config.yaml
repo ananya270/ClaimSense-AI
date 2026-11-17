@@ -1,0 +1,74 @@
+# ClaimSense AI - Phase 8 Session 4 Proposed Training Configuration (Preflight Corrected)
+# Purpose: Controlled fine-tuning of YOLOv8n on expanded 310-image CarDD dataset
+# Status: FINAL PREFLIGHT CONFIGURATION PROPOSAL (AUDIT ONLY - AWAITING USER APPROVAL)
+# Safeguard: Session 4 training is NOT authorized. Do not execute training runs.
+
+# 1. Model & Initialization (Unique Output & Safeguarded Checkpoints)
+model: runs/phase8/session_2/weights/best.pt # Verified candidate (SHA256: 2ee0a567...)
+data: datasets/CarDD_Expanded_v1/dataset.yaml # 310 train, 45 val (test points to frozen test)
+project: runs/phase8
+name: session_4_training_01 # Dedicated training destination: runs/phase8/session_4_training_01/
+# Dedicated evaluation destination: runs/phase8/session_4_training_01/eval/
+exist_ok: false # Enforces strict safety: prevents silent fallback or overwrite of existing runs
+pretrained: true
+resume: false # Fresh fine-tuning (reinitializes optimizer & avoids stale metadata)
+
+# 2. Hardware & Runtime Environment
+device: 0 # NVIDIA GeForce RTX 3050 Laptop GPU (4.00 GB VRAM)
+amp: true # Automatic Mixed Precision (FP16 autocast)
+workers: 2 # Windows DataLoader workers (fallback: 0 if spawn issue occurs)
+seed: 42
+deterministic: true
+
+# 3. Training Duration & Batching
+epochs: 20 # Maximum fine-tuning epochs
+patience: 7 # Early stopping patience on validation fitness
+batch: 4 # Optimal batch for 4GB VRAM at 640px (peak ~1.8GB, fallback: 2 if OOM)
+imgsz: 640 # Native resolution matching Session 2 benchmark
+
+# 4. Optimizer & Learning Rate Schedule (Verified against Ultralytics 8.4.215)
+optimizer: AdamW # Decoupled weight decay optimizer (verified in Ultralytics 8.4.215)
+lr0: 0.001 # Initial learning rate (10x gentler than default 0.01 to protect converged features)
+lrf: 0.01 # Final learning rate factor (min_lr = lr0 * lrf = 1e-5)
+momentum: 0.937
+weight_decay: 0.0005 # L2 regularization penalty
+cos_lr: true # Cosine learning rate decay schedule
+
+# 5. Warmup Configuration
+warmup_epochs: 2.0 # 2 epochs of gradual learning rate ramp-up
+warmup_momentum: 0.8 # Initial warmup momentum
+warmup_bias_lr: 0.1 # Warmup bias learning rate
+
+# 6. Loss Weighting
+box: 7.5 # Bounding-box CIoU loss gain
+cls: 0.5 # Classification BCE loss gain
+dfl: 1.5 # Distribution Focal Loss gain
+
+# 7. Fine-Grained Damage Augmentation Policy (Crack & Scratch Trade-off Review)
+# Trade-off Analysis:
+# - Full mosaic (1.0) downsamples sub-images to ~320px in composite 4-quadrant views, which can attenuate
+#   fine spatial gradients for tiny 1-3px cracks and hairline scratches.
+# - Setting mosaic: 0.5 establishes a 50% stochastic probability per sample of applying mosaic augmentation,
+#   reducing mosaic frequency so more batches retain native 640px resolution during early training, though
+#   actual detection performance on small damage must be measured experimentally.
+# - Setting close_mosaic: 5 completely disables mosaic for the final 5 epochs (epochs 16-20) to ensure
+#   the network converges on natural, un-spliced vehicle panels with true physical contours.
+mosaic: 0.5 # 50% stochastic probability per sample of applying mosaic augmentation
+close_mosaic: 5 # Disables mosaic completely for the final 5 epochs (25% of run)
+erasing: 0.0 # Zero random erasing (prevents black block occlusions on hairline cracks/scratches)
+hsv_h: 0.015 # Image HSV-Hue augmentation
+hsv_s: 0.7 # Image HSV-Saturation augmentation
+hsv_v: 0.4 # Image HSV-Value (brightness) augmentation
+degrees: 0.0 # No rotation (prevents angle distortion on vehicles)
+translate: 0.1 # Slight translation (+/- 10%)
+scale: 0.5 # Scale jitter (+/- 50%)
+shear: 0.0 # No shearing
+perspective: 0.0 # No perspective distortion
+flipud: 0.0 # No upside-down flipping (vehicles remain upright)
+fliplr: 0.5 # Horizontal mirror flip (50% probability)
+
+# 8. Output, Validation & Stability Safeguards
+save: true # Save checkpoints
+save_period: -1 # Save only best.pt and last.pt to conserve disk space
+val: true # Evaluate on validation set after every epoch (uses val/images only)
+plots: true # Generate training curves, confusion matrices, and validation batches

@@ -1,0 +1,4 @@
+model_key,model_name,mean_latency_ms,median_latency_ms,std_latency_ms,min_latency_ms,max_latency_ms,throughput_fps,sample_count,device
+production_baseline,Production Baseline (Phase 5),131.42,122.54,63.37,44.92,268.73,7.6,44,NVIDIA GeForce RTX 3050 Laptop GPU (CUDA:0)
+session_2,Phase 8 Session 2,80.89,83.75,51.66,18.13,214.26,12.4,44,NVIDIA GeForce RTX 3050 Laptop GPU (CUDA:0)
+session_4,Phase 8 Session 4,85.69,71.01,56.67,15.48,208.45,11.7,44,NVIDIA GeForce RTX 3050 Laptop GPU (CUDA:0)

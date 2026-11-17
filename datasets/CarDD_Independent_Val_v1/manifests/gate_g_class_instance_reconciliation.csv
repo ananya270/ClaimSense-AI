@@ -1,0 +1,7 @@
+class_id,class_name,manifest_primary_images,total_annotated_instances,notes
+0,dent,9,9,"100% paired. Multi-instance images: CS_VAL_019 (glass+dent), CS_VAL_040 (glass+dent), CS_VAL_045 (2 glass panes)."
+1,scratch,4,4,"100% paired. Multi-instance images: CS_VAL_019 (glass+dent), CS_VAL_040 (glass+dent), CS_VAL_045 (2 glass panes)."
+2,crack,6,6,"100% paired. Multi-instance images: CS_VAL_019 (glass+dent), CS_VAL_040 (glass+dent), CS_VAL_045 (2 glass panes)."
+3,glass shatter,10,13,"100% paired. Multi-instance images: CS_VAL_019 (glass+dent), CS_VAL_040 (glass+dent), CS_VAL_045 (2 glass panes)."
+4,lamp broken,6,6,"100% paired. Multi-instance images: CS_VAL_019 (glass+dent), CS_VAL_040 (glass+dent), CS_VAL_045 (2 glass panes)."
+5,tire flat,9,9,"100% paired. Multi-instance images: CS_VAL_019 (glass+dent), CS_VAL_040 (glass+dent), CS_VAL_045 (2 glass panes)."

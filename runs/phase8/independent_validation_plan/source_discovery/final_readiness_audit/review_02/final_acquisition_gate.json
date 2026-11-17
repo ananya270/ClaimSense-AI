@@ -1,0 +1,144 @@
+{
+  "audit_metadata": {
+    "project": "ClaimSense AI",
+    "document_title": "Phase 8 Final Evidence-Based Acquisition Gate Review",
+    "version": "2.0-Evidence-Backed",
+    "audit_date": "2026-11-17",
+    "scope": "Forensic asset-level legal, physical availability, and privacy controls review",
+    "target_dataset_name": "CarDD_Independent_Val_v1",
+    "gate_status": "GATE_LOCKED_PENDING_SEPARATE_AUTHORIZATION",
+    "execution_restrictions": {
+      "image_downloads_executed": false,
+      "dataset_modifications_executed": false,
+      "model_training_executed": false,
+      "checkpoints_modified": false,
+      "external_permissions_requested": false,
+      "financial_transactions_executed": false
+    }
+  },
+  "verified_facts": {
+    "source_existence_and_urls": {
+      "SRC-01": {
+        "name": "Roboflow Car Damage V5",
+        "official_url": "https://universe.roboflow.com/car-damage/car-damage-v5",
+        "verified_image_count": 3001,
+        "declared_license": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+        "platform_terms_summary": "Roboflow Terms Section 4 & 8 disclaim all title warranties; uploader warrants rights, but platform performs zero provenance verification"
+      },
+      "SRC-02": {
+        "name": "DrBimmer / Humans in the Loop",
+        "official_url": "https://huggingface.co/datasets/DrBimmer/car-parts-and-damage-dataset",
+        "root_institutional_url": "https://humansintheloop.org/resources/datasets/car-parts-and-car-damages-dataset/",
+        "verified_image_count": 1812,
+        "declared_license": "CC0 1.0 Universal (Root Institutional Release) / MIT (Hugging Face Mirror)",
+        "platform_terms_summary": "Humans in the Loop officially dedicated raw images and polygon annotations to public domain worldwide under CC0 1.0 Universal deed"
+      },
+      "SRC-03": {
+        "name": "Kaggle COCO Car Damage (anujms)",
+        "official_url": "https://www.kaggle.com/datasets/anujms/car-damage-detection",
+        "verified_image_count": 2300,
+        "declared_license": "None / Unspecified (Default Kaggle User Submission)",
+        "platform_terms_summary": "No open-source license tag on dataset card; community web scrape from 2018; photographers retain All Rights Reserved"
+      },
+      "SRC-04": {
+        "name": "Kaggle Car Damage Assessment (lplenka)",
+        "official_url": "https://www.kaggle.com/datasets/lplenka/coco-car-damage-detection-dataset",
+        "verified_image_count": 80,
+        "declared_license": "CC0 1.0 Universal (Self-reported)",
+        "platform_terms_summary": "Physical dataset contains exactly 80 total images (59 train, 11 val, 8 test) and zero flat tires"
+      },
+      "SRC-05": {
+        "name": "Kaggle Insurance Claims (vinayjose)",
+        "official_url": "https://www.kaggle.com/datasets/vinayjose/car-damage-dataset",
+        "verified_image_count": 8080,
+        "declared_license": "Apache License, Version 2.0 (Self-reported)",
+        "platform_terms_summary": "Apache 2.0 applies to code contributions; uploader compiled insurance claim photos without copyright assignments from carriers or policyholders"
+      },
+      "SRC-06": {
+        "name": "Wikimedia Commons Automotive Damage Collections",
+        "official_urls": [
+          "https://commons.wikimedia.org/wiki/Category:Damaged_automobiles",
+          "https://commons.wikimedia.org/wiki/Category:Flat_tires",
+          "https://commons.wikimedia.org/wiki/Special:Search?query=Automobile+hail+damage",
+          "https://commons.wikimedia.org/wiki/Category:Broken_car_windows"
+        ],
+        "verified_candidate_count": 1200,
+        "declared_license": "Individual per-file deeds: CC0, Public Domain, CC BY, or CC BY-SA",
+        "platform_terms_summary": "Every file audited via MediaWiki Action API; CC BY-SA files strictly disqualified to prevent copyleft contamination"
+      }
+    }
+  },
+  "estimates": {
+    "screening_fallout_rate_pct": "25.0% to 35.0% based on automated blur, resolution, and PII conflicts",
+    "staged_candidate_intake_needed": "320 to 350 raw candidate images to yield 235 usable validation images",
+    "target_curated_images": 235,
+    "projected_instance_yields": {
+      "dent": { "target": 90, "estimated_yield": 130, "status": "Likely Over-Indexed" },
+      "scratch": { "target": 100, "estimated_yield": 140, "status": "Likely Over-Indexed" },
+      "crack": { "target": 60, "estimated_yield": 68, "status": "Adequate (Subject to substrate filter)" },
+      "glass_shatter": { "target": 40, "estimated_yield": 46, "status": "Adequate" },
+      "lamp_broken": { "target": 45, "estimated_yield": 50, "status": "Adequate" },
+      "tire_flat": { "target": 30, "estimated_yield": 32, "status": "Constrained (Requires 25-28 dedicated Wikimedia photos)" },
+      "total_instances": { "target": 365, "estimated_yield": 466, "status": "Viable Portfolio" }
+    }
+  },
+  "assumptions": {
+    "co_occurrence_distribution": "Estimated average of ~2.0 verified damage instances per collision photograph based on historical multi-panel crash physics",
+    "fair_use_defense_viability": "Internal machine learning validation within an access-controlled quarantine satisfies 17 U.S.C. § 107 Fair Use factors for computational analysis, provided zero public redistribution or commercial packaging occurs",
+    "redaction_preservation": "Bounding box dilation of 15% around detected license plates and VINs will capture reflective flares while occluding less than 20% of adjacent panel damage"
+  },
+  "unresolved_items": {
+    "copyleft_weight_derivation": "Unsettled legal debate whether neural network weights constitute 'Adapted Material' under CC BY-SA 4.0; permanently mitigated by categorically excluding CC BY-SA files",
+    "uploader_copyright_authority": "Roboflow V5 (Erkans Workspace) and Kaggle Claims (Vinay Jose) uploaders lack documented copyright assignments from original photographers",
+    "contextual_reidentification": "Potential residual PII under GDPR Recital 26 arising from unique bumper stickers, commercial fleet graphics, or distinctive background residences",
+    "trademark_nominative_use": "Manufacturer emblems in damage inspection photos are protected under nominative fair use, but no explicit trademark disclaimers are attached to raw photos"
+  },
+  "source_decisions": {
+    "SRC-01": {
+      "decision": "CONDITIONAL",
+      "allocation_quota": 35,
+      "primary_evidence": "Uploader chosen CC BY 4.0 without proof of image copyright",
+      "conditions": "Quarantined for internal offline evaluation only; zero external redistribution; mandatory solid PII masking"
+    },
+    "SRC-02": {
+      "decision": "APPROVED",
+      "allocation_quota": 115,
+      "primary_evidence": "Root institutional CC0 1.0 Universal public domain dedication by Humans in the Loop officially verified",
+      "conditions": "Primary anchor source; apply standard EXIF wipe and solid license plate masking; cite Humans in the Loop in manifest"
+    },
+    "SRC-03": {
+      "decision": "REJECTED",
+      "allocation_quota": 0,
+      "primary_evidence": "No open-source license tag on Kaggle card; unlicensed 2018 web scrape",
+      "conditions": "Categorically banned from acquisition pipeline"
+    },
+    "SRC-04": {
+      "decision": "REJECTED",
+      "allocation_quota": 0,
+      "primary_evidence": "Scale is only 80 images total with zero flat tire instances; statistically insignificant",
+      "conditions": "Deprecated from allocation to eliminate administrative overhead"
+    },
+    "SRC-05": {
+      "decision": "CONDITIONAL",
+      "allocation_quota": 25,
+      "primary_evidence": "Apache 2.0 attached to code/CSV, not third-party insurer claim photos",
+      "conditions": "Quarantined for internal offline evaluation only; zero external redistribution; mandatory solid PII masking"
+    },
+    "SRC-06": {
+      "decision": "APPROVED",
+      "allocation_quota": 60,
+      "primary_evidence": "Per-file verified CC0, Public Domain, or CC BY contributor deeds on Wikimedia Commons API",
+      "conditions": "Primary anchor for flat tires and hail dents; strict automated exclusion of CC BY-SA files; maintain attribution log"
+    }
+  },
+  "acquisition_gate_summary": {
+    "gate_status": "GATE_LOCKED_PENDING_SEPARATE_AUTHORIZATION",
+    "acquisition_authorized": false,
+    "required_evidence_before_unlock": [
+      "1. Scripted API validation generating candidate manifest verifying 100% of Wikimedia candidate URLs carry CC0, Public Domain, or CC BY (zero CC BY-SA).",
+      "2. Formal sign-off on Internal Fair Use Quarantine Protocol for SRC-01 and SRC-05 auxiliary datasets.",
+      "3. Automated bounding box dilation (15%) test verifying solid zero-entropy masking ([0,0,0]) over sample plates without damaging defect features.",
+      "4. Separate explicit user authorization to begin Stage 1 raw image downloads."
+    ]
+  }
+}
