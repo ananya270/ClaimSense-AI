@@ -1,0 +1,5 @@
+model_id,model_name,model_size_mb,cold_start_load_ms,mean_inference_ms,median_inference_ms,p95_inference_ms,p99_inference_ms,min_inference_ms,max_inference_ms,peak_rss_mb,total_inference_runs
+prod_baseline_5ep,Production Baseline (Phase 5 - 5ep),6.17,55.54,61.89,59.24,77.32,118.68,42.76,150.65,531.1,135
+prod_test_epoch_1ep,Production Historical Ref Checkpoint (1ep),6.17,64.21,61.02,58.89,74.27,108.33,44.82,136.96,547.7,135
+cardd_damage_standalone,CarDD Damage YOLOv8n Standalone,6.17,62.36,84.62,77.66,135.46,220.15,44.22,298.86,561.7,135
+phase5_last,Phase 5 Last Checkpoint,6.17,71.63,61.33,60.53,72.02,77.97,45.86,79.6,553.5,135

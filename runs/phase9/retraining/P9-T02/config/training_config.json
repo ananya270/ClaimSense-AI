@@ -1,0 +1,19 @@
+{
+  "experiment_id": "P9-T02",
+  "description": "Resolution Scaling (imgsz=640 vs 416 baseline)",
+  "base_model": "yolov8n.pt",
+  "base_model_sha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36",
+  "data_yaml": "C:\\Users\\ydvan\\Desktop\\ClaimSense Ai\\ClaimSense-AI\\data\\cardd.yaml",
+  "data_yaml_sha256": "0555f33f4a3d651d2cc6125920e5f6b669338710f2d416ecc61275199d92efb7",
+  "epochs": 5,
+  "imgsz": 640,
+  "batch": 8,
+  "optimizer": "SGD",
+  "lr0": 0.01,
+  "seed": 42,
+  "device": "cpu",
+  "workers": 0,
+  "box": 7.5,
+  "cls": 0.5,
+  "dfl": 1.5
+}

@@ -1,0 +1,5 @@
+model_id,model_name,ground_truth_count,true_positives,false_positives,false_negatives,precision_at_0_25,recall_at_0_25,micro_f1_at_0_25,fp_per_image
+prod_baseline_5ep,Production Baseline (Phase 5 - 5ep),148,35,114,113,0.2349,0.2365,0.2357,2.53
+prod_test_epoch_1ep,Production Historical Ref Checkpoint (1ep),148,33,1289,115,0.025,0.223,0.0449,28.64
+cardd_damage_standalone,CarDD Damage YOLOv8n Standalone,148,35,114,113,0.2349,0.2365,0.2357,2.53
+phase5_last,Phase 5 Last Checkpoint,148,35,114,113,0.2349,0.2365,0.2357,2.53

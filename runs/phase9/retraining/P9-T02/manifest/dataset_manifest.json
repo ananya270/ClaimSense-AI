@@ -1,0 +1,16 @@
+{
+  "dataset_name": "CarDD_300",
+  "data_yaml": "C:\\Users\\ydvan\\Desktop\\ClaimSense Ai\\ClaimSense-AI\\data\\cardd.yaml",
+  "data_yaml_sha256": "0555f33f4a3d651d2cc6125920e5f6b669338710f2d416ecc61275199d92efb7",
+  "train_images": 210,
+  "val_images": 45,
+  "test_images": 45,
+  "classes": [
+    "dent",
+    "scratch",
+    "crack",
+    "glass shatter",
+    "lamp broken",
+    "tire flat"
+  ]
+}

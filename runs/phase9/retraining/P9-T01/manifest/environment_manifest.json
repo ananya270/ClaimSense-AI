@@ -1,0 +1,12 @@
+{
+  "experiment_id": "P9-T01",
+  "timestamp_start": "2026-11-19T18:25:13Z",
+  "os": "Windows 11 x86_64",
+  "python": "3.14.6 (tags/v3.14.6:c63aec6, Jun 10 2026, 10:26:10) [MSC v.1944 64 bit (AMD64)]",
+  "pytorch": "2.15.0+cpu",
+  "ultralytics": "8.4.214",
+  "device": "cpu",
+  "cpu_model": "Intel Core i5-1035G1 @ 1.00GHz",
+  "ram_total_gb": 7.74,
+  "seed": 42
+}

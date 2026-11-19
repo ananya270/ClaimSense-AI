@@ -1,0 +1,9 @@
+model_name,confidence_threshold,iou_threshold,crack_tp,crack_fp,crack_fn,crack_precision,crack_recall,crack_f1,overall_tp,overall_fp,overall_fn,overall_precision,overall_recall,overall_f1
+Production Baseline (models/phase5/best.pt),0.05,0.40,0,6,13,0.0000,0.0000,0.0000,70,990,78,0.0660,0.4730,0.1159
+Production Baseline (models/phase5/best.pt),0.10,0.40,0,1,13,0.0000,0.0000,0.0000,53,461,95,0.1031,0.3581,0.1601
+Production Baseline (models/phase5/best.pt),0.15,0.40,0,1,13,0.0000,0.0000,0.0000,41,302,107,0.1195,0.2770,0.1670
+Production Baseline (models/phase5/best.pt),0.20,0.40,0,0,13,0.0000,0.0000,0.0000,35,204,113,0.1464,0.2365,0.1809
+Production Baseline (models/phase5/best.pt),0.25,0.40,0,0,13,0.0000,0.0000,0.0000,27,147,121,0.1552,0.1824,0.1677
+Production Baseline (models/phase5/best.pt),0.30,0.40,0,0,13,0.0000,0.0000,0.0000,25,104,123,0.1938,0.1689,0.1805
+Production Baseline (models/phase5/best.pt),0.40,0.40,0,0,13,0.0000,0.0000,0.0000,17,62,131,0.2152,0.1149,0.1498
+Production Baseline (models/phase5/best.pt),0.50,0.40,0,0,13,0.0000,0.0000,0.0000,10,36,138,0.2174,0.0676,0.1031

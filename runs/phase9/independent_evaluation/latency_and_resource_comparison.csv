@@ -1,0 +1,4 @@
+model_id,checkpoint_size_mb,cold_start_ms,mean_latency_ms,median_latency_ms,p95_latency_ms,throughput_fps
+PROD-BASELINE,6.17,147.16,57.11,50.84,105.88,17.51
+P9-T01-BEST,6.17,122.03,56.96,51.99,102.54,17.56
+P9-T02-BEST,6.2,176.47,90.65,84.83,131.27,11.03

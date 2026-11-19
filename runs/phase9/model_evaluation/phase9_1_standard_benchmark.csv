@@ -1,0 +1,5 @@
+model_id,model_name,images,instances,precision,recall,f1_score,mAP50,mAP50_95
+prod_baseline_5ep,Production Baseline (Phase 5 - 5ep),45,148,0.3142,0.3456,0.3291,0.1932,0.1219
+prod_test_epoch_1ep,Production Historical Ref Checkpoint (1ep),45,148,0.1746,0.1321,0.1504,0.0042,0.0011
+cardd_damage_standalone,CarDD Damage YOLOv8n Standalone,45,148,0.3142,0.3456,0.3291,0.1932,0.1219
+phase5_last,Phase 5 Last Checkpoint,45,148,0.3142,0.3456,0.3291,0.1932,0.1219

@@ -1,0 +1,8 @@
+cohort_id,cohort_name,total_images,total_annotated_instances,crack_instances,crack_instance_share_pct,mean_crack_area_norm,median_crack_area_norm,min_crack_area_norm,max_crack_area_norm,mean_aspect_ratio,median_aspect_ratio,max_elongation,mean_abs_width_px,mean_abs_height_px,standard_resolution,provenance
+cardd_300_train,CarDD_300 Train Split,210,714,91,12.75%,0.02638,0.00690,0.00017,0.44974,1.10,0.57,12.02,108.5,100.3,1000x667,Official CarDD subset curated for ClaimSense Phase 5 / Phase 8
+cardd_300_val,CarDD_300 Val Split,45,140,11,7.86%,0.02502,0.00735,0.00102,0.13788,0.97,0.70,14.31,108.7,118.5,1000x667,Official CarDD subset curated for ClaimSense Phase 5 / Phase 8
+cardd_300_test,CarDD_300 Test Split,45,148,13,8.78%,0.01560,0.00526,0.00077,0.06241,0.96,0.65,4.15,82.2,100.6,1000x667,Official CarDD subset curated for ClaimSense Phase 5 / Phase 8
+cardd_100_pool,Additional 100-Image CarDD Pool,100,173,78,45.09%,0.02410,0.00710,0.00030,0.38500,1.35,1.05,13.50,102.4,98.6,1000x667,Selected from CarDD train2017 (Hamming dist >= 15 to CarDD_300)
+cardd_expanded_v1_train,CarDD Expanded Training Dataset (v1),210,656,91,13.87%,0.02640,0.00690,0.00020,0.44970,1.38,1.02,12.02,108.2,105.1,1000x667,Phase 8 Expanded Training Dataset with 35 consolidations
+cardd_independent_val_v1,CarDD Independent Validation Benchmark (Gate O),44,47,6,12.77%,0.01820,0.00840,0.00120,0.05400,1.42,1.15,5.20,92.5,88.0,1920x1080 / 1280x720,"Gate O frozen cryptographic benchmark, double-reviewed & adjudicated"
+cardd_domain_adaptation_dev,Gate L Domain Adaptation Development Cohort,30,19,0,0.00%,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,1920x1080,"Authentic daylight vehicle walkarounds (Clean, Lamp, Tire, Cosmetic)"

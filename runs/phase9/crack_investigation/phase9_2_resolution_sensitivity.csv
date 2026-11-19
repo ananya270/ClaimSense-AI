@@ -1,0 +1,4 @@
+model_name,resolution,operational_conf,operational_iou,crack_tp,crack_fp,crack_fn,crack_precision,crack_recall,crack_f1,overall_tp,overall_fp,overall_fn,overall_precision,overall_recall,overall_f1,cold_start_ms,mean_latency_ms,median_latency_ms,p95_latency_ms,ram_mb
+Production Baseline (models/phase5/best.pt),640x640,0.25,0.40,0,0,13,0.0000,0.0000,0.0000,27,147,121,0.1552,0.1824,0.1677,71.27,82.68,74.32,160.64,439.1
+Production Baseline (models/phase5/best.pt),832x832,0.25,0.40,0,0,13,0.0000,0.0000,0.0000,31,168,117,0.1558,0.2095,0.1787,143.79,118.81,106.72,174.66,495.9
+Production Baseline (models/phase5/best.pt),1024x1024,0.25,0.40,0,0,13,0.0000,0.0000,0.0000,17,212,131,0.0742,0.1149,0.0902,202.15,189.62,172.36,314.89,517.9

@@ -1,0 +1,13 @@
+{
+  "experiment_id": "P9-T01",
+  "all_precision": 0.3838,
+  "all_recall": 0.4046,
+  "all_mAP50": 0.2732,
+  "all_mAP50_95": 0.1774,
+  "crack_precision": 1.0,
+  "crack_recall": 0.0,
+  "crack_f1": 0.0,
+  "crack_ap50": 0.0002,
+  "training_time_seconds": 255.36,
+  "peak_ram_mb": 460.74
+}

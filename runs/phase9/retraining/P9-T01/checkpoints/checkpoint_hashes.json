@@ -1,0 +1,16 @@
+{
+  "initial_checkpoint": {
+    "path": "yolov8n.pt",
+    "sha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36"
+  },
+  "best_checkpoint": {
+    "path": "runs/phase9/retraining/P9-T01\\checkpoints\\best.pt",
+    "size_bytes": 6472874,
+    "sha256": "e3e60fd2911819ec996ed5ce1591ced26530692be7d55ec22d55e4c2fde51e80"
+  },
+  "last_checkpoint": {
+    "path": "runs/phase9/retraining/P9-T01\\checkpoints\\last.pt",
+    "size_bytes": 6472874,
+    "sha256": "13937a8f4b6bcdca2fdfc780f19fc5adc014f1bc069e3c14fa51f81a66519b5d"
+  }
+}

@@ -1,0 +1,8 @@
+metric,production_baseline,candidate_p9_t02,absolute_difference,relative_difference_pct,hardware_environment,sla_limit,sla_compliance
+Checkpoint file size (MB),6.17,6.20,+0.03,+0.49%,Local Disk,N/A,PASS
+Cold-start latency (ms),147.16,176.47,+29.31,+19.92%,Intel Core i5-1035G1 CPU,<500 ms,PASS
+Mean warm latency (ms),57.11,90.65,+33.54,+58.73%,Intel Core i5-1035G1 CPU,<250 ms,PASS
+Median latency (ms),50.84,84.83,+33.99,+66.86%,Intel Core i5-1035G1 CPU,<250 ms,PASS
+P95 latency (ms),105.88,131.27,+25.39,+23.98%,Intel Core i5-1035G1 CPU,<250 ms,PASS
+Throughput (FPS),17.51,11.03,-6.48,-37.01%,Intel Core i5-1035G1 CPU,>5 FPS,PASS
+Peak memory footprint (MB),460.74,585.20,+124.46,+27.01%,Host RAM (7.78 GB),<2048 MB,PASS

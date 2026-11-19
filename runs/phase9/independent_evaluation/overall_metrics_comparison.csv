@@ -1,0 +1,4 @@
+model_id,model_name,checkpoint_sha256,eval_imgsz,mAP50,mAP50_95,std_precision,std_recall,op_tp,op_fp,op_fn,op_precision,op_recall,op_f1,crack_tp,crack_fp,crack_fn,crack_recall,crack_ap50,mean_latency_ms,p95_latency_ms
+PROD-BASELINE,Production Baseline (Phase 5),49630ae8d5c0066d,416,0.1833,0.1161,0.3169,0.3511,36,123,112,0.2264,0.2432,0.2345,0,0,13,0.0,0.0138,57.11,105.88
+P9-T01-BEST,P9-T01 Baseline Candidate,e3e60fd2911819ec,416,0.1869,0.1114,0.1315,0.4136,22,101,126,0.1789,0.1486,0.1624,0,1,13,0.0,0.0019,56.96,102.54
+P9-T02-BEST,P9-T02 Resolution Scaling (640x640),91a943a9a246a074,640,0.249,0.1581,0.234,0.3008,13,18,135,0.4194,0.0878,0.1453,0,0,13,0.0,0.0203,90.65,131.27
