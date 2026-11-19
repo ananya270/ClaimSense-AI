@@ -119,6 +119,85 @@ def _ensure_schema_migrations(engine: Engine) -> None:
                     with engine.begin() as conn:
                         conn.execute(text(f"ALTER TABLE vehicle_damage_analyses ADD COLUMN {col_name} {ddl}"))
 
+        if "claim_verification_runs" in table_names:
+            cvr_cols = {col["name"] for col in inspector.get_columns("claim_verification_runs")}
+            if "evaluated_rules_count" in cvr_cols:
+                # Table has legacy schema with NOT NULL constraints on legacy columns.
+                # Recreate table cleanly with modern schema and copy over historical rows.
+                with engine.begin() as conn:
+                    conn.execute(text("""
+                        CREATE TABLE IF NOT EXISTS claim_verification_runs_migrated (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            run_id VARCHAR(64),
+                            claim_id VARCHAR(32) NOT NULL,
+                            engine_version VARCHAR(32) NOT NULL DEFAULT '1.0.0',
+                            overall_status VARCHAR(32) NOT NULL DEFAULT 'CONSISTENT',
+                            consistency_score FLOAT NOT NULL DEFAULT 100.0,
+                            total_comparisons INTEGER NOT NULL DEFAULT 0,
+                            matched_comparisons INTEGER NOT NULL DEFAULT 0,
+                            mismatched_comparisons INTEGER NOT NULL DEFAULT 0,
+                            missing_evidence_count INTEGER NOT NULL DEFAULT 0,
+                            inconclusive_count INTEGER NOT NULL DEFAULT 0,
+                            high_severity_count INTEGER NOT NULL DEFAULT 0,
+                            critical_severity_count INTEGER NOT NULL DEFAULT 0,
+                            summary TEXT,
+                            recommendations TEXT,
+                            processing_status VARCHAR(32) NOT NULL DEFAULT 'completed',
+                            processing_time_ms FLOAT,
+                            created_at DATETIME NOT NULL,
+                            updated_at DATETIME,
+                            FOREIGN KEY(claim_id) REFERENCES claims(claim_id)
+                        )
+                    """))
+                    conn.execute(text("""
+                        INSERT INTO claim_verification_runs_migrated (
+                            id, run_id, claim_id, engine_version, overall_status, consistency_score,
+                            total_comparisons, matched_comparisons, mismatched_comparisons,
+                            missing_evidence_count, inconclusive_count, high_severity_count, critical_severity_count,
+                            created_at, updated_at
+                        )
+                        SELECT 
+                            id, 
+                            run_id, 
+                            claim_id, 
+                            COALESCE(engine_version, '1.0.0'), 
+                            overall_status, 
+                            consistency_score,
+                            COALESCE(total_comparisons, evaluated_rules_count, 0),
+                            COALESCE(matched_comparisons, matching_rules_count, 0),
+                            COALESCE(mismatched_comparisons, mismatching_rules_count, 0),
+                            COALESCE(missing_evidence_count, missing_rules_count, 0),
+                            COALESCE(inconclusive_count, unverified_rules_count, 0),
+                            COALESCE(high_severity_count, 0),
+                            0,
+                            created_at,
+                            created_at
+                        FROM claim_verification_runs
+                    """))
+                    conn.execute(text("DROP TABLE claim_verification_runs"))
+                    conn.execute(text("ALTER TABLE claim_verification_runs_migrated RENAME TO claim_verification_runs"))
+                    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_claim_verification_runs_claim_id ON claim_verification_runs (claim_id)"))
+                    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_claim_verification_runs_run_id ON claim_verification_runs (run_id)"))
+            else:
+                cvr_migrations = {
+                    "run_id": "VARCHAR(64)",
+                    "total_comparisons": "INTEGER DEFAULT 0",
+                    "matched_comparisons": "INTEGER DEFAULT 0",
+                    "mismatched_comparisons": "INTEGER DEFAULT 0",
+                    "missing_evidence_count": "INTEGER DEFAULT 0",
+                    "inconclusive_count": "INTEGER DEFAULT 0",
+                    "critical_severity_count": "INTEGER DEFAULT 0",
+                    "summary": "TEXT",
+                    "recommendations": "TEXT",
+                    "processing_status": "VARCHAR(32) DEFAULT 'completed'",
+                    "processing_time_ms": "FLOAT",
+                    "updated_at": "DATETIME",
+                }
+                for col_name, ddl in cvr_migrations.items():
+                    if col_name not in cvr_cols:
+                        with engine.begin() as conn:
+                            conn.execute(text(f"ALTER TABLE claim_verification_runs ADD COLUMN {col_name} {ddl}"))
+
     except Exception as exc:
         logger.warning(f"Schema migration check skipped or failed: {exc}")
 

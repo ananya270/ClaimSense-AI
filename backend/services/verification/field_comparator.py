@@ -393,3 +393,42 @@ def compare_policy_numbers(pol_a: str, pol_b: str) -> Tuple[bool, float, str]:
         return True, 0.90, f"Policy numbers match as substring/prefix variation ('{pol_a}' ~ '{pol_b}')"
 
     return False, 1.0, f"Policy numbers conflict ('{pol_a}' vs '{pol_b}')"
+
+
+# =========================================================================
+# Currency & Amount Normalization & Comparison
+# =========================================================================
+
+def normalize_amount(amount: Any) -> Optional[float]:
+    """Extracts numeric float value from currency strings (e.g. 'INR 45,000', '$1,200.50', '45000.00')."""
+    if amount is None:
+        return None
+    if isinstance(amount, (int, float)):
+        return float(amount)
+    clean = re.sub(r"[^\d.]", "", str(amount).strip())
+    try:
+        return float(clean) if clean else None
+    except ValueError:
+        return None
+
+
+def compare_amounts(amt_a: Any, amt_b: Any, tolerance_percent: float = 5.0) -> Tuple[bool, float, str]:
+    """Compares two financial amounts allowing a small tolerance percentage for rounding or tax estimation."""
+    val_a = normalize_amount(amt_a)
+    val_b = normalize_amount(amt_b)
+
+    if val_a is None or val_b is None:
+        return False, 0.5, "One or both amount values are missing or unparseable"
+
+    if val_a == val_b:
+        return True, 1.0, f"Amounts match exactly ({val_a:.2f} == {val_b:.2f})"
+
+    diff = abs(val_a - val_b)
+    max_val = max(abs(val_a), abs(val_b), 1.0)
+    pct_diff = (diff / max_val) * 100.0
+
+    if pct_diff <= tolerance_percent:
+        return True, 0.95, f"Amounts align within acceptable variance ({pct_diff:.1f}% difference: {val_a:.2f} vs {val_b:.2f})"
+
+    return False, 1.0, f"Discrepancy in monetary amounts ({val_a:.2f} vs {val_b:.2f}, difference: {diff:.2f})"
+

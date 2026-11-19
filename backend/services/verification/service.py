@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import json
 import time
+import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from backend.database.db import get_db_session
 from backend.database.models import (
@@ -22,11 +23,13 @@ from backend.services.verification.damage_comparator import (
     compare_narrative_vs_vision,
 )
 from backend.services.verification.field_comparator import (
+    compare_amounts,
     compare_dates,
     compare_names,
     compare_policy_numbers,
     compare_policy_validity,
     compare_vehicle_registrations,
+    normalize_amount,
     normalize_name,
     normalize_policy_num,
     normalize_vehicle_reg,
@@ -37,15 +40,73 @@ from backend.services.verification.rules import (
     SEVERITY_HIGH,
     SEVERITY_LOW,
     SEVERITY_MEDIUM,
+    STATUS_EXTRACTION_ERROR,
     STATUS_INCONCLUSIVE,
     STATUS_MATCH,
     STATUS_MISMATCH,
     STATUS_MISSING_IN_SOURCE,
+    STATUS_NEEDS_REVIEW,
+    STATUS_NOT_APPLICABLE,
+    STATUS_NOT_PRESENT,
 )
 from backend.services.verification.scoring import compute_verification_score_and_summary
 from backend.utils.logger import setup_logger
 
 logger = setup_logger("claimsense.verification")
+
+
+class VerificationPipelineError(Exception):
+    """Structured exception indicating a failure in a specific Phase 7 verification stage."""
+
+    def __init__(
+        self,
+        claim_id: str,
+        stage: str,
+        error_code: str,
+        message: str,
+        original_exc: Optional[Exception] = None,
+        retryable: bool = True,
+    ):
+        super().__init__(message)
+        self.claim_id = claim_id
+        self.stage = stage
+        self.error_code = error_code
+        self.message = message
+        self.original_exc = original_exc
+        self.retryable = retryable
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "success": False,
+            "claim_id": self.claim_id,
+            "stage": self.stage,
+            "error_code": self.error_code,
+            "message": self.message,
+            "retryable": self.retryable,
+        }
+
+
+def _get_field_entry(
+    fields_dict: Dict[str, Dict[str, Any]], *aliases: str
+) -> Tuple[Optional[str], Optional[str], Optional[str], Optional[float]]:
+    """Retrieves (field_value, source_filename, extraction_method, confidence_score)
+    matching the first alias present in fields_dict, handling casing and whitespace.
+    """
+    for alias in aliases:
+        alias_clean = alias.lower().strip()
+        for k, v in fields_dict.items():
+            if k.lower().strip() == alias_clean:
+                val = v.get("field_value")
+                if val is not None and str(val).strip():
+                    src = v.get("source_filename") or v.get("source")
+                    method = v.get("extraction_method")
+                    conf = v.get("confidence_score")
+                    try:
+                        conf_f = float(conf) if conf is not None else 1.0
+                    except (ValueError, TypeError):
+                        conf_f = 1.0
+                    return str(val).strip(), src, method, conf_f
+    return None, None, None, None
 
 
 class ClaimVerificationService:
@@ -99,10 +160,20 @@ class ClaimVerificationService:
         # A. Policy vs Claim Form
         # -----------------------------------------------------------------
         # 1. Policy Number
-        pol_doc_val = policy_fields.get("policy_number", {}).get("field_value")
-        clm_form_pol = claim_form_fields.get("policy_number", {}).get("field_value") or claim_record.get("policy_number")
-        src_pol_doc = policy_fields.get("policy_number", {}).get("source_filename") or "Policy Document"
-        src_clm_form = claim_form_fields.get("policy_number", {}).get("source_filename") or "Claim Form"
+        pol_doc_val, src_pol_doc, _, _ = _get_field_entry(
+            policy_fields, "policy_number", "policy", "policy_no", "policy_num"
+        )
+        clm_form_pol, src_clm_form, _, _ = _get_field_entry(
+            claim_form_fields, "policy_number", "policy", "policy_no", "policy_num"
+        )
+        intake_pol = claim_record.get("policy_number")
+        if not src_pol_doc:
+            src_pol_doc = "Policy Document (OCR)"
+        if not clm_form_pol and intake_pol:
+            clm_form_pol = intake_pol
+            src_clm_form = "Claim Intake Record"
+        elif not src_clm_form:
+            src_clm_form = "Claim Form (OCR)"
 
         if pol_doc_val and clm_form_pol:
             matched, conf, expl = compare_policy_numbers(pol_doc_val, clm_form_pol)
@@ -136,21 +207,33 @@ class ClaimVerificationService:
                 "comparison_status": STATUS_MISSING_IN_SOURCE,
                 "severity": SEVERITY_LOW,
                 "confidence": 1.0,
-                "explanation": f"Policy number present in one source but missing in other.",
+                "explanation": "Policy number present in one source but missing in other.",
                 "evidence_references": {},
             })
 
         # 2. Claimant / Policyholder Name
-        pol_name_val = policy_fields.get("claimant_name", {}).get("field_value")
-        clm_form_name = claim_form_fields.get("claimant_name", {}).get("field_value") or claim_record.get("claimant_name")
+        pol_name_val, src_pol_name, _, _ = _get_field_entry(
+            policy_fields, "claimant_name", "insured_name", "policyholder_name", "name"
+        )
+        clm_form_name, src_clm_name, _, _ = _get_field_entry(
+            claim_form_fields, "claimant_name", "insured_name", "policyholder_name", "name"
+        )
+        intake_name = claim_record.get("claimant_name")
+        if not src_pol_name:
+            src_pol_name = src_pol_doc
+        if not clm_form_name and intake_name:
+            clm_form_name = intake_name
+            src_clm_name = "Claim Intake Record"
+        elif not src_clm_name:
+            src_clm_name = src_clm_form
 
         if pol_name_val and clm_form_name:
             matched, conf, expl = compare_names(pol_name_val, clm_form_name)
             findings.append({
                 "comparison_id": next_id("NAM"),
                 "claim_id": claim_id,
-                "source_a": src_pol_doc,
-                "source_b": src_clm_form,
+                "source_a": src_pol_name,
+                "source_b": src_clm_name,
                 "field_name": "Policyholder / Claimant Name",
                 "original_value_a": pol_name_val,
                 "original_value_b": clm_form_name,
@@ -160,14 +243,14 @@ class ClaimVerificationService:
                 "severity": SEVERITY_LOW if matched else SEVERITY_HIGH,
                 "confidence": conf,
                 "explanation": expl,
-                "evidence_references": {"policy_doc": src_pol_doc, "claim_doc": src_clm_form},
+                "evidence_references": {"policy_doc": src_pol_name, "claim_doc": src_clm_name},
             })
         elif pol_name_val or clm_form_name:
             findings.append({
                 "comparison_id": next_id("NAM"),
                 "claim_id": claim_id,
-                "source_a": src_pol_doc,
-                "source_b": src_clm_form,
+                "source_a": src_pol_name,
+                "source_b": src_clm_name,
                 "field_name": "Policyholder / Claimant Name",
                 "original_value_a": pol_name_val or "Not present",
                 "original_value_b": clm_form_name or "Not present",
@@ -181,16 +264,31 @@ class ClaimVerificationService:
             })
 
         # 3. Vehicle Registration
-        pol_veh_val = policy_fields.get("vehicle_number", {}).get("field_value")
-        clm_form_veh = claim_form_fields.get("vehicle_number", {}).get("field_value") or claim_record.get("vehicle_number")
+        pol_veh_val, src_pol_veh, _, _ = _get_field_entry(
+            policy_fields, "vehicle_number", "vehicle_registration", "vehicle_reg", "registration_number", "reg_no"
+        )
+        clm_form_veh, src_clm_veh, _, _ = _get_field_entry(
+            claim_form_fields, "vehicle_number", "vehicle_registration", "vehicle_reg", "registration_number", "reg_no"
+        )
+        intake_veh = claim_record.get("vehicle_number")
+        if not pol_veh_val and intake_veh and clm_form_veh:
+            pol_veh_val = intake_veh
+            src_pol_veh = "Claim Policy Record"
+        elif not src_pol_veh:
+            src_pol_veh = src_pol_doc
+        if not clm_form_veh and intake_veh and pol_veh_val != intake_veh:
+            clm_form_veh = intake_veh
+            src_clm_veh = "Claim Intake Record"
+        elif not src_clm_veh:
+            src_clm_veh = src_clm_form
 
         if pol_veh_val and clm_form_veh:
             matched, conf, expl = compare_vehicle_registrations(pol_veh_val, clm_form_veh)
             findings.append({
                 "comparison_id": next_id("VEH"),
                 "claim_id": claim_id,
-                "source_a": src_pol_doc,
-                "source_b": src_clm_form,
+                "source_a": src_pol_veh,
+                "source_b": src_clm_veh,
                 "field_name": "Vehicle Registration Number",
                 "original_value_a": pol_veh_val,
                 "original_value_b": clm_form_veh,
@@ -200,18 +298,40 @@ class ClaimVerificationService:
                 "severity": SEVERITY_LOW if matched else SEVERITY_HIGH,
                 "confidence": conf,
                 "explanation": expl,
-                "evidence_references": {"policy_doc": src_pol_doc, "claim_doc": src_clm_form},
+                "evidence_references": {"policy_doc": src_pol_veh, "claim_doc": src_clm_veh},
+            })
+        elif pol_veh_val or clm_form_veh:
+            findings.append({
+                "comparison_id": next_id("VEH"),
+                "claim_id": claim_id,
+                "source_a": src_pol_veh,
+                "source_b": src_clm_veh,
+                "field_name": "Vehicle Registration Number",
+                "original_value_a": pol_veh_val or "Not present",
+                "original_value_b": clm_form_veh or "Not present",
+                "normalized_value_a": normalize_vehicle_reg(pol_veh_val),
+                "normalized_value_b": normalize_vehicle_reg(clm_form_veh),
+                "comparison_status": STATUS_MISSING_IN_SOURCE,
+                "severity": SEVERITY_LOW,
+                "confidence": 1.0,
+                "explanation": "Vehicle registration present in one source but missing in other.",
+                "evidence_references": {},
             })
 
         # 4. Policy Validity Window vs Accident Date
-        acc_date_val = claim_form_fields.get("accident_date", {}).get("field_value") or claim_record.get("accident_date")
-        pol_validity_val = (
-            policy_fields.get("policy_validity", {}).get("field_value")
-            or policy_fields.get("coverage_period", {}).get("field_value")
-            or policy_fields.get("validity_period", {}).get("field_value")
+        acc_date_val, _, _, _ = _get_field_entry(claim_form_fields, "accident_date", "incident_date", "claim_date")
+        if not acc_date_val:
+            acc_date_val = claim_record.get("accident_date")
+
+        pol_validity_val, _, _, _ = _get_field_entry(
+            policy_fields, "policy_validity", "coverage_period", "validity_period", "policy_period"
         )
-        pol_start_val = policy_fields.get("policy_start_date", {}).get("field_value")
-        pol_end_val = policy_fields.get("policy_end_date", {}).get("field_value")
+        pol_start_val, _, _, _ = _get_field_entry(
+            policy_fields, "policy_start_date", "start_date", "valid_from", "coverage_start_date"
+        )
+        pol_end_val, _, _, _ = _get_field_entry(
+            policy_fields, "policy_end_date", "end_date", "valid_to", "coverage_end_date"
+        )
 
         if acc_date_val:
             st, sev, conf, expl = compare_policy_validity(
@@ -259,6 +379,38 @@ class ClaimVerificationService:
                 "confidence": conf,
                 "explanation": expl,
                 "evidence_references": {"claim_doc": src_clm_form},
+            })
+
+        # -----------------------------------------------------------------
+        # B2. Claim Form vs Repair Invoice Amount
+        # -----------------------------------------------------------------
+        inv_amt_val, src_inv_amt, _, _ = _get_field_entry(
+            invoice_fields, "claim_amount", "total_amount", "estimate_amount", "repair_cost", "amount"
+        )
+        clm_amt_val, src_clm_amt, _, _ = _get_field_entry(
+            claim_form_fields, "claim_amount", "total_amount", "amount"
+        )
+        if not clm_amt_val and claim_record.get("claim_amount"):
+            clm_amt_val = str(claim_record.get("claim_amount"))
+            src_clm_amt = "Claim Intake Record"
+
+        if inv_amt_val and clm_amt_val:
+            amt_matched, amt_conf, amt_expl = compare_amounts(inv_amt_val, clm_amt_val)
+            findings.append({
+                "comparison_id": next_id("AMT"),
+                "claim_id": claim_id,
+                "source_a": src_inv_amt or "Repair Invoice",
+                "source_b": src_clm_amt or "Claim Form",
+                "field_name": "Claim vs Repair Invoice Total Amount",
+                "original_value_a": inv_amt_val,
+                "original_value_b": clm_amt_val,
+                "normalized_value_a": f"{normalize_amount(inv_amt_val):.2f}" if normalize_amount(inv_amt_val) is not None else str(inv_amt_val),
+                "normalized_value_b": f"{normalize_amount(clm_amt_val):.2f}" if normalize_amount(clm_amt_val) is not None else str(clm_amt_val),
+                "comparison_status": STATUS_MATCH if amt_matched else STATUS_MISMATCH,
+                "severity": SEVERITY_LOW if amt_matched else SEVERITY_MEDIUM,
+                "confidence": amt_conf,
+                "explanation": amt_expl,
+                "evidence_references": {"invoice_amount": inv_amt_val, "claim_amount": clm_amt_val},
             })
 
         # -----------------------------------------------------------------
@@ -406,110 +558,164 @@ class ClaimVerificationService:
 
     @classmethod
     def verify_claim(cls, claim_id: str, force: bool = False) -> Dict[str, Any]:
-        """Loads claim data from database, executes verification, and persists run records."""
-        with get_db_session() as db:
-            claim = db.query(Claim).filter_by(claim_id=claim_id).first()
-            if not claim:
-                raise ValueError(f"Claim with ID '{claim_id}' not found.")
+        """Loads claim data from database, executes verification across pipeline stages, and persists run records."""
+        start_ts = datetime.now(timezone.utc).isoformat()
+        current_stage = "claim_validation"
 
-            # Idempotency check: reuse existing run if force is False
-            if not force and claim.verification_runs:
-                latest_run = sorted(claim.verification_runs, key=lambda r: r.id)[-1]
-                logger.info(f"Reusing existing verification run ID {latest_run.id} for {claim_id}")
-                return latest_run.to_dict(include_findings=True)
+        if not claim_id or not isinstance(claim_id, str):
+            raise VerificationPipelineError(
+                claim_id=str(claim_id),
+                stage="claim_validation",
+                error_code="INVALID_CLAIM_ID",
+                message="Invalid or missing Claim ID format.",
+                retryable=False,
+            )
 
-            claim_record = claim.to_dict(include_evidence=True)
-
-            # Retrieve ExtractedInformation
-            extracted_doc_rows = [
-                r.to_dict() for r in db.query(ExtractedInformation).filter_by(claim_id=claim_id).all()
-            ]
-
-            # Retrieve or generate Phase 6 NLP Analysis
-            nlp_analysis: Optional[Dict[str, Any]] = None
-            if claim.nlp_analyses:
-                latest_nlp = sorted(claim.nlp_analyses, key=lambda a: a.id)[-1]
-                nlp_analysis = latest_nlp.to_dict()
-            elif claim.claim_description and claim.claim_description.strip():
-                try:
-                    nlp_analysis = ClaimNLPService.analyze_claim_narrative(
-                        text=claim.claim_description,
+        try:
+            with get_db_session() as db:
+                current_stage = "evidence_retrieval"
+                claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+                if not claim:
+                    raise VerificationPipelineError(
                         claim_id=claim_id,
-                        claimant_name=claim.claimant_name,
-                        extracted_doc_rows=extracted_doc_rows,
-                        claim_record=claim_record,
+                        stage="evidence_retrieval",
+                        error_code="CLAIM_NOT_FOUND",
+                        message=f"Claim with ID '{claim_id}' not found.",
+                        retryable=False,
                     )
-                except Exception as exc:
-                    logger.warning(f"Dynamic NLP analysis execution failed for {claim_id}: {exc}")
 
-            # Retrieve Phase 5 Computer Vision Analysis
-            vision_analysis: Optional[Dict[str, Any]] = None
-            if claim.vehicle_damage_analyses:
-                latest_vision = sorted(claim.vehicle_damage_analyses, key=lambda a: a.id)[-1]
-                vision_analysis = latest_vision.to_dict()
+                # Idempotency check: reuse existing run if force is False
+                if not force and claim.verification_runs:
+                    latest_run = sorted(claim.verification_runs, key=lambda r: r.id)[-1]
+                    logger.info(f"Reusing existing verification run ID {latest_run.id} for {claim_id}")
+                    return latest_run.to_dict(include_findings=True)
 
-            # Execute cross-source comparison logic
-            result = cls.execute_cross_source_verification(
-                claim_id=claim_id,
-                claim_record=claim_record,
-                extracted_doc_rows=extracted_doc_rows,
-                nlp_analysis=nlp_analysis,
-                vision_analysis=vision_analysis,
-            )
+                claim_record = claim.to_dict(include_evidence=True)
 
-            # Persist to database within transaction
-            now_utc = datetime.now(timezone.utc)
-            run = ClaimVerificationRun(
-                claim_id=claim_id,
-                engine_version=cls.ENGINE_VERSION,
-                overall_status=result["overall_status"],
-                consistency_score=result["consistency_score"],
-                total_comparisons=result["total_comparisons"],
-                matched_comparisons=result["matched_comparisons"],
-                mismatched_comparisons=result["mismatched_comparisons"],
-                missing_evidence_count=result["missing_evidence_count"],
-                inconclusive_count=result["inconclusive_count"],
-                high_severity_count=result["high_severity_count"],
-                critical_severity_count=result["critical_severity_count"],
-                summary=json.dumps({
-                    "status_breakdown": result.get("status_breakdown", {}),
-                    "severity_breakdown": result.get("severity_breakdown", {}),
-                    "evidence_coverage_percentage": result.get("evidence_coverage_percentage", 100.0),
-                    "cv_unevaluated_count": result.get("cv_unevaluated_count", 0),
-                }),
-                recommendations=json.dumps(result.get("recommendations", [])),
-                processing_status="completed",
-                processing_time_ms=result["processing_time_ms"],
-                created_at=now_utc,
-                updated_at=now_utc,
-            )
-            db.add(run)
-            db.flush()
+                # Stage 2: OCR Extraction Loading
+                current_stage = "ocr_extraction_loading"
+                extracted_doc_rows = [
+                    r.to_dict() for r in db.query(ExtractedInformation).filter_by(claim_id=claim_id).all()
+                ]
 
-            for f_data in result["findings"]:
-                finding = VerificationFinding(
-                    run_id=run.id,
+                # Stage 3: NLP Analysis Loading
+                current_stage = "nlp_analysis_loading"
+                nlp_analysis: Optional[Dict[str, Any]] = None
+                if claim.nlp_analyses:
+                    latest_nlp = sorted(claim.nlp_analyses, key=lambda a: a.id)[-1]
+                    nlp_analysis = latest_nlp.to_dict()
+                elif claim.claim_description and claim.claim_description.strip():
+                    try:
+                        nlp_analysis = ClaimNLPService.analyze_claim_narrative(
+                            text=claim.claim_description,
+                            claim_id=claim_id,
+                            claimant_name=claim.claimant_name,
+                            extracted_doc_rows=extracted_doc_rows,
+                            claim_record=claim_record,
+                        )
+                    except Exception as exc:
+                        logger.warning(f"Dynamic NLP analysis execution failed for {claim_id}: {exc}")
+
+                # Stage 4: Vision Analysis Loading
+                current_stage = "vision_analysis_loading"
+                vision_analysis: Optional[Dict[str, Any]] = None
+                if claim.vehicle_damage_analyses:
+                    latest_vision = sorted(claim.vehicle_damage_analyses, key=lambda a: a.id)[-1]
+                    vision_analysis = latest_vision.to_dict()
+                elif claim.images:
+                    try:
+                        from backend.services.vision import process_claim_damage_detection
+                        vis_res = process_claim_damage_detection(claim_id=claim_id)
+                        if vis_res.get("success") and vis_res.get("analysis"):
+                            vision_analysis = vis_res["analysis"]
+                        else:
+                            logger.info(f"Dynamic vision execution note for {claim_id}: {vis_res.get('message')}")
+                    except Exception as exc:
+                        logger.warning(f"Dynamic vision damage detection skipped or failed for {claim_id}: {exc}")
+
+                # Stage 5: Cross-Source Comparison
+                current_stage = "cross_source_comparison"
+                result = cls.execute_cross_source_verification(
                     claim_id=claim_id,
-                    comparison_id=f_data["comparison_id"],
-                    source_a=f_data["source_a"],
-                    source_b=f_data["source_b"],
-                    field_name=f_data["field_name"],
-                    original_value_a=str(f_data.get("original_value_a") or ""),
-                    original_value_b=str(f_data.get("original_value_b") or ""),
-                    normalized_value_a=str(f_data.get("normalized_value_a") or ""),
-                    normalized_value_b=str(f_data.get("normalized_value_b") or ""),
-                    comparison_status=f_data["comparison_status"],
-                    severity=f_data["severity"],
-                    confidence=f_data["confidence"],
-                    explanation=f_data.get("explanation"),
-                    evidence_references=json.dumps(f_data.get("evidence_references", {})),
-                    created_at=now_utc,
+                    claim_record=claim_record,
+                    extracted_doc_rows=extracted_doc_rows,
+                    nlp_analysis=nlp_analysis,
+                    vision_analysis=vision_analysis,
                 )
-                db.add(finding)
 
-            db.commit()
-            logger.info(
-                f"Successfully completed Phase 7 Cross-Source Verification for {claim_id}: "
-                f"Status={run.overall_status}, Score={run.consistency_score}%, {len(result['findings'])} findings"
+                # Stage 6: Database Persistence
+                current_stage = "database_persistence"
+                now_utc = datetime.now(timezone.utc)
+                run_id = f"VRUN-{now_utc.strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6].upper()}"
+                run = ClaimVerificationRun(
+                    run_id=run_id,
+                    claim_id=claim_id,
+                    engine_version=cls.ENGINE_VERSION,
+                    overall_status=result["overall_status"],
+                    consistency_score=result["consistency_score"],
+                    total_comparisons=result["total_comparisons"],
+                    matched_comparisons=result["matched_comparisons"],
+                    mismatched_comparisons=result["mismatched_comparisons"],
+                    missing_evidence_count=result["missing_evidence_count"],
+                    inconclusive_count=result["inconclusive_count"],
+                    high_severity_count=result["high_severity_count"],
+                    critical_severity_count=result["critical_severity_count"],
+                    summary=json.dumps({
+                        "status_breakdown": result.get("status_breakdown", {}),
+                        "severity_breakdown": result.get("severity_breakdown", {}),
+                        "evidence_coverage_percentage": result.get("evidence_coverage_percentage", 100.0),
+                        "cv_unevaluated_count": result.get("cv_unevaluated_count", 0),
+                    }),
+                    recommendations=json.dumps(result.get("recommendations", [])),
+                    processing_status="completed",
+                    processing_time_ms=result["processing_time_ms"],
+                    created_at=now_utc,
+                    updated_at=now_utc,
+                )
+                db.add(run)
+                db.flush()
+
+                for f_data in result["findings"]:
+                    finding = VerificationFinding(
+                        run_id=run.id,
+                        claim_id=claim_id,
+                        comparison_id=f_data["comparison_id"],
+                        source_a=f_data["source_a"],
+                        source_b=f_data["source_b"],
+                        field_name=f_data["field_name"],
+                        original_value_a=str(f_data.get("original_value_a") or ""),
+                        original_value_b=str(f_data.get("original_value_b") or ""),
+                        normalized_value_a=str(f_data.get("normalized_value_a") or ""),
+                        normalized_value_b=str(f_data.get("normalized_value_b") or ""),
+                        comparison_status=f_data["comparison_status"],
+                        severity=f_data["severity"],
+                        confidence=f_data["confidence"],
+                        explanation=f_data.get("explanation"),
+                        evidence_references=json.dumps(f_data.get("evidence_references", {})),
+                        created_at=now_utc,
+                    )
+                    db.add(finding)
+
+                db.commit()
+                logger.info(
+                    f"Successfully completed Phase 7 Cross-Source Verification for {claim_id}: "
+                    f"Status={run.overall_status}, Score={run.consistency_score}%, {len(result['findings'])} findings"
+                )
+                return run.to_dict(include_findings=True)
+
+        except VerificationPipelineError:
+            raise
+        except Exception as exc:
+            logger.error(
+                f"Phase 7 pipeline exception for {claim_id} during '{current_stage}': {exc} "
+                f"(Type: {type(exc).__name__}, Time: {start_ts})",
+                exc_info=True,
             )
-            return run.to_dict(include_findings=True)
+            raise VerificationPipelineError(
+                claim_id=claim_id,
+                stage=current_stage,
+                error_code=f"{current_stage.upper()}_ERROR",
+                message=f"Multi-source cross-verification encountered an issue during {current_stage.replace('_', ' ')}.",
+                original_exc=exc,
+                retryable=True,
+            ) from exc

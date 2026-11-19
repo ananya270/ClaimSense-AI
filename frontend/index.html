@@ -498,11 +498,11 @@
     <!-- ========================================================= -->
     <!-- Claim Details Modal -->
     <div id="modal-claim-details" class="modal-backdrop" style="display: none;">
-        <div class="modal-card modal-lg">
+        <div class="modal-card modal-claim-details-card modal-lg">
             <div class="modal-header">
                 <div>
                     <h3 id="modal-details-title">Claim Details</h3>
-                    <span id="modal-details-id" class="badge badge-info">CLM-XXXXXXXX</span>
+                    <span id="modal-details-id" class="claim-id-badge">CLM-XXXXXXXX</span>
                 </div>
                 <button type="button" class="btn-close-modal" id="btn-close-details-modal" aria-label="Close modal">&times;</button>
             </div>
@@ -782,43 +782,62 @@
                     <!-- Verification Content Container -->
                     <div id="verif-content-container" style="display: none;" class="mt-2">
                         <!-- Metric Summary Cards -->
-                        <div class="damage-metrics-grid mb-3">
-                            <div class="metric-card">
-                                <span class="metric-val" id="verif-metric-status" style="color: var(--primary);">CONSISTENT</span>
-                                <span class="metric-title">Overall Assessment</span>
+                        <div class="verif-summary-cards-grid mb-3">
+                            <div class="verif-summary-card">
+                                <span class="verif-card-label">Overall Assessment</span>
+                                <div class="verif-card-value" id="verif-metric-status">CONSISTENT</div>
+                                <span class="verif-card-desc">Cross-source validation</span>
                             </div>
-                            <div class="metric-card">
-                                <span class="metric-num" id="verif-metric-score" style="color: var(--success);">100%</span>
-                                <span class="metric-title">Consistency Score</span>
+                            <div class="verif-summary-card">
+                                <span class="verif-card-label">Consistency Score</span>
+                                <div class="verif-card-value" id="verif-metric-score">100%</div>
+                                <span class="verif-card-desc">Multi-evidence agreement</span>
                             </div>
-                            <div class="metric-card">
-                                <span class="metric-num" id="verif-metric-matched">0</span>
-                                <span class="metric-title">Confirmed Matches</span>
+                            <div class="verif-summary-card">
+                                <span class="verif-card-label">Confirmed Matches</span>
+                                <div class="verif-card-value" id="verif-metric-matched">0</div>
+                                <span class="verif-card-desc">Documentary parity</span>
                             </div>
-                            <div class="metric-card">
-                                <span class="metric-num" id="verif-metric-mismatched" style="color: var(--danger);">0</span>
-                                <span class="metric-title">Discrepancies</span>
+                            <div class="verif-summary-card">
+                                <span class="verif-card-label">Discrepancies</span>
+                                <div class="verif-card-value text-danger" id="verif-metric-mismatched">0</div>
+                                <span class="verif-card-desc">Conflicting data points</span>
                             </div>
-                            <div class="metric-card">
-                                <span class="metric-num" id="verif-metric-missing">0</span>
-                                <span class="metric-title">Missing / Unlisted</span>
+                            <div class="verif-summary-card">
+                                <span class="verif-card-label">Missing / Unlisted</span>
+                                <div class="verif-card-value" id="verif-metric-missing">0</div>
+                                <span class="verif-card-desc">Unverified attributes</span>
                             </div>
                         </div>
 
                         <!-- Source-to-Source Findings Table -->
-                        <div class="card mb-3" style="background: var(--bg-card-subtle); padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-sm);">
-                            <span class="detail-label" style="display: block; margin-bottom: 6px;">Cross-Source Comparison Findings</span>
-                            <div class="table-responsive">
-                                <table class="data-table">
+                        <div class="verif-table-wrapper-card mb-3">
+                            <div class="verif-table-header-bar">
+                                <div>
+                                    <span class="verif-table-title">Cross-Source Comparison Findings</span>
+                                    <span class="verif-table-subtitle">Field-by-field documentary alignment and discrepancy analysis</span>
+                                </div>
+                            </div>
+                            <div class="table-responsive verif-table-scroll-container">
+                                <table class="data-table findings-table" id="table-cross-source-findings">
+                                    <colgroup>
+                                        <col style="width: 17%;">
+                                        <col style="width: 14%;">
+                                        <col style="width: 14%;">
+                                        <col style="width: 14%;">
+                                        <col style="width: 11%;">
+                                        <col style="width: 8%;">
+                                        <col style="width: 22%;">
+                                    </colgroup>
                                     <thead>
                                         <tr>
-                                            <th>Comparison</th>
-                                            <th>Field</th>
-                                            <th>Source A Value</th>
-                                            <th>Source B Value</th>
-                                            <th>Status</th>
-                                            <th>Severity</th>
-                                            <th>Explanation</th>
+                                            <th class="th-comparison">Comparison</th>
+                                            <th class="th-field">Field</th>
+                                            <th class="th-source-a">Source A Value</th>
+                                            <th class="th-source-b">Source B Value</th>
+                                            <th class="th-status">Status</th>
+                                            <th class="th-severity">Severity</th>
+                                            <th class="th-explanation">Explanation</th>
                                         </tr>
                                     </thead>
                                     <tbody id="verif-findings-rows"></tbody>

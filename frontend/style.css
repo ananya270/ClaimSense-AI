@@ -1896,28 +1896,35 @@ body.modal-open {
     padding: 3px 6px;
     font-size: 0.7rem;
     line-height: 1.25;
-    white-space: normal;
-    word-break: break-word;
+    white-space: nowrap;
     text-align: center;
     max-width: 100%;
 }
 
 .data-table .monospace,
 .data-table code {
-    word-break: break-all;
-    overflow-wrap: break-word;
+    word-break: normal;
+    overflow-wrap: normal;
+    hyphens: none;
     display: inline-block;
     max-width: 100%;
 }
 
 /* Phase 7 Verification Table Proportions */
-#modal-verification-section .data-table th:nth-child(1) { width: 15%; }
-#modal-verification-section .data-table th:nth-child(2) { width: 14%; }
-#modal-verification-section .data-table th:nth-child(3) { width: 13%; }
-#modal-verification-section .data-table th:nth-child(4) { width: 13%; }
-#modal-verification-section .data-table th:nth-child(5) { width: 11%; }
-#modal-verification-section .data-table th:nth-child(6) { width: 9%; }
-#modal-verification-section .data-table th:nth-child(7) { width: 25%; }
+#modal-verification-section .findings-table th:nth-child(1),
+#modal-verification-section .findings-table td:nth-child(1) { width: 17%; }
+#modal-verification-section .findings-table th:nth-child(2),
+#modal-verification-section .findings-table td:nth-child(2) { width: 14%; }
+#modal-verification-section .findings-table th:nth-child(3),
+#modal-verification-section .findings-table td:nth-child(3) { width: 14%; }
+#modal-verification-section .findings-table th:nth-child(4),
+#modal-verification-section .findings-table td:nth-child(4) { width: 14%; }
+#modal-verification-section .findings-table th:nth-child(5),
+#modal-verification-section .findings-table td:nth-child(5) { width: 11%; }
+#modal-verification-section .findings-table th:nth-child(6),
+#modal-verification-section .findings-table td:nth-child(6) { width: 8%; }
+#modal-verification-section .findings-table th:nth-child(7),
+#modal-verification-section .findings-table td:nth-child(7) { width: 22%; }
 
 /* Modal Cards and Banners Containment */
 .modal-body .card {
@@ -2378,3 +2385,419 @@ body.modal-open {
 .badge-claimant { background: rgba(16, 185, 129, 0.2); color: #10b981; }
 .badge-date { background: rgba(234, 179, 8, 0.2); color: #eab308; }
 .badge-weather { background: rgba(14, 165, 233, 0.2); color: #0ea5e9; }
+
+/* ==================================================================== */
+/* ENTERPRISE CLAIM DETAILS MODAL & VERIFICATION DASHBOARD              */
+/* ==================================================================== */
+
+/* 1. Modal Sizing, Shell, Fixed Header & Footer */
+#modal-claim-details .modal-card,
+.modal-claim-details-card {
+    width: 95vw !important;
+    max-width: 1500px !important;
+    height: 92vh !important;
+    max-height: calc(100vh - 40px) !important;
+    background: #090e1a !important;
+    border: 1px solid rgba(59, 130, 246, 0.3) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(59, 130, 246, 0.2) !important;
+    border-radius: 16px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+#modal-claim-details .modal-header {
+    background: #0d1527 !important;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.7) !important;
+    padding: 16px 28px !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+#modal-claim-details .modal-header h3 {
+    display: inline-block;
+    margin-right: 12px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #f8fafc;
+    vertical-align: middle;
+}
+
+#modal-claim-details .modal-body {
+    background: #080d19 !important;
+    padding: 24px 28px !important;
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(59, 130, 246, 0.3) #080d19;
+}
+
+#modal-claim-details .modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+#modal-claim-details .modal-body::-webkit-scrollbar-track {
+    background: #080d19;
+}
+
+#modal-claim-details .modal-body::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.3);
+    border-radius: 4px;
+}
+
+#modal-claim-details .modal-footer {
+    background: #0d1527 !important;
+    border-top: 1px solid rgba(51, 65, 85, 0.7) !important;
+    padding: 16px 28px !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+/* 2. Enterprise Claim ID Badge */
+.claim-id-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    background: rgba(37, 99, 235, 0.18);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    border-radius: 8px;
+    font-family: 'SF Mono', Consolas, Monaco, monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+/* 3. Phase 7 Summary Cards Grid */
+.verif-summary-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+    width: 100%;
+}
+
+.verif-summary-card {
+    background: #0e172a;
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    border-radius: 12px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 104px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25);
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.verif-summary-card:hover {
+    border-color: rgba(59, 130, 246, 0.45);
+    transform: translateY(-1px);
+}
+
+.verif-card-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.verif-card-value,
+.verif-card-num {
+    font-size: 1.55rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin: 4px 0 2px;
+    color: #f8fafc;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.verif-card-desc {
+    font-size: 0.73rem;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (max-width: 1100px) {
+    .verif-summary-cards-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .verif-summary-cards-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* 4. Cross-Source Comparison Findings Table */
+.verif-table-wrapper-card {
+    background: #0c1424;
+    border: 1px solid rgba(51, 65, 85, 0.7);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.verif-table-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background: #0f192d;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.7);
+}
+
+.verif-table-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    display: block;
+}
+
+.verif-table-subtitle {
+    font-size: 0.78rem;
+    color: #64748b;
+}
+
+.verif-table-scroll-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+}
+
+.findings-table {
+    width: 100% !important;
+    min-width: 1100px !important;
+    table-layout: fixed !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    border: none !important;
+    background: transparent !important;
+}
+
+.findings-table thead tr {
+    background: #0d172a !important;
+}
+
+.findings-table th {
+    padding: 13px 14px !important;
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.6px !important;
+    color: #94a3b8 !important;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.35) !important;
+    border-top: none !important;
+    white-space: nowrap !important;
+    vertical-align: middle !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    hyphens: none !important;
+}
+
+.findings-table th.th-status,
+.findings-table th.th-severity {
+    text-align: center !important;
+}
+
+.findings-table tbody tr {
+    background: #090e1a !important;
+    transition: background 0.15s ease !important;
+}
+
+.findings-table tbody tr:nth-child(even) {
+    background: #0d1424 !important;
+}
+
+.findings-table tbody tr:hover {
+    background: rgba(30, 58, 138, 0.25) !important;
+}
+
+.findings-table td {
+    padding: 12px 14px !important;
+    vertical-align: middle !important;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.45) !important;
+    font-size: 0.85rem !important;
+    color: #e2e8f0 !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    hyphens: none !important;
+}
+
+.findings-table td.td-status,
+.findings-table td.td-severity {
+    text-align: center !important;
+}
+
+/* 5. Cell Content Helpers (Prevents mid-word splitting) */
+.cmp-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.cmp-source-primary {
+    font-weight: 600;
+    color: #f8fafc;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cmp-source-secondary {
+    font-size: 0.75rem;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.field-title {
+    font-weight: 600;
+    color: #f1f5f9;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.field-id-tag {
+    font-family: 'SF Mono', Consolas, Monaco, monospace;
+    font-size: 0.72rem;
+    color: #64748b;
+    white-space: nowrap;
+}
+
+.val-token {
+    display: inline-block;
+    white-space: nowrap !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    hyphens: none !important;
+    font-family: 'SF Mono', Consolas, Monaco, monospace;
+    font-size: 0.82rem;
+    background: rgba(30, 41, 59, 0.75);
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(71, 85, 105, 0.45);
+    color: #f1f5f9;
+}
+
+.val-token-empty {
+    color: #64748b;
+    font-style: italic;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.expl-text {
+    font-size: 0.82rem;
+    color: #cbd5e1;
+    line-height: 1.45;
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: none;
+}
+
+/* 6. Status and Severity Badges (Fixed, non-splitting, rounded) */
+.status-badge,
+.severity-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 4px 11px !important;
+    border-radius: 9999px !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    hyphens: none !important;
+    line-height: 1.2 !important;
+    border: 1px solid transparent !important;
+}
+
+/* Status Badge Colors */
+.badge-status-match {
+    background: rgba(16, 185, 129, 0.18) !important;
+    color: #34d399 !important;
+    border-color: rgba(16, 185, 129, 0.45) !important;
+}
+
+.badge-status-mismatch {
+    background: rgba(239, 68, 68, 0.18) !important;
+    color: #f87171 !important;
+    border-color: rgba(239, 68, 68, 0.45) !important;
+}
+
+.badge-status-missing {
+    background: rgba(100, 116, 139, 0.22) !important;
+    color: #94a3b8 !important;
+    border-color: rgba(100, 116, 139, 0.45) !important;
+}
+
+.badge-status-inconclusive {
+    background: rgba(245, 158, 11, 0.18) !important;
+    color: #fbbf24 !important;
+    border-color: rgba(245, 158, 11, 0.45) !important;
+}
+
+.badge-status-na {
+    background: rgba(59, 130, 246, 0.18) !important;
+    color: #60a5fa !important;
+    border-color: rgba(59, 130, 246, 0.45) !important;
+}
+
+.badge-status-visual {
+    background: rgba(14, 165, 233, 0.18) !important;
+    color: #38bdf8 !important;
+    border-color: rgba(14, 165, 233, 0.45) !important;
+}
+
+/* Severity Badge Colors */
+.badge-sev-low {
+    background: rgba(59, 130, 246, 0.15) !important;
+    color: #60a5fa !important;
+    border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+.badge-sev-medium {
+    background: rgba(249, 115, 22, 0.18) !important;
+    color: #fb923c !important;
+    border-color: rgba(249, 115, 22, 0.45) !important;
+}
+
+.badge-sev-high {
+    background: rgba(239, 68, 68, 0.18) !important;
+    color: #f87171 !important;
+    border-color: rgba(239, 68, 68, 0.45) !important;
+}
+
+.badge-sev-critical {
+    background: rgba(185, 28, 28, 0.38) !important;
+    color: #fca5a5 !important;
+    border-color: rgba(220, 38, 38, 0.65) !important;
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.35) !important;
+}
+

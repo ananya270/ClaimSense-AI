@@ -8,6 +8,10 @@ from backend.services.verification.rules import (
     STATUS_NOT_VISUALLY_CONFIRMED,
     STATUS_VISUAL_ONLY_FINDING,
     STATUS_POTENTIAL_DISCREPANCY,
+    STATUS_NOT_PRESENT,
+    STATUS_NOT_APPLICABLE,
+    STATUS_EXTRACTION_ERROR,
+    STATUS_NEEDS_REVIEW,
     SEVERITY_LOW,
     SEVERITY_MEDIUM,
     SEVERITY_HIGH,
@@ -28,6 +32,8 @@ from backend.services.verification.field_comparator import (
     compare_policy_validity,
     normalize_policy_num,
     compare_policy_numbers,
+    normalize_amount,
+    compare_amounts,
 )
 from backend.services.verification.damage_comparator import (
     compare_narrative_vs_vision,
@@ -38,6 +44,7 @@ from backend.services.verification.scoring import (
 )
 from backend.services.verification.service import (
     ClaimVerificationService,
+    VerificationPipelineError,
 )
 
 __all__ = [
@@ -48,6 +55,10 @@ __all__ = [
     "STATUS_NOT_VISUALLY_CONFIRMED",
     "STATUS_VISUAL_ONLY_FINDING",
     "STATUS_POTENTIAL_DISCREPANCY",
+    "STATUS_NOT_PRESENT",
+    "STATUS_NOT_APPLICABLE",
+    "STATUS_EXTRACTION_ERROR",
+    "STATUS_NEEDS_REVIEW",
     "SEVERITY_LOW",
     "SEVERITY_MEDIUM",
     "SEVERITY_HIGH",
@@ -66,8 +77,11 @@ __all__ = [
     "compare_policy_validity",
     "normalize_policy_num",
     "compare_policy_numbers",
+    "normalize_amount",
+    "compare_amounts",
     "compare_narrative_vs_vision",
     "compare_invoice_vs_damage",
     "compute_verification_score_and_summary",
     "ClaimVerificationService",
+    "VerificationPipelineError",
 ]

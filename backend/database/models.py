@@ -502,6 +502,7 @@ class ClaimVerificationRun(Base):
     __tablename__ = "claim_verification_runs"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    run_id = Column(String(64), nullable=True, index=True)
     claim_id = Column(String(32), ForeignKey("claims.claim_id"), nullable=False, index=True)
     engine_version = Column(String(32), default="1.0.0", nullable=False)
     overall_status = Column(String(32), default="CONSISTENT", nullable=False)  # CONSISTENT, REVIEW_REQUIRED, INSUFFICIENT_EVIDENCE
@@ -540,6 +541,7 @@ class ClaimVerificationRun(Base):
 
         data = {
             "id": self.id,
+            "run_id": self.run_id or (f"VRUN-{self.id}" if self.id else None),
             "claim_id": self.claim_id,
             "engine_version": self.engine_version,
             "overall_status": self.overall_status,

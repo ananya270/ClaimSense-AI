@@ -35,7 +35,10 @@ from backend.services.vision import (
     process_claim_damage_detection,
 )
 from backend.services.nlp import ClaimNLPService
-from backend.services.verification import ClaimVerificationService
+from backend.services.verification import (
+    ClaimVerificationService,
+    VerificationPipelineError,
+)
 from backend.extensions import csrf
 from backend.utils.auth import get_current_user_id, can_user_access_claim
 from backend.utils.logger import setup_logger
@@ -1700,12 +1703,24 @@ def verify_claim_cross_source(claim_id: str):
             "claim_id": claim_id,
             "verification": verification_result,
         }), 200
-    except Exception as exc:
-        logger.error(f"Error during cross-source verification for {claim_id}: {exc}", exc_info=True)
+    except VerificationPipelineError as v_err:
         return jsonify({
             "success": False,
-            "error": "Verification Failed",
-            "message": "An error occurred during multi-source cross-verification.",
+            "claim_id": claim_id,
+            "stage": v_err.stage,
+            "error_code": v_err.error_code,
+            "message": v_err.message,
+            "retryable": v_err.retryable,
+        }), 500
+    except Exception as exc:
+        logger.error(f"Unexpected error during cross-source verification for {claim_id}: {exc}", exc_info=True)
+        return jsonify({
+            "success": False,
+            "claim_id": claim_id,
+            "stage": "cross_source_verification",
+            "error_code": "CROSS_SOURCE_VERIFICATION_ERROR",
+            "message": "Cross-source verification could not be completed at this time.",
+            "retryable": True,
         }), 500
 
 

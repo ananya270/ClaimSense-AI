@@ -105,24 +105,25 @@ def compare_narrative_vs_vision(
     # Handle missing vision analysis
     if not vision_analysis or vision_analysis.get("analysis_status") == "failed":
         for dmg in reported_damages:
+            comp_name = dmg.get("component") or dmg.get("part") or "Vehicle Component"
             findings.append({
-                "field_name": f"Damage: {dmg.get('component', 'Vehicle Component')}",
+                "field_name": f"Damage: {comp_name}",
                 "source_a": "Claim Narrative (NLP)",
                 "source_b": "Vehicle Photograph (Computer Vision)",
-                "original_value_a": dmg.get("component"),
+                "original_value_a": comp_name,
                 "original_value_b": "Analysis not executed / failed",
-                "normalized_value_a": dmg.get("component"),
+                "normalized_value_a": comp_name,
                 "normalized_value_b": "No Vision Data",
                 "comparison_status": STATUS_INCONCLUSIVE,
                 "severity": SEVERITY_LOW,
                 "confidence": 0.5,
                 "explanation": (
-                    f"Claimant reported damage to '{dmg.get('component')}', but Computer Vision "
+                    f"Claimant reported damage to '{comp_name}', but Computer Vision "
                     "damage analysis has not been executed or photographic evidence was unavailable."
                 ),
                 "evidence_references": {
-                    "reported_component": dmg.get("component"),
-                    "spatial_region": dmg.get("spatial_region"),
+                    "reported_component": comp_name,
+                    "spatial_region": dmg.get("spatial_region") or dmg.get("location"),
                 },
             })
         return findings
@@ -135,24 +136,25 @@ def compare_narrative_vs_vision(
     # If OpenCV fallback was used without semantic bounding boxes
     if is_opencv_fallback:
         for dmg in reported_damages:
+            comp_name = dmg.get("component") or dmg.get("part") or "Vehicle Component"
             findings.append({
-                "field_name": f"Damage: {dmg.get('component', 'Vehicle Component')}",
+                "field_name": f"Damage: {comp_name}",
                 "source_a": "Claim Narrative (NLP)",
                 "source_b": "Vehicle Photograph (OpenCV Diagnostic)",
-                "original_value_a": dmg.get("component"),
+                "original_value_a": comp_name,
                 "original_value_b": "OpenCV structural contours only",
-                "normalized_value_a": dmg.get("component"),
+                "normalized_value_a": comp_name,
                 "normalized_value_b": "Structural Contours",
                 "comparison_status": STATUS_INCONCLUSIVE,
                 "severity": SEVERITY_LOW,
                 "confidence": 0.6,
                 "explanation": (
                     f"Automated semantic damage detection was not executed (OpenCV fallback was utilized). "
-                    f"Cannot confirm or refute reported '{dmg.get('component')}' without semantic class prediction."
+                    f"Cannot confirm or refute reported '{comp_name}' without semantic class prediction."
                 ),
                 "evidence_references": {
                     "detection_method": "OpenCV Fallback",
-                    "reported_component": dmg.get("component"),
+                    "reported_component": comp_name,
                 },
             })
         return findings
@@ -161,8 +163,8 @@ def compare_narrative_vs_vision(
     matched_detection_indices = set()
 
     for idx, dmg in enumerate(reported_damages):
-        comp_name = dmg.get("component", "Unknown Component")
-        spatial_region = (dmg.get("spatial_region") or "").lower()
+        comp_name = dmg.get("component") or dmg.get("part") or "Unknown Component"
+        spatial_region = (dmg.get("spatial_region") or dmg.get("location") or "").lower()
         profile = _match_component_profile(comp_name)
 
         target_categories = profile["categories"] if profile else set()

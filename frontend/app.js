@@ -1902,8 +1902,12 @@ function initClaimSenseApp() {
             const verifRecommendationsList = document.getElementById("verif-recommendations-list");
 
             function displayVerificationResults(verif) {
-                if (!verif || !verif.total_comparisons) {
-                    if (verifPendingBanner) verifPendingBanner.style.display = "block";
+                if (!verif || (verif.total_comparisons === undefined && !verif.findings)) {
+                    if (verifPendingBanner) {
+                        verifPendingBanner.className = "damage-banner banner-info mt-2";
+                        verifPendingBanner.textContent = "Click 'Run Verification' to perform automated multi-source consistency checks across submitted evidence.";
+                        verifPendingBanner.style.display = "block";
+                    }
                     if (verifContentContainer) verifContentContainer.style.display = "none";
                     return;
                 }
@@ -1936,37 +1940,63 @@ function initClaimSenseApp() {
                     verifFindingsRows.innerHTML = "";
                     const findings = verif.findings || [];
                     if (findings.length === 0) {
-                        verifFindingsRows.innerHTML = `<tr><td colspan="7" class="text-center text-muted p-3">No comparison findings generated.</td></tr>`;
+                        verifFindingsRows.innerHTML = `<tr><td colspan="7" class="text-center text-muted p-4">No comparison findings generated.</td></tr>`;
                     } else {
                         findings.forEach(f => {
                             const tr = document.createElement("tr");
 
-                            // Status badge
-                            let stClass = "badge-neutral";
-                            if (f.comparison_status === "MATCH") stClass = "badge-success";
-                            else if (f.comparison_status === "MISMATCH") stClass = "badge-danger";
-                            else if (f.comparison_status === "POTENTIAL_DISCREPANCY") stClass = "badge-warning";
-                            else if (f.comparison_status === "VISUAL_ONLY_FINDING") stClass = "badge-info";
+                            // Status badge class
+                            let stClass = "badge-status-missing";
+                            const st = (f.comparison_status || "").toUpperCase();
+                            if (st === "MATCH") {
+                                stClass = "badge-status-match";
+                            } else if (st === "MISMATCH") {
+                                stClass = "badge-status-mismatch";
+                            } else if (st === "MISSING_IN_SOURCE" || st === "NOT_PRESENT") {
+                                stClass = "badge-status-missing";
+                            } else if (st === "INCONCLUSIVE" || st === "NEEDS_REVIEW" || st === "EXTRACTION_ERROR" || st === "POTENTIAL_DISCREPANCY") {
+                                stClass = "badge-status-inconclusive";
+                            } else if (st === "NOT_APPLICABLE") {
+                                stClass = "badge-status-na";
+                            } else if (st === "VISUAL_ONLY_FINDING") {
+                                stClass = "badge-status-visual";
+                            }
 
-                            // Severity badge
-                            let sevClass = "badge-neutral";
-                            if (f.severity === "CRITICAL" || f.severity === "HIGH") sevClass = "badge-danger";
-                            else if (f.severity === "MEDIUM") sevClass = "badge-warning";
+                            // Severity badge class
+                            let sevClass = "badge-sev-low";
+                            const sev = (f.severity || "").toUpperCase();
+                            if (sev === "CRITICAL") {
+                                sevClass = "badge-sev-critical";
+                            } else if (sev === "HIGH") {
+                                sevClass = "badge-sev-high";
+                            } else if (sev === "MEDIUM") {
+                                sevClass = "badge-sev-medium";
+                            } else if (sev === "LOW") {
+                                sevClass = "badge-sev-low";
+                            }
+
+                            const valA = f.original_value_a != null && f.original_value_a !== "" ? escapeHtml(String(f.original_value_a)) : '<span class="val-token val-token-empty">—</span>';
+                            const valB = f.original_value_b != null && f.original_value_b !== "" ? escapeHtml(String(f.original_value_b)) : '<span class="val-token val-token-empty">—</span>';
+
+                            const tokenA = valA.startsWith('<span') ? valA : `<span class="val-token">${valA}</span>`;
+                            const tokenB = valB.startsWith('<span') ? valB : `<span class="val-token">${valB}</span>`;
 
                             tr.innerHTML = `
                                 <td>
-                                    <strong>${escapeHtml(f.source_a || '')}</strong><br/>
-                                    <small class="text-muted">vs ${escapeHtml(f.source_b || '')}</small>
+                                    <div class="cmp-container">
+                                        <span class="cmp-source-primary">${escapeHtml(f.source_a || '')}</span>
+                                        <span class="cmp-source-secondary">vs ${escapeHtml(f.source_b || '')}</span>
+                                    </div>
                                 </td>
                                 <td>
-                                    <strong>${escapeHtml(f.field_name || '')}</strong><br/>
-                                    <small class="text-muted monospace">${escapeHtml(f.comparison_id || '')}</small>
+                                    <div class="field-title">${escapeHtml(f.field_name || '')}</div>
+                                    <span class="field-id-tag">${escapeHtml(f.comparison_id || '')}</span>
                                 </td>
-                                <td><span style="font-size: 0.85rem;">${escapeHtml(f.original_value_a || '—')}</span></td>
-                                <td><span style="font-size: 0.85rem;">${escapeHtml(f.original_value_b || '—')}</span></td>
-                                <td><span class="badge ${stClass}">${escapeHtml(f.comparison_status || '')}</span></td>
-                                <td><span class="badge ${sevClass}">${escapeHtml(f.severity || '')}</span></td>
-                                <td><small>${escapeHtml(f.explanation || '')}</small></td>
+                                <td>${tokenA}</td>
+                                <td>${tokenB}</td>
+                                <td class="td-status"><span class="status-badge ${stClass}">${escapeHtml(f.comparison_status || '')}</span></td>
+                                <td class="td-severity"><span class="severity-badge ${sevClass}">${escapeHtml(f.severity || '')}</span></td>
+                                <td><div class="expl-text">${escapeHtml(f.explanation || '')}</div></td>
                             `;
                             verifFindingsRows.appendChild(tr);
                         });
@@ -1996,21 +2026,41 @@ function initClaimSenseApp() {
                     btnRunVerification.disabled = true;
                     btnRunVerification.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Verifying...`;
 
+                    if (verifPendingBanner) {
+                        verifPendingBanner.className = "damage-banner banner-info mt-2";
+                        verifPendingBanner.textContent = "Executing multi-source cross-verification across evidence documents and vision models...";
+                        verifPendingBanner.style.display = "block";
+                    }
+
                     try {
+                        let token = getCsrfToken();
+                        if (!token) token = await fetchCsrfToken();
+                        const headers = { "Content-Type": "application/json" };
+                        if (token) {
+                            headers["X-CSRFToken"] = token;
+                            headers["X-CSRF-Token"] = token;
+                        }
+                        const payload = { force: true };
+                        if (token) payload["csrf_token"] = token;
+
                         const vRes = await fetch(`/api/claims/${claimId}/verify-cross-source`, {
                             method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ force: true })
+                            headers: headers,
+                            body: JSON.stringify(payload)
                         });
                         const vData = await vRes.json();
                         if (!vRes.ok || !vData.success) {
-                            throw new Error(vData.message || "Failed to execute cross-source verification.");
+                            const errObj = new Error(vData.message || "Failed to execute cross-source verification.");
+                            errObj.stage = vData.stage;
+                            errObj.errorCode = vData.error_code;
+                            throw errObj;
                         }
                         displayVerificationResults(vData.verification);
                     } catch (err) {
                         if (verifPendingBanner) {
                             verifPendingBanner.className = "damage-banner banner-danger mt-2";
-                            verifPendingBanner.textContent = `Verification Error: ${err.message}`;
+                            const stagePrefix = err.stage ? `[${err.stage}] ` : "";
+                            verifPendingBanner.textContent = `Verification Error: ${stagePrefix}${err.message}`;
                             verifPendingBanner.style.display = "block";
                         }
                     } finally {
