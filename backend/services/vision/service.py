@@ -97,12 +97,20 @@ def process_claim_damage_detection(
             if image_id is not None:
                 img_rec = db.query(ClaimImage).filter_by(claim_id=claim_id, image_id=image_id).first()
             else:
+                # Prioritize replacement vehicle photograph if present
                 img_rec = (
                     db.query(ClaimImage)
-                    .filter_by(claim_id=claim_id)
+                    .filter_by(claim_id=claim_id, image_type="REPLACEMENT_VEHICLE_ACCIDENT")
                     .order_by(ClaimImage.image_id.desc())
                     .first()
                 )
+                if not img_rec:
+                    img_rec = (
+                        db.query(ClaimImage)
+                        .filter_by(claim_id=claim_id)
+                        .order_by(ClaimImage.image_id.desc())
+                        .first()
+                    )
 
             if img_rec and img_rec.file_path:
                 candidate = upload_base / img_rec.file_path
@@ -212,9 +220,14 @@ def process_claim_damage_detection(
                 detection_method="opencv_traditional_cv" if force_opencv else "yolov8_cardd",
                 analysis_status="processing",
                 total_detections=0,
+                total_damages_detected=0,
                 damage_categories="[]",
+                detected_categories="[]",
                 highest_confidence=0.0,
+                max_confidence=0.0,
                 average_confidence=0.0,
+                processing_time_ms=0.0,
+                inference_time_ms=0.0,
                 device="cpu",
                 created_at=now_start,
                 updated_at=now_start,

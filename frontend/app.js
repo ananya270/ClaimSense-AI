@@ -98,6 +98,120 @@ function initClaimSenseApp() {
     fetchCsrfToken();
 
     // -------------------------------------------------------------
+    // Intelligent Dual-Port / Dev Server URL Resolution
+    // -------------------------------------------------------------
+    function getApiUrl(endpoint) {
+        if (!endpoint) return "";
+        if (endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
+            return endpoint;
+        }
+        const ep = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+        if (typeof window !== "undefined" && window.location) {
+            const proto = window.location.protocol;
+            const port = window.location.port;
+            // If served via VS Code Live Server (port 5500) or other frontend dev server (port != 5001 & != 5000)
+            if (proto === "http:" || proto === "https:") {
+                if (port && port !== "5001" && port !== "5000") {
+                    return `http://${window.location.hostname}:5001${ep}`;
+                }
+            } else if (proto === "file:") {
+                return `http://127.0.0.1:5001${ep}`;
+            }
+        }
+        return ep;
+    }
+
+    // -------------------------------------------------------------
+    // Robust HTTP / JSON Response Parser (Gracefully handles non-JSON / HTML errors)
+    // -------------------------------------------------------------
+    async function safeFetchJson(endpoint, options = {}) {
+        const fullUrl = getApiUrl(endpoint);
+        const fetchOptions = { ...options };
+        fetchOptions.headers = { ...(options.headers || {}) };
+
+        // Attach CSRF token if available
+        const token = getCsrfToken();
+        if (token && !fetchOptions.headers["X-CSRFToken"]) {
+            fetchOptions.headers["X-CSRFToken"] = token;
+            fetchOptions.headers["X-CSRF-Token"] = token;
+        }
+
+        let response;
+        try {
+            response = await fetch(fullUrl, fetchOptions);
+        } catch (networkErr) {
+            return {
+                ok: false,
+                status: 0,
+                contentType: "",
+                data: null,
+                error: `Cannot connect to ClaimSense AI backend. Please verify server is running on http://127.0.0.1:5001. (${networkErr.message})`,
+            };
+        }
+
+        const contentType = (response.headers.get("content-type") || "").toLowerCase();
+        const isJson = contentType.includes("application/json");
+
+        if (isJson) {
+            try {
+                const data = await response.json();
+                return {
+                    ok: response.ok,
+                    status: response.status,
+                    contentType,
+                    data,
+                    error: !response.ok ? (data.message || data.error || `Request failed with HTTP ${response.status}`) : null,
+                };
+            } catch (jsonErr) {
+                return {
+                    ok: false,
+                    status: response.status,
+                    contentType,
+                    data: null,
+                    error: `Failed to parse response as JSON (${jsonErr.message}).`,
+                };
+            }
+        } else {
+            // Non-JSON response (e.g. HTML 500, 404, or dev server fallback)
+            let textSnippet = "";
+            try {
+                const rawText = await response.text();
+                if (rawText.includes("<title>")) {
+                    const match = rawText.match(/<title>(.*?)<\/title>/i);
+                    if (match && match[1]) textSnippet = match[1].trim();
+                } else {
+                    textSnippet = rawText.substring(0, 120).trim();
+                }
+            } catch (e) {
+                textSnippet = "";
+            }
+
+            let msg = `Server returned HTTP ${response.status} (${response.statusText || "Non-JSON"}).`;
+            if (response.status === 404) {
+                msg = `API endpoint not found (HTTP 404): ${endpoint}`;
+            } else if (response.status === 401) {
+                msg = "Authentication required (HTTP 401). Please sign in to perform this operation.";
+            } else if (response.status === 403) {
+                msg = "Access forbidden (HTTP 403). You do not have permission for this claim.";
+            } else if (response.status === 413) {
+                msg = "Uploaded file exceeds maximum allowed limit (HTTP 413).";
+            } else if (response.status === 500) {
+                msg = `Internal server error (HTTP 500)${textSnippet ? `: ${textSnippet}` : "."}`;
+            } else if (textSnippet) {
+                msg += ` (${textSnippet})`;
+            }
+
+            return {
+                ok: false,
+                status: response.status,
+                contentType,
+                data: null,
+                error: msg,
+            };
+        }
+    }
+
+    // -------------------------------------------------------------
     // 1. Lightweight Backend Health Monitor (Header Status)
     // -------------------------------------------------------------
     const statusIndicator = document.getElementById("status-indicator");
@@ -105,18 +219,15 @@ function initClaimSenseApp() {
 
     async function checkBackendHealth() {
         if (statusIndicator) statusIndicator.className = "status-indicator";
-        if (statusBadge) statusBadge.textContent = "Checking backend...";
+        if (statusBadge) statusBadge.textContent = (typeof currentLang !== "undefined" && currentLang === "hi") ? "सर्वर जांचा जा रहा है..." : "Checking backend...";
 
-        try {
-            const res = await fetch("/api/health");
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-
+        const res = await safeFetchJson("/api/health");
+        if (res.ok && res.data) {
             if (statusIndicator) statusIndicator.className = "status-indicator connected";
-            if (statusBadge) statusBadge.textContent = "Backend Connected";
-        } catch (err) {
+            if (statusBadge) statusBadge.textContent = (typeof currentLang !== "undefined" && currentLang === "hi") ? "बैकएंड कनेक्टेड" : "Backend Connected";
+        } else {
             if (statusIndicator) statusIndicator.className = "status-indicator error";
-            if (statusBadge) statusBadge.textContent = "Backend Disconnected";
+            if (statusBadge) statusBadge.textContent = (typeof currentLang !== "undefined" && currentLang === "hi") ? "बैकएंड डिस्कनेक्टेड" : "Backend Disconnected";
         }
     }
     checkBackendHealth();
@@ -262,28 +373,43 @@ function initClaimSenseApp() {
     });
 
     function renderHeaderAuth() {
-        if (!headerAuth) return;
-        if (currentUser) {
-            headerAuth.innerHTML = `
-                <div class="user-badge" id="user-badge">
-                    <span class="user-role-pill">${escapeHtml(currentUser.role || "user")}</span>
-                    <span>${escapeHtml(currentUser.full_name || currentUser.username)}</span>
-                </div>
-                <button type="button" id="btn-header-logout" class="btn btn-outline btn-sm">Sign Out</button>
-            `;
-            const btnLogout = document.getElementById("btn-header-logout");
-            if (btnLogout) {
-                btnLogout.addEventListener("click", handleLogout);
+        if (headerAuth) {
+            if (currentUser) {
+                headerAuth.innerHTML = `
+                    <div class="user-badge" id="user-badge">
+                        <span class="user-role-pill">${escapeHtml(currentUser.role || "user")}</span>
+                        <span>${escapeHtml(currentUser.full_name || currentUser.username)}</span>
+                    </div>
+                    <button type="button" id="btn-header-logout" class="btn btn-outline btn-sm">Sign Out</button>
+                `;
+                const btnLogout = document.getElementById("btn-header-logout");
+                if (btnLogout) {
+                    btnLogout.addEventListener("click", handleLogout);
+                }
+            } else {
+                headerAuth.innerHTML = `
+                    <button type="button" id="btn-nav-login" class="btn btn-secondary btn-sm">Sign In</button>
+                    <button type="button" id="btn-nav-signup" class="btn btn-primary btn-sm">Register</button>
+                `;
+                const btnLogin = document.getElementById("btn-nav-login");
+                const btnSignup = document.getElementById("btn-nav-signup");
+                if (btnLogin) btnLogin.addEventListener("click", () => openAuthModal("login"));
+                if (btnSignup) btnSignup.addEventListener("click", () => openAuthModal("signup"));
             }
+        }
+
+        // Sidebar user info synchronization
+        const sidebarUserName = document.getElementById("sidebar-user-name");
+        const sidebarUserRole = document.getElementById("sidebar-user-role");
+        const sidebarUserAvatar = document.getElementById("sidebar-user-avatar");
+        if (currentUser) {
+            if (sidebarUserName) sidebarUserName.textContent = currentUser.full_name || currentUser.username;
+            if (sidebarUserRole) sidebarUserRole.textContent = (currentUser.role === "admin" ? "Claims Assessor" : "Verified Claimant");
+            if (sidebarUserAvatar) sidebarUserAvatar.textContent = (currentUser.full_name || currentUser.username || "U")[0].toUpperCase();
         } else {
-            headerAuth.innerHTML = `
-                <button type="button" id="btn-nav-login" class="btn btn-secondary btn-sm">Sign In</button>
-                <button type="button" id="btn-nav-signup" class="btn btn-primary btn-sm">Register</button>
-            `;
-            const btnLogin = document.getElementById("btn-nav-login");
-            const btnSignup = document.getElementById("btn-nav-signup");
-            if (btnLogin) btnLogin.addEventListener("click", () => openAuthModal("login"));
-            if (btnSignup) btnSignup.addEventListener("click", () => openAuthModal("signup"));
+            if (sidebarUserName) sidebarUserName.textContent = "Guest User";
+            if (sidebarUserRole) sidebarUserRole.textContent = "Sign In Required";
+            if (sidebarUserAvatar) sidebarUserAvatar.textContent = "G";
         }
     }
 
@@ -495,59 +621,236 @@ function initClaimSenseApp() {
     }
 
     // -------------------------------------------------------------
-    // 4. Three-Section Navigation Architecture
+    // 4. Toast Notification System
     // -------------------------------------------------------------
+    function showToast(message, type = "info", duration = 4000) {
+        const container = document.getElementById("toast-container");
+        if (!container) return;
+
+        const toast = document.createElement("div");
+        toast.className = `toast-item toast-${type}`;
+
+        let iconSvg = "";
+        if (type === "success") {
+            iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        } else if (type === "error") {
+            iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+        } else if (type === "warning") {
+            iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
+        } else {
+            iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+        }
+
+        toast.innerHTML = `
+            <span class="toast-icon">${iconSvg}</span>
+            <span class="toast-message">${escapeHtml(message)}</span>
+            <button type="button" class="toast-close" aria-label="Close notification">&times;</button>
+        `;
+
+        const closeBtn = toast.querySelector(".toast-close");
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => {
+                toast.style.opacity = "0";
+                toast.style.transform = "translateY(12px)";
+                setTimeout(() => toast.remove(), 250);
+            });
+        }
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.style.opacity = "0";
+                toast.style.transform = "translateY(12px)";
+                setTimeout(() => toast.remove(), 250);
+            }
+        }, duration);
+    }
+
+    // -------------------------------------------------------------
+    // 4b. Multilingual Support (English & Hindi Translations)
+    // -------------------------------------------------------------
+    let currentLang = localStorage.getItem("claimsense_lang") || "en";
+
+    function t(key, fallback = "") {
+        const tr = window.CLAIM_TRANSLATIONS || window.CLAIMSENSE_TRANSLATIONS || {};
+        const dict = tr[currentLang] || tr["en"] || {};
+        if (dict[key] !== undefined) return dict[key];
+        return fallback || key;
+    }
+
+    function applyTranslations() {
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+            if (el.id === "status-badge") {
+                const isConn = statusIndicator && statusIndicator.classList.contains("connected");
+                const isErr = statusIndicator && statusIndicator.classList.contains("error");
+                if (isConn) {
+                    el.textContent = currentLang === "hi" ? "बैकएंड कनेक्टेड" : "Backend Connected";
+                    return;
+                }
+                if (isErr) {
+                    el.textContent = currentLang === "hi" ? "बैकएंड डिस्कनेक्टेड" : "Backend Disconnected";
+                    return;
+                }
+            }
+            const key = el.getAttribute("data-i18n");
+            const val = t(key);
+            if (val) {
+                if (el.children.length === 0) {
+                    el.textContent = val;
+                } else {
+                    const textNode = Array.from(el.childNodes).find((n) => n.nodeType === Node.TEXT_NODE);
+                    if (textNode) {
+                        textNode.textContent = val + " ";
+                    } else {
+                        el.textContent = val;
+                    }
+                }
+            }
+        });
+
+        document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+            const key = el.getAttribute("data-i18n-placeholder");
+            const val = t(key);
+            if (val) el.setAttribute("placeholder", val);
+        });
+
+        const langSelect = document.getElementById("lang-select");
+        if (langSelect) langSelect.value = currentLang;
+        const settingsLang = document.getElementById("settings-lang-select");
+        if (settingsLang) settingsLang.value = currentLang;
+    }
+
+    function setLanguage(lang) {
+        currentLang = lang === "hi" ? "hi" : "en";
+        localStorage.setItem("claimsense_lang", currentLang);
+        applyTranslations();
+        showToast(currentLang === "hi" ? "भाषा बदलकर हिंदी कर दी गई है।" : "Language changed to English.", "info");
+    }
+
+    const langSelect = document.getElementById("lang-select");
+    if (langSelect) {
+        langSelect.addEventListener("change", (e) => setLanguage(e.target.value));
+    }
+    const settingsLang = document.getElementById("settings-lang-select");
+    if (settingsLang) {
+        settingsLang.addEventListener("change", (e) => setLanguage(e.target.value));
+    }
+
+    // -------------------------------------------------------------
+    // 4c. Enterprise Portal Navigation & View Switcher
+    // -------------------------------------------------------------
+    const pillDashboard = document.getElementById("pill-nav-dashboard");
     const pillSubmit = document.getElementById("pill-nav-submit");
     const pillSearch = document.getElementById("pill-nav-search");
     const pillMyClaims = document.getElementById("pill-nav-myclaims");
+    const pillHelp = document.getElementById("pill-nav-help");
+    const pillDocuments = document.getElementById("pill-nav-documents");
+    const pillReports = document.getElementById("pill-nav-reports");
+    const pillSettings = document.getElementById("pill-nav-settings");
 
+    const sectionDashboard = document.getElementById("section-dashboard");
     const sectionSubmit = document.getElementById("section-submit");
     const sectionLookup = document.getElementById("section-lookup");
     const sectionMyClaims = document.getElementById("section-myclaims");
+    const sectionHelp = document.getElementById("section-help");
+    const sectionDocuments = document.getElementById("section-documents");
+    const sectionReports = document.getElementById("section-reports");
+    const sectionSettings = document.getElementById("section-settings");
 
     const submissionCard = document.getElementById("submission-card");
     const successCard = document.getElementById("submission-success-card");
 
     function switchView(sectionName) {
+        if (!sectionName) sectionName = "dashboard";
+        if (sectionName === "search") sectionName = "lookup";
         activeSection = sectionName;
 
         // Reset pills
-        [pillSubmit, pillSearch, pillMyClaims].forEach((p) => {
+        const allNavPills = [
+            pillSubmit, pillSearch, pillMyClaims,
+            document.getElementById("pill-nav-submit-legacy"),
+            document.getElementById("pill-nav-search-legacy"),
+            document.getElementById("pill-nav-myclaims-legacy")
+        ];
+        allNavPills.forEach((p) => {
             if (p) {
                 p.classList.remove("active");
                 p.setAttribute("aria-selected", "false");
             }
         });
 
-        // Hide all 3 sections
+        // Hide all 8 sections
+        if (sectionDashboard) sectionDashboard.style.display = "none";
         if (sectionSubmit) sectionSubmit.style.display = "none";
         if (sectionLookup) sectionLookup.style.display = "none";
         if (sectionMyClaims) sectionMyClaims.style.display = "none";
+        if (sectionHelp) sectionHelp.style.display = "none";
+        if (sectionDocuments) sectionDocuments.style.display = "none";
+        if (sectionReports) sectionReports.style.display = "none";
+        if (sectionSettings) sectionSettings.style.display = "none";
 
-        if (sectionName === "submit") {
+        // Display targeted section
+        if (sectionName === "dashboard") {
+            if (sectionDashboard) sectionDashboard.style.display = "block";
+            updateDashboardStats(mySubmissionsData);
+        } else if (sectionName === "submit") {
             if (pillSubmit) {
                 pillSubmit.classList.add("active");
                 pillSubmit.setAttribute("aria-selected", "true");
             }
+            const leg = document.getElementById("pill-nav-submit-legacy");
+            if (leg) { leg.classList.add("active"); leg.setAttribute("aria-selected", "true"); }
             if (sectionSubmit) sectionSubmit.style.display = "block";
-        } else if (sectionName === "search") {
+        } else if (sectionName === "search" || sectionName === "lookup") {
             if (pillSearch) {
                 pillSearch.classList.add("active");
                 pillSearch.setAttribute("aria-selected", "true");
             }
+            const leg = document.getElementById("pill-nav-search-legacy");
+            if (leg) { leg.classList.add("active"); leg.setAttribute("aria-selected", "true"); }
             if (sectionLookup) sectionLookup.style.display = "block";
         } else if (sectionName === "myclaims") {
             if (pillMyClaims) {
                 pillMyClaims.classList.add("active");
                 pillMyClaims.setAttribute("aria-selected", "true");
             }
+            const leg = document.getElementById("pill-nav-myclaims-legacy");
+            if (leg) { leg.classList.add("active"); leg.setAttribute("aria-selected", "true"); }
             if (sectionMyClaims) sectionMyClaims.style.display = "block";
             if (typeof loadMyClaims === "function") loadMyClaims();
+        } else if (sectionName === "help") {
+            if (sectionHelp) sectionHelp.style.display = "block";
+        } else if (sectionName === "documents") {
+            if (sectionDocuments) sectionDocuments.style.display = "block";
+        } else if (sectionName === "reports") {
+            if (sectionReports) sectionReports.style.display = "block";
+        } else if (sectionName === "settings") {
+            if (sectionSettings) sectionSettings.style.display = "block";
         }
+
+        // Synchronize sidebar active state
+        document.querySelectorAll(".sidebar-nav-item").forEach((item) => {
+            const sec = item.getAttribute("data-view") || item.getAttribute("data-section");
+            const isMatch = sec === sectionName ||
+                ((sectionName === "lookup" || sectionName === "search") && (sec === "lookup" || sec === "search"));
+            if (isMatch) {
+                item.classList.add("active");
+            } else {
+                item.classList.remove("active");
+            }
+        });
+
+        // Close mobile drawer if opened
+        const sidebar = document.getElementById("app-sidebar") || document.getElementById("portal-sidebar") || document.querySelector(".portal-sidebar");
+        if (sidebar) sidebar.classList.remove("mobile-open");
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
+    if (pillDashboard) pillDashboard.addEventListener("click", () => switchView("dashboard"));
     if (pillSubmit) pillSubmit.addEventListener("click", () => switchView("submit"));
-    if (pillSearch) pillSearch.addEventListener("click", () => switchView("search"));
+    if (pillSearch) pillSearch.addEventListener("click", () => switchView("lookup"));
     if (pillMyClaims) pillMyClaims.addEventListener("click", () => {
         if (!currentUser) {
             openAuthModal("login");
@@ -556,7 +859,595 @@ function initClaimSenseApp() {
         }
         switchView("myclaims");
     });
+    if (pillHelp) pillHelp.addEventListener("click", () => switchView("help"));
+    if (pillDocuments) pillDocuments.addEventListener("click", () => switchView("documents"));
+    if (pillReports) pillReports.addEventListener("click", () => switchView("reports"));
+    if (pillSettings) pillSettings.addEventListener("click", () => switchView("settings"));
 
+    // Legacy quick-nav pills
+    const pillSubmitLegacy = document.getElementById("pill-nav-submit-legacy");
+    if (pillSubmitLegacy) pillSubmitLegacy.addEventListener("click", () => switchView("submit"));
+    const pillSearchLegacy = document.getElementById("pill-nav-search-legacy");
+    if (pillSearchLegacy) pillSearchLegacy.addEventListener("click", () => switchView("lookup"));
+    const pillMyClaimsLegacy = document.getElementById("pill-nav-myclaims-legacy");
+    if (pillMyClaimsLegacy) pillMyClaimsLegacy.addEventListener("click", () => {
+        if (!currentUser) {
+            openAuthModal("login");
+            showAuthAlert("Please sign in to view your submitted claims.");
+            return;
+        }
+        switchView("myclaims");
+    });
+
+    // Sidebar navigation click handlers
+    document.querySelectorAll(".sidebar-nav-item").forEach((item) => {
+        item.addEventListener("click", (e) => {
+            e.preventDefault();
+            const sec = item.getAttribute("data-view") || item.getAttribute("data-section");
+            if (!sec) return;
+            if (sec === "myclaims" && !currentUser) {
+                openAuthModal("login");
+                showAuthAlert("Please sign in to view your submitted claims.");
+                return;
+            }
+            switchView(sec);
+        });
+    });
+
+    // Brand logo home navigation
+    const headerLogoHome = document.getElementById("header-logo-home");
+    if (headerLogoHome) {
+        headerLogoHome.addEventListener("click", () => switchView("dashboard"));
+    }
+
+    // Header help button navigation
+    const btnHeaderHelp = document.getElementById("btn-header-help");
+    if (btnHeaderHelp) {
+        btnHeaderHelp.addEventListener("click", () => switchView("help"));
+    }
+
+    // Sidebar collapse & mobile drawer toggle
+    const portalSidebar = document.getElementById("app-sidebar") || document.getElementById("portal-sidebar") || document.querySelector(".portal-sidebar");
+    const btnCollapseSidebar = document.getElementById("btn-collapse-sidebar");
+    const btnMobileSidebar = document.getElementById("btn-mobile-sidebar");
+
+    if (btnCollapseSidebar && portalSidebar) {
+        btnCollapseSidebar.addEventListener("click", (e) => {
+            e.preventDefault();
+            portalSidebar.classList.toggle("sidebar-collapsed");
+        });
+    }
+
+    if (btnMobileSidebar && portalSidebar) {
+        btnMobileSidebar.addEventListener("click", (e) => {
+            e.preventDefault();
+            portalSidebar.classList.toggle("mobile-open");
+        });
+    }
+
+    // Dashboard Quick Action Buttons
+    [
+        document.getElementById("btn-dash-submit-claim"),
+        document.getElementById("btn-dash-first-claim"),
+        document.getElementById("dash-btn-new-claim"),
+        document.getElementById("btn-empty-submit")
+    ].forEach((b) => {
+        if (b) {
+            b.addEventListener("click", () => {
+                switchView("submit");
+                if (typeof goToWizardStep === "function") goToWizardStep(1);
+            });
+        }
+    });
+
+    [
+        document.getElementById("btn-dash-open-help"),
+        document.getElementById("btn-dashboard-help")
+    ].forEach((b) => {
+        if (b) b.addEventListener("click", () => switchView("help"));
+    });
+
+    const btnDashViewAll = document.getElementById("btn-dash-view-all");
+    if (btnDashViewAll) {
+        btnDashViewAll.addEventListener("click", () => {
+            if (!currentUser) {
+                openAuthModal("login");
+                showAuthAlert("Please sign in to view your submitted claims.");
+                return;
+            }
+            switchView("myclaims");
+        });
+    }
+
+    const btnDashQuickPolicy = document.getElementById("btn-dash-quick-policy") || document.getElementById("dash-btn-quick-check");
+    const dashQuickPolicyInput = document.getElementById("dash-quick-policy-input");
+    function executeQuickPolicyLookup() {
+        const query = dashQuickPolicyInput ? dashQuickPolicyInput.value.trim() : "";
+        switchView("lookup");
+        const searchInput = document.getElementById("search-policy-input");
+        if (searchInput && query) {
+            searchInput.value = query;
+            const form = document.getElementById("policy-search-form");
+            if (form) form.dispatchEvent(new Event("submit", { cancelable: true }));
+        }
+    }
+    if (btnDashQuickPolicy) btnDashQuickPolicy.addEventListener("click", executeQuickPolicyLookup);
+    if (dashQuickPolicyInput) {
+        dashQuickPolicyInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                executeQuickPolicyLookup();
+            }
+        });
+    }
+
+    const dashBtnFillSample = document.getElementById("dash-btn-fill-sample");
+    if (dashBtnFillSample) {
+        dashBtnFillSample.addEventListener("click", () => {
+            switchView("submit");
+            if (btnFillSample) btnFillSample.click();
+            goToWizardStep(1);
+            showToast("Demo claim package pre-populated.", "info");
+        });
+    }
+
+    // Portal Settings Buttons
+    const btnSettingsTheme = document.getElementById("btn-settings-theme");
+    if (btnSettingsTheme) {
+        btnSettingsTheme.addEventListener("click", () => {
+            const current = document.documentElement.getAttribute("data-theme") || "dark";
+            applyTheme(current === "dark" ? "light" : "dark");
+            showToast(`Switched to ${current === "dark" ? "Light" : "Dark"} theme.`, "info");
+        });
+    }
+
+    const btnSettingsTour = document.getElementById("btn-settings-tour");
+    if (btnSettingsTour) {
+        btnSettingsTour.addEventListener("click", () => {
+            if (typeof openOnboardingTour === "function") openOnboardingTour();
+        });
+    }
+
+    const btnLaunchTour = document.getElementById("btn-launch-tour");
+    if (btnLaunchTour) {
+        btnLaunchTour.addEventListener("click", () => {
+            if (typeof openOnboardingTour === "function") openOnboardingTour();
+        });
+    }
+
+    // Documents & Reports Browse buttons
+    const btnBrowseDocs = document.getElementById("btn-browse-docs-myclaims");
+    if (btnBrowseDocs) {
+        btnBrowseDocs.addEventListener("click", () => {
+            if (!currentUser) {
+                openAuthModal("login");
+                showAuthAlert("Please sign in to view your submitted claims.");
+                return;
+            }
+            switchView("myclaims");
+        });
+    }
+    const btnBrowseReports = document.getElementById("btn-browse-reports-myclaims");
+    if (btnBrowseReports) {
+        btnBrowseReports.addEventListener("click", () => {
+            if (!currentUser) {
+                openAuthModal("login");
+                showAuthAlert("Please sign in to view your submitted claims.");
+                return;
+            }
+            switchView("myclaims");
+        });
+    }
+
+    // -------------------------------------------------------------
+    // 4d. Dashboard Metrics & Recent Claims Activity
+    // -------------------------------------------------------------
+    function updateDashboardStats(claims = []) {
+        const statTotal = document.getElementById("dash-stat-total");
+        const statReview = document.getElementById("dash-stat-review");
+        const statConsistent = document.getElementById("dash-stat-consistent");
+        const statPolicies = document.getElementById("dash-stat-policies");
+
+        const total = claims.length;
+        let reviewCount = 0;
+        let consistentCount = 0;
+        const uniquePolicies = new Set();
+
+        claims.forEach((c) => {
+            if (c.policy_number) uniquePolicies.add(c.policy_number);
+            const st = (c.status || "").toUpperCase();
+            if (st === "NEEDS_REVIEW" || st === "FLAGGED") {
+                reviewCount++;
+            } else {
+                consistentCount++;
+            }
+        });
+
+        if (statTotal) statTotal.textContent = total;
+        if (statReview) statReview.textContent = reviewCount;
+        if (statConsistent) {
+            const pct = total > 0 ? Math.round((consistentCount / total) * 100) : 100;
+            statConsistent.textContent = `${pct}%`;
+        }
+        if (statPolicies) statPolicies.textContent = uniquePolicies.size;
+
+        const recentList = document.getElementById("dash-recent-claims-list");
+        if (recentList) {
+            if (claims.length === 0) {
+                recentList.innerHTML = `
+                    <div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted);">
+                        <p style="margin-bottom: 1rem;">No submitted claims registered under your account yet.</p>
+                        <button type="button" class="btn btn-primary btn-sm" id="btn-dash-first-claim">Submit Your First Claim</button>
+                    </div>
+                `;
+                const btn = document.getElementById("btn-dash-first-claim");
+                if (btn) btn.addEventListener("click", () => switchView("submit"));
+            } else {
+                const recent = claims.slice(0, 4);
+                recentList.innerHTML = recent
+                    .map(
+                        (c) => `
+                    <div class="recent-claim-item">
+                        <div class="recent-claim-meta">
+                            <span class="recent-claim-id">${escapeHtml(c.claim_id || "CLM-000")}</span>
+                            <span class="recent-claim-policy">${escapeHtml(c.claimant_name || "Claimant")} &bull; ${escapeHtml(c.policy_number || "-")}</span>
+                        </div>
+                        <div class="recent-claim-right">
+                            <span class="status-badge ${c.status === "NEEDS_REVIEW" ? "badge-status-mismatch" : "badge-status-match"}">${escapeHtml(c.status || "PENDING")}</span>
+                            <button type="button" class="btn btn-secondary btn-sm btn-dash-view" data-claim-id="${escapeHtml(c.claim_id)}">View</button>
+                        </div>
+                    </div>
+                `
+                    )
+                    .join("");
+
+                recentList.querySelectorAll(".btn-dash-view").forEach((b) => {
+                    b.addEventListener("click", () => {
+                        const cid = b.getAttribute("data-claim-id");
+                        if (cid && typeof openClaimDetailsModal === "function") {
+                            openClaimDetailsModal(cid);
+                        }
+                    });
+                });
+            }
+        }
+    }
+
+    // -------------------------------------------------------------
+    // 4e. 5-Step Guided Claim Submission Wizard
+    // -------------------------------------------------------------
+    let currentWizardStep = 1;
+
+    function goToWizardStep(step) {
+        if (step > currentWizardStep) {
+            // Validation of preceding steps
+            for (let s = currentWizardStep; s < step; s++) {
+                if (s === 1) {
+                    const claimantName = document.getElementById("claimant_name")?.value.trim();
+                    const policyNumber = document.getElementById("policy_number")?.value.trim();
+                    const vehicleNumber = document.getElementById("vehicle_number")?.value.trim();
+                    const accidentDate = document.getElementById("accident_date")?.value.trim();
+                    if (!claimantName || !policyNumber || !vehicleNumber || !accidentDate) {
+                        showToast("Please fill in all required claimant and policy fields in Step 1.", "warning");
+                        showError("Please fill out all required fields in Step 1.");
+                        return;
+                    }
+                } else if (s === 2) {
+                    const desc = document.getElementById("claim_description")?.value.trim();
+                    if (!desc || desc.length < 10) {
+                        showToast("Please provide an incident narrative (at least 10 characters).", "warning");
+                        showError("Please provide an incident narrative in Step 2.");
+                        return;
+                    }
+                } else if (s === 3) {
+                    const files = [
+                        { id: "policy_document", name: "Policy Schedule" },
+                        { id: "claim_form_file", name: "Claim Form" },
+                        { id: "invoice_document", name: "Invoice / Repair Estimate" },
+                        { id: "vehicle_image", name: "Vehicle Photograph" },
+                    ];
+                    for (const f of files) {
+                        const inp = document.getElementById(f.id);
+                        if (!inp || !inp.files || inp.files.length === 0) {
+                            showToast(`Missing required document: ${f.name}`, "warning");
+                            showError(`Please upload all 4 required evidence documents in Step 3 (Missing: ${f.name}).`);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        clearError();
+        currentWizardStep = step;
+
+        // Step 4 review data population
+        if (step === 4) {
+            const claimantName = document.getElementById("claimant_name")?.value.trim() || "-";
+            const policyNumber = document.getElementById("policy_number")?.value.trim() || "-";
+            const vehicleNumber = document.getElementById("vehicle_number")?.value.trim() || "-";
+            const accidentDate = document.getElementById("accident_date")?.value.trim() || "-";
+            const incidentLocation = document.getElementById("incident_location")?.value.trim() || "Not specified";
+            const claimDesc = document.getElementById("claim_description")?.value.trim() || "-";
+
+            const setEl = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val;
+            };
+            setEl("rev-val-name", claimantName);
+            setEl("rev-val-policy", policyNumber);
+            setEl("rev-val-vehicle", vehicleNumber);
+            setEl("rev-val-date", accidentDate);
+            setEl("rev-val-location", incidentLocation);
+            setEl("rev-val-narrative", claimDesc);
+
+            const fileMap = [
+                { id: "policy_document", label: "Policy Schedule", revId: "rev-file-policy", chkId: "rev-chk-policy" },
+                { id: "claim_form_file", label: "Claim Form", revId: "rev-file-form", chkId: "rev-chk-form" },
+                { id: "invoice_document", label: "Invoice / Estimate", revId: "rev-file-invoice", chkId: "rev-chk-invoice" },
+                { id: "vehicle_image", label: "Accident Photo", revId: "rev-file-image", chkId: "rev-chk-image" },
+            ];
+
+            fileMap.forEach((f) => {
+                const inp = document.getElementById(f.id);
+                const revEl = document.getElementById(f.revId);
+                const chkEl = document.getElementById(f.chkId);
+                if (inp && inp.files && inp.files.length > 0) {
+                    const file = inp.files[0];
+                    if (revEl) revEl.textContent = `${f.label}: ${file.name} (${formatBytes(file.size)})`;
+                    if (chkEl) chkEl.classList.add("file-ready");
+                } else {
+                    if (revEl) revEl.textContent = `${f.label}: Not selected`;
+                    if (chkEl) chkEl.classList.remove("file-ready");
+                }
+            });
+        }
+
+        // Show/hide step panels
+        for (let i = 1; i <= 4; i++) {
+            const pane = document.getElementById(`wizard-step-${i}`);
+            if (pane) {
+                pane.style.display = i === step ? "block" : "none";
+                if (i === step) pane.classList.add("active");
+                else pane.classList.remove("active");
+            }
+        }
+
+        // Stepper nodes active/completed
+        for (let i = 1; i <= 4; i++) {
+            const node = document.getElementById(`wizard-node-${i}`);
+            if (node) {
+                node.classList.remove("active", "completed");
+                if (i === step) {
+                    node.classList.add("active");
+                } else if (i < step) {
+                    node.classList.add("completed");
+                }
+            }
+        }
+
+        // Stepper connectors
+        for (let i = 1; i <= 3; i++) {
+            const conn = document.getElementById(`connector-${i}`);
+            if (conn) {
+                if (i < step) conn.classList.add("completed");
+                else conn.classList.remove("completed");
+            }
+        }
+
+        const submissionCard = document.getElementById("submission-card");
+        if (submissionCard) submissionCard.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    // Step navigation buttons
+    const btnStep1Next = document.getElementById("btn-step1-next");
+    if (btnStep1Next) btnStep1Next.addEventListener("click", () => goToWizardStep(2));
+
+    const btnStep2Prev = document.getElementById("btn-step2-prev");
+    if (btnStep2Prev) btnStep2Prev.addEventListener("click", () => goToWizardStep(1));
+    const btnStep2Next = document.getElementById("btn-step2-next");
+    if (btnStep2Next) btnStep2Next.addEventListener("click", () => goToWizardStep(3));
+
+    const btnStep3Prev = document.getElementById("btn-step3-prev");
+    if (btnStep3Prev) btnStep3Prev.addEventListener("click", () => goToWizardStep(2));
+    const btnStep3Next = document.getElementById("btn-step3-next");
+    if (btnStep3Next) btnStep3Next.addEventListener("click", () => goToWizardStep(4));
+
+    const btnStep4Prev = document.getElementById("btn-step4-prev");
+    if (btnStep4Prev) btnStep4Prev.addEventListener("click", () => goToWizardStep(3));
+
+    // Stepper node clicks
+    document.querySelectorAll(".wizard-step-node").forEach((node) => {
+        node.addEventListener("click", () => {
+            const targetStep = parseInt(node.getAttribute("data-step"), 10);
+            if (!isNaN(targetStep)) goToWizardStep(targetStep);
+        });
+    });
+
+    // Narrative Sample Fill Button
+    const btnUseNarrativeSample = document.getElementById("btn-use-narrative-sample");
+    if (btnUseNarrativeSample) {
+        btnUseNarrativeSample.addEventListener("click", () => {
+            const descInput = document.getElementById("claim_description");
+            if (descInput) {
+                descInput.value =
+                    "While halting at an intersection signal on MG Road, vehicle was rear-ended by a commercial pickup truck. Damage observed on the rear bumper, trunk hatch, and right tail lamp assembly.";
+                showToast("Sample accident narrative inserted.", "info");
+            }
+        });
+    }
+
+    // -------------------------------------------------------------
+    // 4f. Drag & Drop Upload Cards
+    // -------------------------------------------------------------
+    function setupDropzoneCard(dropzoneId, inputId, badgeId) {
+        const dropzone = document.getElementById(dropzoneId);
+        const input = document.getElementById(inputId);
+        const badge = document.getElementById(badgeId);
+        if (!dropzone || !input) return;
+
+        dropzone.addEventListener("click", (e) => {
+            if (e.target === input) return;
+            input.click();
+        });
+
+        ["dragenter", "dragover"].forEach((evtName) => {
+            dropzone.addEventListener(evtName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.add("dragover");
+            });
+        });
+
+        ["dragleave", "drop"].forEach((evtName) => {
+            dropzone.addEventListener(evtName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.remove("dragover");
+            });
+        });
+
+        dropzone.addEventListener("drop", (e) => {
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                input.files = e.dataTransfer.files;
+                input.dispatchEvent(new Event("change", { bubbles: true }));
+                showToast(`Attached file: ${e.dataTransfer.files[0].name}`, "info");
+            }
+        });
+
+        input.addEventListener("change", () => {
+            if (input.files && input.files.length > 0) {
+                dropzone.classList.add("has-file");
+            } else {
+                dropzone.classList.remove("has-file");
+            }
+            refreshFileBadges();
+        });
+    }
+
+    setupDropzoneCard("dropzone-policy", "policy_document", "badge-policy_document");
+    setupDropzoneCard("dropzone-form", "claim_form_file", "badge-claim_form_file");
+    setupDropzoneCard("dropzone-invoice", "invoice_document", "badge-invoice_document");
+    setupDropzoneCard("dropzone-image", "vehicle_image", "badge-vehicle_image");
+
+    // -------------------------------------------------------------
+    // 4g. Help Centre Tabs, FAQs & Search Filtering
+    // -------------------------------------------------------------
+    document.querySelectorAll(".help-tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+            const targetPaneId = `pane-help-${tab.getAttribute("data-help-tab")}`;
+            document.querySelectorAll(".help-tab").forEach((t) => t.classList.remove("active"));
+            tab.classList.add("active");
+
+            document.querySelectorAll(".help-article-pane").forEach((p) => {
+                p.style.display = p.id === targetPaneId ? "block" : "none";
+                if (p.id === targetPaneId) p.classList.add("active");
+                else p.classList.remove("active");
+            });
+        });
+    });
+
+    document.querySelectorAll(".faq-question").forEach((q) => {
+        q.addEventListener("click", () => {
+            const item = q.closest(".faq-item");
+            if (item) item.classList.toggle("open");
+        });
+    });
+
+    const helpSearchInput = document.getElementById("help-search-input");
+    if (helpSearchInput) {
+        helpSearchInput.addEventListener("input", (e) => {
+            const query = e.target.value.trim().toLowerCase();
+            if (!query) {
+                document.querySelectorAll(".faq-item").forEach((item) => (item.style.display = ""));
+                return;
+            }
+            document.querySelectorAll(".faq-item").forEach((item) => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(query) ? "block" : "none";
+                if (text.includes(query)) item.classList.add("open");
+            });
+        });
+    }
+
+    // -------------------------------------------------------------
+    // 4h. First-Time User Onboarding Walkthrough Tour
+    // -------------------------------------------------------------
+    let currentOnboardingStep = 1;
+    const totalOnboardingSteps = 4;
+    const onboardingModal = document.getElementById("onboarding-modal");
+    const btnOnboardingNext = document.getElementById("btn-onboarding-next");
+    const btnOnboardingPrev = document.getElementById("btn-onboarding-prev");
+    const btnOnboardingSkip = document.getElementById("btn-onboarding-skip");
+    const btnCloseOnboarding = document.getElementById("btn-close-onboarding");
+    const onboardingStepTitle = document.getElementById("onboarding-step-title");
+    const onboardingStepPill = document.getElementById("onboarding-step-pill");
+
+    const onboardingTitles = [
+        "Welcome to ClaimSense AI",
+        "How to Submit a Claim Package",
+        "Understanding AI Findings & Scores",
+        "PDF Receipts & Comprehensive Reports",
+    ];
+
+    function showOnboardingSlide(step) {
+        currentOnboardingStep = step;
+        for (let i = 1; i <= totalOnboardingSteps; i++) {
+            const slide = document.getElementById(`onboarding-slide-${i}`);
+            if (slide) {
+                slide.style.display = i === step ? "block" : "none";
+            }
+        }
+        if (onboardingStepTitle) onboardingStepTitle.textContent = onboardingTitles[step - 1];
+        if (onboardingStepPill) onboardingStepPill.textContent = `Step ${step} of ${totalOnboardingSteps}`;
+        if (btnOnboardingPrev) btnOnboardingPrev.style.display = step > 1 ? "inline-block" : "none";
+        if (btnOnboardingNext) {
+            btnOnboardingNext.textContent = step === totalOnboardingSteps ? "Finish Tour ✓" : "Continue ➔";
+        }
+    }
+
+    function openOnboardingTour() {
+        if (!onboardingModal) return;
+        showOnboardingSlide(1);
+        onboardingModal.style.display = "flex";
+    }
+
+    function closeOnboardingTour() {
+        if (!onboardingModal) return;
+        onboardingModal.style.display = "none";
+        localStorage.setItem("claimsense_onboarding_completed", "true");
+    }
+
+    if (btnOnboardingNext) {
+        btnOnboardingNext.addEventListener("click", () => {
+            if (currentOnboardingStep < totalOnboardingSteps) {
+                showOnboardingSlide(currentOnboardingStep + 1);
+            } else {
+                closeOnboardingTour();
+                showToast("Walkthrough completed! Welcome to ClaimSense AI.", "success");
+            }
+        });
+    }
+
+    if (btnOnboardingPrev) {
+        btnOnboardingPrev.addEventListener("click", () => {
+            if (currentOnboardingStep > 1) {
+                showOnboardingSlide(currentOnboardingStep - 1);
+            }
+        });
+    }
+
+    if (btnOnboardingSkip) btnOnboardingSkip.addEventListener("click", closeOnboardingTour);
+    if (btnCloseOnboarding) btnCloseOnboarding.addEventListener("click", closeOnboardingTour);
+
+    // Auto-launch onboarding on first visit
+    if (!localStorage.getItem("claimsense_onboarding_completed")) {
+        setTimeout(openOnboardingTour, 1000);
+    }
+    applyTranslations();
+
+    // -------------------------------------------------------------
+    // 5. Selected Filenames Badges & Size Formatting
     // -------------------------------------------------------------
     // 5. Selected Filenames Badges & Size Formatting
     // -------------------------------------------------------------
@@ -585,9 +1476,19 @@ function initClaimSenseApp() {
     setupFileBadge("vehicle_image", "badge-vehicle_image");
 
     function refreshFileBadges() {
+        const dropMap = {
+            policy_document: "dropzone-policy",
+            claim_form_file: "dropzone-form",
+            invoice_document: "dropzone-invoice",
+            vehicle_image: "dropzone-image",
+        };
+
         ["policy_document", "claim_form_file", "invoice_document", "vehicle_image"].forEach((id) => {
             const input = document.getElementById(id);
             const badge = document.getElementById(`badge-${id}`);
+            const dzId = dropMap[id];
+            const dropzone = dzId ? document.getElementById(dzId) : null;
+
             if (input && badge && input.files && input.files.length > 0) {
                 const file = input.files[0];
                 const nameSpan = badge.querySelector(".selected-filename");
@@ -595,8 +1496,10 @@ function initClaimSenseApp() {
                 if (nameSpan) nameSpan.textContent = file.name;
                 if (sizeSpan) sizeSpan.textContent = `(${formatBytes(file.size)})`;
                 badge.style.display = "inline-flex";
+                if (dropzone) dropzone.classList.add("has-file");
             } else if (badge) {
                 badge.style.display = "none";
+                if (dropzone) dropzone.classList.remove("has-file");
             }
         });
     }
@@ -664,6 +1567,13 @@ function initClaimSenseApp() {
             if (!currentUser) {
                 showError("Authentication required: Please sign in or create an account before submitting claim evidence.");
                 openAuthModal("login");
+                return;
+            }
+
+            const chkConfirm = document.getElementById("chk-confirm-submission");
+            if (chkConfirm && !chkConfirm.checked) {
+                showError("Please check the confirmation box acknowledging the authenticity of your claim submission.");
+                showToast("Declaration confirmation required before submission.", "warning");
                 return;
             }
 
@@ -762,6 +1672,8 @@ function initClaimSenseApp() {
                     successCard.style.display = "block";
                     successCard.scrollIntoView({ behavior: "smooth" });
                 }
+                showToast("Claim successfully registered and verified!", "success");
+                if (typeof loadMyClaims === "function") loadMyClaims();
 
             } catch (err) {
                 showError(`Submission rejected: ${err.message}`);
@@ -779,18 +1691,19 @@ function initClaimSenseApp() {
         });
     }
 
-
-
     if (btnNewClaim) {
         btnNewClaim.addEventListener("click", () => {
             if (claimForm) claimForm.reset();
             clearError();
             refreshFileBadges();
+            const chk = document.getElementById("chk-confirm-submission");
+            if (chk) chk.checked = false;
             if (successCard) successCard.style.display = "none";
             if (submissionCard) {
                 submissionCard.style.display = "block";
                 submissionCard.scrollIntoView({ behavior: "smooth" });
             }
+            if (typeof goToWizardStep === "function") goToWizardStep(1);
         });
     }
 
@@ -853,17 +1766,21 @@ function initClaimSenseApp() {
             }
 
             try {
-                const res = await fetch(`/api/claims/${currentActiveClaimId}/replace-image`, {
+                const repRes = await safeFetchJson(`/api/claims/${currentActiveClaimId}/replace-image`, {
                     method: "POST",
-                    credentials: "same-origin",
-                    headers,
                     body: formData,
                 });
-                const data = await res.json();
-                if (!res.ok || !data.success) {
-                    throw new Error(data.message || "Failed to replace vehicle photograph.");
+
+                if (!repRes.ok || !repRes.data || !repRes.data.success) {
+                    const errMsg = repRes.error || (repRes.data && repRes.data.message) || "Failed to replace vehicle photograph.";
+                    if (replaceImageStatus) {
+                        replaceImageStatus.className = "alert alert-error mt-2";
+                        replaceImageStatus.textContent = `⚠ ${errMsg}`;
+                    }
+                    return;
                 }
 
+                const data = repRes.data;
                 if (replaceImageStatus) {
                     if (data.validation && data.validation.is_valid_vehicle_photo) {
                         replaceImageStatus.className = "alert alert-success mt-2";
@@ -974,6 +1891,7 @@ function initClaimSenseApp() {
 
             refreshFileBadges();
             clearError();
+            showToast("Sample demo claim data and synthetic files loaded.", "success");
         });
     }
 
@@ -1251,6 +2169,7 @@ function initClaimSenseApp() {
 
             mySubmissionsData = data.claims || [];
             applySubmissionsFilterAndSort();
+            updateDashboardStats(mySubmissionsData);
 
         } catch (err) {
             if (myClaimsAlert) {
@@ -1421,6 +2340,9 @@ function initClaimSenseApp() {
     async function openClaimDetailsModal(claimId) {
         if (!modalClaimDetails) return;
 
+        // Synchronize active claim identifier across all portal modules
+        currentActiveClaimId = claimId;
+
         lockClaimDetailsScroll();
 
         const idSpan = document.getElementById("modal-details-id");
@@ -1527,7 +2449,7 @@ function initClaimSenseApp() {
                 if (!damageVisualContainer) return;
 
                 if (damageOriginalImg) {
-                    damageOriginalImg.src = `/api/claims/${claimId}/evidence/image?t=${Date.now()}`;
+                    damageOriginalImg.src = getApiUrl(`/api/claims/${claimId}/evidence/image?t=${Date.now()}`);
                 }
 
                 if (analysis && (analysis.total_detections !== undefined || analysis.detections)) {
@@ -1536,12 +2458,12 @@ function initClaimSenseApp() {
                     const latency = analysis.processing_time_ms || analysis.inference_time_ms || 0;
 
                     if (damageAnnotatedImg) {
-                        damageAnnotatedImg.src = `/api/claims/${claimId}/annotated-image?t=${Date.now()}`;
+                        damageAnnotatedImg.src = getApiUrl(`/api/claims/${claimId}/annotated-image?t=${Date.now()}`);
                         damageAnnotatedImg.style.display = "block";
                     }
                     if (damageAnnotatedPlaceholder) damageAnnotatedPlaceholder.style.display = "none";
                     if (btnDownloadAnnotated) {
-                        btnDownloadAnnotated.href = `/api/claims/${claimId}/annotated-image?download=1`;
+                        btnDownloadAnnotated.href = getApiUrl(`/api/claims/${claimId}/annotated-image?download=true`);
                         btnDownloadAnnotated.style.display = "inline-flex";
                     }
 
@@ -1598,7 +2520,123 @@ function initClaimSenseApp() {
                 }
             }
 
-            // Wire up analyze button
+            // Modal Replacement Image Upload Widget Integration
+            const modalReplaceContainer = document.getElementById("modal-replace-container");
+            const btnToggleReplaceModal = document.getElementById("btn-toggle-replace-modal");
+            const modalFormReplaceImage = document.getElementById("modal-form-replace-image");
+            const modalInputReplaceImage = document.getElementById("modal-input-replace-image");
+            const modalBtnSubmitReplace = document.getElementById("modal-btn-submit-replace");
+            const modalBtnReplaceText = document.getElementById("modal-btn-replace-text");
+            const modalBtnReplaceSpinner = document.getElementById("modal-btn-replace-spinner");
+            const modalReplaceStatus = document.getElementById("modal-replace-status");
+
+            if (modalReplaceContainer) modalReplaceContainer.style.display = "none";
+            if (modalReplaceStatus) modalReplaceStatus.style.display = "none";
+
+            if (btnToggleReplaceModal) {
+                btnToggleReplaceModal.onclick = () => {
+                    if (modalReplaceContainer) {
+                        const isVisible = modalReplaceContainer.style.display !== "none";
+                        modalReplaceContainer.style.display = isVisible ? "none" : "block";
+                        if (!isVisible && modalInputReplaceImage) {
+                            modalInputReplaceImage.focus();
+                        }
+                    }
+                };
+            }
+
+            if (modalFormReplaceImage) {
+                modalFormReplaceImage.onsubmit = async (e) => {
+                    e.preventDefault();
+                    if (!modalInputReplaceImage || !modalInputReplaceImage.files || modalInputReplaceImage.files.length === 0) {
+                        if (modalReplaceStatus) {
+                            modalReplaceStatus.className = "alert alert-error mt-2";
+                            modalReplaceStatus.textContent = "Please select a JPEG or PNG vehicle photograph to upload.";
+                            modalReplaceStatus.style.display = "block";
+                        }
+                        return;
+                    }
+
+                    const file = modalInputReplaceImage.files[0];
+                    const formData = new FormData();
+                    formData.append("vehicle_image", file);
+
+                    let token = getCsrfToken();
+                    if (token) formData.append("csrf_token", token);
+
+                    if (modalBtnSubmitReplace) modalBtnSubmitReplace.disabled = true;
+                    if (modalBtnReplaceSpinner) modalBtnReplaceSpinner.style.display = "inline-block";
+                    if (modalBtnReplaceText) modalBtnReplaceText.textContent = "Uploading & Validating...";
+                    if (modalReplaceStatus) {
+                        modalReplaceStatus.className = "alert alert-info mt-2";
+                        modalReplaceStatus.textContent = "Uploading and validating replacement photograph...";
+                        modalReplaceStatus.style.display = "block";
+                    }
+
+                    try {
+                        const repRes = await safeFetchJson(`/api/claims/${claimId}/replace-image`, {
+                            method: "POST",
+                            body: formData,
+                        });
+
+                        if (!repRes.ok || !repRes.data || !repRes.data.success) {
+                            const errMsg = repRes.error || (repRes.data && repRes.data.message) || "Failed to upload replacement photograph.";
+                            if (modalReplaceStatus) {
+                                modalReplaceStatus.className = "alert alert-error mt-2";
+                                modalReplaceStatus.textContent = `⚠ ${errMsg}`;
+                                modalReplaceStatus.style.display = "block";
+                            }
+                            if (damageStatusBanner) {
+                                damageStatusBanner.className = "damage-banner danger mt-2";
+                                damageStatusBanner.textContent = `Upload rejected: ${errMsg}`;
+                                damageStatusBanner.style.display = "block";
+                            }
+                            return;
+                        }
+
+                        const data = repRes.data;
+                        if (modalReplaceStatus) {
+                            modalReplaceStatus.className = "alert alert-success mt-2";
+                            modalReplaceStatus.textContent = `✓ Replacement photograph verified as authentic vehicle photograph! (${data.validation && data.validation.resolution ? data.validation.resolution : "Validated"})`;
+                            modalReplaceStatus.style.display = "block";
+                        }
+
+                        // Refresh original image preview with cache-buster
+                        if (damageOriginalImg) {
+                            damageOriginalImg.src = getApiUrl(`/api/claims/${claimId}/evidence/image?t=${Date.now()}`);
+                        }
+                        const badgePhoto = document.getElementById("badge-photo-validation");
+                        if (badgePhoto) {
+                            badgePhoto.className = "badge badge-success";
+                            badgePhoto.textContent = "Authentic Replacement Photo";
+                        }
+
+                        // If damage analysis was auto-executed on backend
+                        if (data.damage_analysis) {
+                            displayDamageAnalysis(data.damage_analysis);
+                            loadDamageHistory();
+                        } else {
+                            if (damageStatusBanner) {
+                                damageStatusBanner.className = "damage-banner success mt-2";
+                                damageStatusBanner.textContent = '✓ Replacement photograph uploaded and validated. Click "Analyze Vehicle Damage" to execute YOLOv8 detection.';
+                                damageStatusBanner.style.display = "block";
+                            }
+                        }
+                    } catch (err) {
+                        if (modalReplaceStatus) {
+                            modalReplaceStatus.className = "alert alert-error mt-2";
+                            modalReplaceStatus.textContent = `Error: ${err.message}`;
+                            modalReplaceStatus.style.display = "block";
+                        }
+                    } finally {
+                        if (modalBtnSubmitReplace) modalBtnSubmitReplace.disabled = false;
+                        if (modalBtnReplaceSpinner) modalBtnReplaceSpinner.style.display = "none";
+                        if (modalBtnReplaceText) modalBtnReplaceText.textContent = "Upload Replacement Photo";
+                    }
+                };
+            }
+
+            // Wire up analyze button with robust non-JSON / HTML error handling
             if (btnAnalyzeDamage) {
                 btnAnalyzeDamage.onclick = async () => {
                     btnAnalyzeDamage.disabled = true;
@@ -1611,15 +2649,40 @@ function initClaimSenseApp() {
                     }
 
                     try {
-                        const anRes = await fetch(`/api/claims/${claimId}/analyze-damage`, {
+                        const anRes = await safeFetchJson(`/api/claims/${claimId}/analyze-damage`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" }
                         });
-                        const anData = await anRes.json();
-                        if (!anRes.ok || !anData.success) {
-                            throw new Error(anData.message || "Failed to analyze damage.");
+
+                        if (!anRes.ok || !anRes.data || !anRes.data.success) {
+                            const data = anRes.data;
+                            if (data && data.requires_replacement) {
+                                if (damageStatusBanner) {
+                                    damageStatusBanner.className = "damage-banner warning mt-2";
+                                    damageStatusBanner.textContent = `⚠ ${data.message || "Invalid vehicle photograph. Please upload an authentic replacement photograph."}`;
+                                    damageStatusBanner.style.display = "block";
+                                }
+                                if (modalReplaceContainer) {
+                                    modalReplaceContainer.style.display = "block";
+                                    modalReplaceContainer.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                                }
+                                const badgePhoto = document.getElementById("badge-photo-validation");
+                                if (badgePhoto) {
+                                    badgePhoto.className = "badge badge-danger";
+                                    badgePhoto.textContent = data.validation ? data.validation.status.replace(/_/g, " ").toUpperCase() : "INVALID GRAPHIC";
+                                }
+                            } else {
+                                const errMsg = anRes.error || (data && data.message) || "Failed to analyze vehicle damage.";
+                                if (damageStatusBanner) {
+                                    damageStatusBanner.className = "damage-banner danger mt-2";
+                                    damageStatusBanner.textContent = `Error: ${errMsg}`;
+                                    damageStatusBanner.style.display = "block";
+                                }
+                            }
+                            return;
                         }
-                        displayDamageAnalysis(anData.analysis);
+
+                        displayDamageAnalysis(anRes.data.analysis);
                         loadDamageHistory();
                     } catch (err) {
                         if (damageStatusBanner) {
@@ -1638,9 +2701,9 @@ function initClaimSenseApp() {
             async function loadDamageHistory() {
                 if (!damageHistoryContainer || !damageHistoryList) return;
                 try {
-                    const hRes = await fetch(`/api/claims/${claimId}/damage-history`);
-                    if (hRes.ok) {
-                        const hData = await hRes.json();
+                    const hRes = await safeFetchJson(`/api/claims/${claimId}/damage-history`);
+                    if (hRes.ok && hRes.data) {
+                        const hData = hRes.data;
                         if (hData.analyses && hData.analyses.length > 0) {
                             damageHistoryList.innerHTML = hData.analyses.map((a, i) => `
                                 <span class="history-tag">Run #${hData.analyses.length - i} &bull; ${a.total_detections || 0} damages &bull; ${(a.highest_confidence * 100 || 0).toFixed(1)}% conf &bull; ${Math.round(a.processing_time_ms || 0)}ms</span>
@@ -1660,14 +2723,9 @@ function initClaimSenseApp() {
                 displayDamageAnalysis(claim.damage_analysis);
             } else {
                 try {
-                    const daRes = await fetch(`/api/claims/${claimId}/damage-analysis`);
-                    if (daRes.ok) {
-                        const daData = await daRes.json();
-                        if (daData.analysis) {
-                            displayDamageAnalysis(daData.analysis);
-                        } else {
-                            displayDamageAnalysis(null);
-                        }
+                    const daRes = await safeFetchJson(`/api/claims/${claimId}/damage-analysis`);
+                    if (daRes.ok && daRes.data && daRes.data.analysis) {
+                        displayDamageAnalysis(daRes.data.analysis);
                     } else {
                         displayDamageAnalysis(null);
                     }
@@ -2224,6 +3282,8 @@ function initClaimSenseApp() {
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
     }
+    // Set initial view to dashboard
+    switchView("dashboard");
 }
 
 if (typeof document !== "undefined") {

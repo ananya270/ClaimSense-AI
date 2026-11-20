@@ -220,6 +220,24 @@ def create_app(config_class=Config) -> Flask:
             "status_code": 500,
         }), 500
 
+    @app.errorhandler(Exception)
+    def handle_unhandled_exception(error):
+        from werkzeug.exceptions import HTTPException
+        if isinstance(error, HTTPException):
+            return jsonify({
+                "success": False,
+                "error": error.name,
+                "message": error.description,
+                "status_code": error.code,
+            }), error.code
+        logger.error(f"Unhandled exception encountered: {error}", exc_info=True)
+        return jsonify({
+            "success": False,
+            "error": "Internal Server Error",
+            "message": str(error) if app.config.get("DEBUG") else "An unexpected error occurred on the server.",
+            "status_code": 500,
+        }), 500
+
     logger.info("ClaimSense AI application initialized successfully.")
     return app
 

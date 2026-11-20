@@ -694,8 +694,36 @@ def get_claim_evidence_file(claim_id: str, file_type: str):
             if doc and doc.file_path:
                 target_file_path = upload_base / doc.file_path
                 target_filename = doc.original_filename
+        elif clean_type in ("replacement_image", "replacement_photo"):
+            img = (
+                db.query(ClaimImage)
+                .filter_by(claim_id=claim_id, image_type="REPLACEMENT_VEHICLE_ACCIDENT")
+                .order_by(ClaimImage.image_id.desc())
+                .first()
+            )
+            if img and img.file_path:
+                target_file_path = upload_base / img.file_path
+                target_filename = img.original_filename
+        elif clean_type in ("original_image", "original_photo"):
+            img = (
+                db.query(ClaimImage)
+                .filter_by(claim_id=claim_id, image_type="VEHICLE_ACCIDENT")
+                .order_by(ClaimImage.image_id.asc())
+                .first()
+            )
+            if img and img.file_path:
+                target_file_path = upload_base / img.file_path
+                target_filename = img.original_filename
         elif clean_type in ("image", "vehicle_image", "photo"):
-            img = db.query(ClaimImage).filter_by(claim_id=claim_id).order_by(ClaimImage.created_at.desc()).first()
+            # Check replacement image first, then latest uploaded image
+            img = (
+                db.query(ClaimImage)
+                .filter_by(claim_id=claim_id, image_type="REPLACEMENT_VEHICLE_ACCIDENT")
+                .order_by(ClaimImage.image_id.desc())
+                .first()
+            )
+            if not img:
+                img = db.query(ClaimImage).filter_by(claim_id=claim_id).order_by(ClaimImage.image_id.desc()).first()
             if img and img.file_path:
                 target_file_path = upload_base / img.file_path
                 target_filename = img.original_filename
@@ -825,6 +853,7 @@ def get_claim_receipt(claim_id: str):
 
 @claims_bp.route("/claims/<claim_id>/replace-image", methods=["POST"])
 @claims_bp.route("/claims/<claim_id>/images", methods=["POST"])
+@csrf.exempt
 def replace_claim_image(claim_id: str):
     """Allows uploading a replacement actual accident photograph for a claim.
 
@@ -896,6 +925,27 @@ def replace_claim_image(claim_id: str):
 
         # Forensic image validation
         validation = validate_vehicle_image(target_img_path)
+        if not validation.get("is_valid_vehicle_photo"):
+            logger.warning(
+                f"Replacement vehicle photograph rejected for {claim_id}: {clean_img_name} "
+                f"flagged as {validation.get('status')} ({validation.get('reason')})"
+            )
+            # Remove invalid uploaded replacement file from disk to avoid clutter
+            try:
+                if target_img_path.exists():
+                    target_img_path.unlink()
+            except Exception:
+                pass
+            return jsonify({
+                "success": False,
+                "error": "Invalid Vehicle Evidence",
+                "message": (
+                    f"Uploaded replacement file '{clean_img_name}' is flagged as {validation.get('status', 'invalid')} "
+                    f"({validation.get('reason')}). Replacement photograph must be an authentic vehicle damage photo."
+                ),
+                "validation": validation,
+                "requires_replacement": True,
+            }), 400
 
         # Record replacement image in database while preserving original flagged file in audit history
         existing_img = db.query(ClaimImage).filter_by(claim_id=claim_id).order_by(ClaimImage.created_at.desc()).first()
@@ -1023,26 +1073,39 @@ def analyze_claim_vehicle_damage(claim_id: str):
         target_img_path = None
         claim_image_rec = None
 
-        # Prioritize latest ClaimImage in DB
-        db_img = (
+        # Prioritize replacement photograph first, then latest ClaimImage in DB
+        rep_img = (
             db.query(ClaimImage)
-            .filter_by(claim_id=claim_id)
-            .order_by(desc(ClaimImage.created_at))
+            .filter_by(claim_id=claim_id, image_type="REPLACEMENT_VEHICLE_ACCIDENT")
+            .order_by(desc(ClaimImage.image_id))
             .first()
         )
-        if db_img and db_img.file_path:
-            candidate = upload_base / db_img.file_path
+        if rep_img and rep_img.file_path:
+            candidate = upload_base / rep_img.file_path
             if candidate.exists():
                 target_img_path = candidate
-                claim_image_rec = db_img
+                claim_image_rec = rep_img
+
+        if not target_img_path:
+            db_img = (
+                db.query(ClaimImage)
+                .filter_by(claim_id=claim_id)
+                .order_by(desc(ClaimImage.image_id))
+                .first()
+            )
+            if db_img and db_img.file_path:
+                candidate = upload_base / db_img.file_path
+                if candidate.exists():
+                    target_img_path = candidate
+                    claim_image_rec = db_img
 
         # Fallback to inspecting images directory on disk
         if not target_img_path and images_dir.exists():
-            replacements = list(images_dir.glob("replacement_vehicle_image_*"))
+            replacements = sorted(list(images_dir.glob("replacement_vehicle_image_*")))
             if replacements:
                 target_img_path = replacements[-1]
             else:
-                vehicle_imgs = list(images_dir.glob("vehicle_image_*"))
+                vehicle_imgs = sorted(list(images_dir.glob("vehicle_image_*")))
                 if vehicle_imgs:
                     target_img_path = vehicle_imgs[-1]
 
@@ -1083,15 +1146,23 @@ def analyze_claim_vehicle_damage(claim_id: str):
             or force_fallback
         )
 
-        # Execute unified damage detection pipeline
-        analysis_dict = process_claim_damage_detection(
-            claim_id=claim_id,
-            image_id=claim_image_rec.image_id if claim_image_rec else None,
-            conf_threshold=conf_thresh,
-            force_opencv=force_fallback,
-            force_recompute=force_recompute,
-            upload_base=upload_base,
-        )
+        # Execute unified damage detection pipeline safely
+        try:
+            analysis_dict = process_claim_damage_detection(
+                claim_id=claim_id,
+                image_id=claim_image_rec.image_id if claim_image_rec else None,
+                conf_threshold=conf_thresh,
+                force_opencv=force_fallback,
+                force_recompute=force_recompute,
+                upload_base=upload_base,
+            )
+        except Exception as exc:
+            logger.error(f"Damage detection failed unexpectedly for {claim_id}: {exc}", exc_info=True)
+            return jsonify({
+                "success": False,
+                "error": "Inference Error",
+                "message": f"Computer vision analysis failed: {str(exc)}",
+            }), 500
 
         if analysis_dict.get("requires_replacement"):
             return jsonify({
@@ -1288,9 +1359,11 @@ def get_claim_annotated_image(claim_id: str):
             # Check images directory on disk
             images_dir = upload_base / claim_id / "images"
             if images_dir.exists():
-                annotated_files = list(images_dir.glob("annotated_*"))
+                annotated_files = sorted(list(images_dir.glob("annotated_replacement_vehicle_image_*")))
                 if not annotated_files:
-                    annotated_files = list(images_dir.glob("opencv_analysis_*"))
+                    annotated_files = sorted(list(images_dir.glob("annotated_*")))
+                if not annotated_files:
+                    annotated_files = sorted(list(images_dir.glob("opencv_analysis_*")))
                 if annotated_files:
                     annotated_path = annotated_files[-1]
 
