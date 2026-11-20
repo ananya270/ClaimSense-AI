@@ -9,8 +9,8 @@
 [![Database](https://img.shields.io/badge/Database-SQLite%203%20%7C%20WAL%20Telemetry-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Computer Vision](https://img.shields.io/badge/Vision-Ultralytics%20YOLOv8-blueviolet)](https://github.com/ultralytics/ultralytics)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B%20%7C%20CPU%20%2F%20CUDA-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
-[![Tests](https://img.shields.io/badge/Tests-158%20Passed%20(100%25)-brightgreen)](tests/)
-[![Roadmap](https://img.shields.io/badge/Roadmap-Phase%209%20Completed%20%7C%20158%20Tests%20Passed-informational)](#-project-roadmap)
+[![Tests](https://img.shields.io/badge/Tests-191%20Total%20%7C%20190%20Passed-brightgreen)](tests/)
+[![Roadmap](https://img.shields.io/badge/Roadmap-Phase%2010%20Stage%202%20Complete%20%7C%20Conditional%20Pass-yellow)](#-project-roadmap)
 
 ---
 
@@ -175,6 +175,15 @@ The Phase 7 verification engine cross-examines evidence across all upstream modu
 ### 6. Consolidated PDF Audit Report
 * **8-Page Formatted Document:** Rendered via ReportLab with corporate headers, itemized evidence logs, tabular OCR entity summaries, visual damage crops with localized bounding boxes, NLP chronology tables, and Page 7 Cross-Source Verification audit summaries.
 * **Official Intake Receipt:** Generates standalone, digitally formatted PDF receipts confirming intake timestamp and SHA-256 hashes of submitted files.
+
+### 7. Assessor Web Dashboard & Frontend Capabilities
+* **Responsive Single-Page Application (SPA):** Modern vanilla HTML5/CSS3/ES6 responsive dashboard designed for desktop monitors, tablets, and field mobile devices.
+* **Intake & Claim Submission Wizard:** Step-by-step submission modal guiding users through claimant metadata entry, file selection (policy document, claim form, repair invoice, vehicle photograph), and immediate client/server validation.
+* **Real-Time Policy Lookup:** Integrated policy lookup tab querying insured details, coverage validity windows, and registration match pre-validation.
+* **Claim History & Lifecycle Tracking:** Tabular claim ledger presenting chronological claim records with filterable lifecycle status badges (`SUBMITTED`, `IN_REVIEW`, `VERIFIED`, `FLAGGED`) and strict user ownership isolation.
+* **Bilingual Localization (English / Hindi):** Interactive top-bar language switcher dynamically translating all UI labels, form controls, validation warnings, and status descriptions between English and Hindi (हिन्दी).
+* **Evidence Image Replacement & Re-Analysis Workflow:** Interactive replacement modal allowing assessors to upload supplemental or higher-resolution damage photographs, triggering automatic re-analysis, history logging, and visual detection overlays without overwriting original intake evidence.
+* **Interactive Damage Inspection Overlays:** Renders bounding-box overlays over vehicle damage photographs with color-coded severity tags, confidence badges, and region tags (`front_left`, `rear`, `center`).
 
 ---
 
@@ -381,8 +390,18 @@ The formal project roadmap comprises 11 structured phases:
 | **Phase 7** | Cross-Source Verification | **Completed** | Multi-source consistency engine, evidence coverage, 8-page audit PDF. |
 | **Phase 8** | Dataset Preparation & Model Training | **Closed at Gate P** | Multi-tier datasets, dual-blind annotation, EXP01–03, Gate P safety hardening. |
 | **Phase 9** | Model Evaluation & Optimization | **Completed & Certified** | Controlled retraining (P9-T01/T02), independent CarDD benchmark (+35.8% mAP50, +85.2% precision), crack failure forensics, Category A production model retained, E2E system validation (10/10 workflows, 158 tests passed), closure package. |
-| **Phase 10** | Full System Integration & E2E Testing | **Completed in Phase 9.10** | End-to-end multi-modal workflows (10/10), 26 REST APIs verified, security hardening, performance SLAs. |
+| **Phase 10** | Full System Integration, E2E & Concurrency Testing | **CONDITIONALLY COMPLETE** | Master E2E integration test suite in `tests/test_e2e.py` (13/13 passed, 191 total repository tests); 10/10 operational multi-modal workflows verified deterministically; Stage 2 multi-user concurrency testing executed across 10, 25, and 50 users (6,901 requests, 0.00% error rate, Conditional Pass at 50 users); Report persistence architecture decision completed (ADR Hybrid Model). (Future ML crack retraining decoupled into Phase 9.12). |
 | **Phase 11** | Deployment, Monitoring & Documentation | **Phase 9.11 Ready** | Production model re-certified, reproducibility guide, academic evidence summary, project owner sign-off. |
+
+> [!NOTE]
+> **Phase 10 Governance & Workstream Disambiguation:**
+> In historical research notes (e.g. Phase 9 crack failure forensics), the term *"Phase 10"* was occasionally used in an informal ML context referring to future structural crack dataset collection and transfer learning. To prevent architectural confusion with Systems Engineering **Phase 10 (Full System Integration & End-to-End Testing)**, all future computer vision model retraining is formally designated as **Phase 9.12 / Workstream ML-Crack-Retraining**. Phase 10 is strictly a systems verification, load testing, and integration milestone.
+>
+> **Phase 10 Status & Verification Summary (Stage 1 & Stage 2):**
+> * **Status: CONDITIONALLY COMPLETE (Stage 2 Conditional Pass)**
+> * **Verified:** 10/10 multi-modal workflows fully operational; master integration test suite `tests/test_e2e.py` (13 tests) permanently added; full regression suite passing at 191 tests (190 passed, 1 skipped, 0 failures, 0 errors across 15 modules).
+> * **Concurrency & Load Testing Executed:** Validated with Locust across 10, 25, and 50 concurrent users (6,901 total requests, 0 failures, 0.00% error rate). 10 and 25 users passed all SLAs (<135ms mean). 50 users achieved 100% reliability but mean latency reached 673ms (WAL mode) against the <500ms target due to synchronous CPU-bound YOLOv8 and OCR processing during claim ingestion.
+> * **Report Persistence Architecture:** Formal ADR completed recommending a Hybrid Two-Tier model (stateless streaming during review, immutable hashed DB snapshots on terminal verification) with complete migration and rollback specifications.
 
 ---
 
@@ -429,18 +448,28 @@ ClaimSense-AI/
 │   ├── execute_gate_p_offline_smoke_test.py # Gate P offline smoke test execution script
 │   ├── run_daily_shadow_monitor.py        # Daily 24-hour shadow telemetry audit script
 │   └── extract_adjudication_queue.py      # Script to extract human adjudication cases
-├── tests/                                 # Automated regression & integration test suite
+├── tests/                                 # Automated regression & integration test suite (15 modules, 191 tests)
+│   ├── load/                              # Phase 10 Stage 2 Locust load & concurrency testing harness
+│   │   ├── config.py                      # Load profiles, SLA targets & synthetic test fixtures
+│   │   ├── locustfile.py                  # User personas, CSRF handling & weighted tasks
+│   │   ├── README.md                      # Load testing architecture & execution guide
+│   │   ├── run_load_test.py               # Master automated benchmark & metrics collector
+│   │   └── server.py                      # Isolated test server with dynamic DB seeding
 │   ├── test_auth.py                       # Authentication & session tests (11 tests)
-│   ├── test_claims.py                     # Claim submission & validation tests (9 tests)
+│   ├── test_claims.py                     # Claim submission & validation tests (12 tests)
 │   ├── test_database.py                   # Relational schema tests (4 tests)
 │   ├── test_document_processing.py        # Document parsing & OCR tests (13 tests)
+│   ├── test_e2e.py                        # Master reproducible E2E integration test suite (13 tests)
 │   ├── test_health.py                     # Health diagnostics tests (4 tests)
-│   ├── test_ownership_and_receipt.py      # Access control & PDF receipt tests (5 tests)
+│   ├── test_load_validation.py            # Unit validation for load testing fixtures & harness (5 tests)
+│   ├── test_ownership_and_receipt.py      # Access control & PDF receipt tests (6 tests)
 │   ├── test_phase5_vision.py              # Computer vision & damage detection tests (30 tests)
 │   ├── test_phase6_nlp.py                 # NLP narrative & timeline tests (14 tests)
+│   ├── test_phase7_cross_source_failures.py # Cross-source negative & boundary tests (18 tests)
 │   ├── test_phase7_verification.py        # Cross-source verification engine tests (32 tests)
+│   ├── test_replacement_damage_bugfix.py  # Replacement vehicle image & bugfix tests (15 tests)
 │   ├── test_security.py                   # Security, CSRF & rate limit tests (8 tests)
-│   └── test_ui_redesign.py                # Dashboard & UI component tests (7 tests)
+│   └── test_ui_redesign.py                # Dashboard & UI component tests (6 tests)
 ├── .env.example                           # Safe environment configuration template
 ├── .gitignore                             # Git ignore rules (binaries, databases, caches excluded)
 ├── DEVELOPMENT_LOG.md                     # Comprehensive technical development log
@@ -523,21 +552,71 @@ http://127.0.0.1:5001/
 ```
 The web dashboard provides user authentication, claim submission, policy lookup, interactive damage overlays, and the Phase 7 Cross-Source Verification panel.
 
-### 5. Running the Automated Test Suite
-Execute the complete automated test suite using Python's standard `unittest` test discovery within the active virtual environment:
+### 5. Running the Automated Test Suite & Load Benchmarks
+
+#### Standard Regression & Integration Test Execution
+Execute the automated test suite within the active virtual environment using either `pytest` or Python's standard `unittest` test discovery:
+
 ```powershell
-# Using the active virtual environment Python
-python -m unittest discover tests -v
-# Or directly via the virtual environment binary:
-.\.venv\Scripts\python.exe -m unittest discover tests -v
+# Run the complete test suite via pytest (compact execution)
+python -m pytest -q
+
+# Run the master Phase 10 E2E integration test suite (13 comprehensive workflows)
+python -m pytest tests/test_e2e.py -v
+
+# Run the load testing harness validation suite (5 unit tests)
+python -m pytest tests/test_load_validation.py -v
+
+# Or execute full discovery via Python unittest
+python -m unittest discover -s tests -p "test_*.py" -v
 ```
-**Current Test Execution Status:** **158 / 158 tests passing (100% pass rate, 0 failures, 0 errors, 1 skipped)** across all 12 test modules.
+
+**Verified Test Execution Status:**
+- **Standard Discovery (`unittest` / `pytest tests/`):** **191 tests verified &mdash; 190 passed, 1 skipped, 0 failures, 0 errors (100% pass rate)** across all 15 test modules.
+- **Repository-Wide Pytest Discovery (`pytest -q`):** **201 passed, 1 skipped, 0 failures, 0 errors** (including 10 standalone redaction script unit tests).
+- *(1 skipped test: `test_phase5_vision.py::test_gpu_tensor_execution` cleanly skipped on CPU-only workstations when CUDA GPU is unavailable).*
+
+#### Automated Multi-User Concurrency & Load Testing (Phase 10 Stage 2)
+The load testing harness uses Locust to simulate authenticated multi-user workloads against an isolated test server:
+
+```powershell
+# Run automated headless benchmark across 10, 25, and 50 users (DELETE and WAL profiles)
+python tests/load/run_load_test.py --headless
+
+# Or run the isolated test server manually for interactive Locust web UI testing
+python tests/load/server.py --port 5002 --wal
+locust -f tests/load/locustfile.py --host http://127.0.0.1:5002
+```
+
+#### Empirical Load Benchmark Telemetry Across Profiles
+
+| Concurrency Profile | Journal Mode | Total Requests | Failures | Error Rate | Throughput | Mean Latency | Median (p50) | 95th %ile (p95) | Max Latency | Verdict / Status |
+|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **10 Users** | `DELETE` | 508 | 0 | **0.00%** | 18.04 req/s | **34.09 ms** | 15.0 ms | 150.0 ms | 570.68 ms | **FULL PASS** (<500 ms) |
+| **25 Users** | `DELETE` | 1,659 | 0 | **0.00%** | 38.30 req/s | **131.73 ms** | 45.0 ms | 510.0 ms | 3,119.09 ms | **FULL PASS** (<500 ms) |
+| **50 Users** (Stress) | `DELETE` | 2,297 | 0 | **0.00%** | 39.13 req/s | **740.51 ms** | 530.0 ms | 2,000.0 ms | 9,764.80 ms | **SLA EXCEEDED** |
+| **50 Users** (WAL Mode) | `WAL` | 2,437 | 0 | **0.00%** | 40.78 req/s | **673.28 ms** | 570.0 ms | **1,400.0 ms** | **4,502.80 ms** | **CONDITIONAL PASS** |
+| **Aggregated Total** | &mdash; | **6,901** | **0** | **0.00%** | &mdash; | &mdash; | &mdash; | &mdash; | &mdash; | **0 DB Lock Exceptions** |
+
+#### SQLite DELETE vs. WAL Contention Analysis
+- **Throughput:** Increased from 39.13 req/s to **40.78 req/s** (+4.2%).
+- **Mean Latency:** Decreased from 740.51 ms to **673.28 ms** (-9.1% overall reduction).
+- **p95 Tail Latency:** Reduced by **30.0%** (1,400 ms vs 2,000 ms).
+- **Maximum Response Spike:** Reduced by **53.9%** (4,502 ms vs 9,764 ms).
+- **Contention Forensics:** In standard `DELETE` mode, multipart claim submissions lock SQLite exclusively, serializing concurrent reads. `WAL` mode decouples readers from writers, resolving SQLite lock contention.
 
 ---
 
 ## 📚 Key Governance Reports & Documentation
 
 Comprehensive engineering, audit, and benchmark records across all development phases are maintained directly in the repository:
+
+* **Phase 10 Full System Integration, Concurrency & Load Testing:**
+  * [Phase 10 Final Closure Audit Report](runs/phase10/final_closure_audit_report.md) &mdash; Master final audit report verifying E2E integration, concurrency telemetry, database safety, and conditional completion.
+  * [Phase 11 Operational Readiness Checklist](runs/phase10/phase11_readiness_checklist.md) &mdash; Deployment readiness roadmap covering production WSGI, reverse proxy, background task queue, and logging.
+  * [Phase 10 Stage 2 Concurrency & Load Testing Report](runs/phase10/stage2_load_testing_report.md) &mdash; Empirical Locust performance evaluation across 10, 25, and 50 concurrent users (6,901 requests, 0.00% error rate), SQLite DELETE vs WAL contention analysis, and SLA evaluation.
+  * [Phase 10 Stage 2 Report Persistence Architectural Decision](runs/phase10/stage2_database_architecture_decision.md) &mdash; Formal ADR evaluating Report ORM persistence (Option A vs Option B), recommending a Hybrid Two-Tier lifecycle, with DDL migration and rollback specifications.
+  * [Phase 10 Stage 1 Remediation Report](runs/phase10/stage1_remediation_report.md) &mdash; Master E2E integration test verification (186/186 passed), scratch test .gitignore investigation, ML crack retraining workstream disambiguation, and conditional completion audit.
 
 * **Phase 9 Model Optimization, Retraining & Final Closure Package:**
   * [Phase 9.11 Final Project Closure & Governance Report](runs/phase9/final_closure/PHASE_9_11_FINAL_REPORT.md) &mdash; Master Phase 9 synthesis, closure checklist, and sign-off package.

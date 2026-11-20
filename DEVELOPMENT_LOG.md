@@ -343,3 +343,216 @@
 - **Verification & Test Results:**
   - Phase 7 Suite (`test_phase7_verification.py`): **32/32 passed in 0.813s (100% pass rate)**.
   - Full Regression Suite: **137/137 passed in 70.121s (100% pass rate across entire repository)**.
+
+---
+
+## Phase 8: Controlled Dataset Preparation, Model Adaptation & Gate P Safety Hardening (Gates A–P)
+- **Status:** Closed at Gate P (Offline Smoke Test Passed / EXP02 Quarantined & Standby)
+- **Date:** 2026-11-18
+- **Files Created / Modified:**
+  - `runs/phase8/master_orchestration/`: Gate A through Gate P formal governance reports, artifact indexes, metric reconciliation tables, and sign-offs.
+  - `backend/services/vision/damage_detector.py`: Implemented strict production singleton isolation (`get_production_singleton()`) to prevent detached candidate models from mutating active inference state.
+  - `backend/services/vision/shadow_worker.py`: Implemented bounded thread-safe queue (`Queue(maxsize=50)`), single worker daemon thread (`ClaimSense-ShadowWorker`), graceful saturation dropping (`queue_full_dropped`), 3-state circuit breaker (`ShadowCircuitBreaker`), and filesystem kill-switch (`runs/phase8/shadow_trial/KILL_SWITCH`).
+  - `backend/database/shadow_telemetry.db`: Dedicated SQLite database in WAL mode (`journal_mode=WAL; busy_timeout=5000`) for isolated shadow metrics.
+  - `scripts/execute_gate_p_offline_smoke_test.py`: Standalone verification script for offline safety mechanisms.
+  - `scripts/run_daily_shadow_monitor.py` & `scripts/extract_adjudication_queue.py`: Operational shadow monitoring and human adjudication review extraction scripts.
+- **Features Implemented:**
+  - Dual-tier resolution specification (`v1.1-ACTIVE`: Tier 1 $\ge 800\times600$, Tier 2 macro $\ge 600\times400$).
+  - Controlled 120-image domain adaptation cohort (`CarDD_DomainAdaptation_v1`: 90 train / 30 dev, zero leakage to frozen validation).
+  - Quarantined independent validation benchmark (`CarDD_Independent_Val_v1`: 44 real-world images / 47 instances locked under SHA-256 snapshot).
+  - Domain adaptation experiments EXP01 (negative daylight mining), EXP02 (rare class expansion), EXP03 (unified multiscale).
+  - Production safety architecture with circuit breaker, kill switch, and zero production database writes.
+- **Tests Performed:**
+  - Gate P Offline Smoke Test across 8 approved test images: 8/8 safety checks passed (0 bytes written to `claimsense.db`, bounded queue dropped excess, circuit breaker tripped on latency/error triggers, kill-switch halted worker within $<1$ ms).
+  - Candidate EXP02 achieved 99.55% false-positive reduction on dev split walkarounds, but revealed 0.0% structural crack recall (0/6 on frozen benchmark, 0/14 on combined cohort).
+- **Governance Verdict:**
+  - EXP02 is NOT promoted to production. Quarantined in standby. Production baseline `models/phase5/best.pt` remains 100% authoritative. Phase 8 formally concludes at Gate P.
+
+---
+
+## Phase 9: Model Optimization, Retraining & Staging Integration (Phases 9.0–9.11)
+- **Status:** Completed & Certified (Category A Baseline Retained)
+- **Date:** 2026-11-19
+- **Files Created / Modified:**
+  - `runs/phase9/`: Comprehensive suite of Phase 9 reports across 12 structured stages:
+    - `PHASE_9_0_FINAL_REPORT.md` through `PHASE_9_11_FINAL_REPORT.md`
+    - `reproducibility_guide.md`, `academic_evidence_summary.md`, `known_issues_register.md`
+  - `backend/services/dataset_evaluation.py`: Parquet reader compatibility for evaluation manifests.
+- **Features Implemented:**
+  - Baseline audit and dataset inventory across CarDD splits.
+  - Root-cause crack failure forensics: hairline crack vanishing and scratch confusion diagnosed.
+  - Controlled retraining on CarDD: P9-T01 (baseline) and P9-T02 (high-resolution multiscale).
+  - Independent benchmark evaluation on frozen CarDD test set (Track A): P9-T02 yielded +35.8% mAP50 gain and +85.2% precision, but registered 0/13 crack detections at $\tau=0.25$ and exhibited recall regressions on dents and scratches.
+  - Authoritative governance decision: Category A (Retain Existing Phase 5 Production Baseline `models/phase5/best.pt`). Strict anti-suppression and regression-masking enforcement.
+  - Read-only staging audit (Phase 9.9) confirming 100% API compatibility.
+  - Full system validation (Phase 9.10) confirming 10/10 operational multi-modal workflows and 26 REST APIs.
+- **Tests Performed:**
+  - Full automated regression test suite: 158/158 tests passed (100% pass rate).
+
+---
+
+## Vehicle Replacement Damage Bugfix & UI Modernization (Commit 120296e)
+- **Status:** Completed & Verified
+- **Date:** 2026-11-20
+- **Files Created / Modified:**
+  - `backend/routes/claims.py`: Fixed replacement vehicle image damage analysis workflow; added history tracking and multiple damage analysis persistence per claim.
+  - `frontend/index.html`, `frontend/app.js`, `frontend/style.css`: UI modernization with replacement image upload controls, interactive damage overlays, and responsive status badges.
+  - `tests/test_replacement_damage_bugfix.py`: 15 comprehensive unit and integration tests verifying replacement image uploads, re-analysis, history endpoints, and boundary protections.
+- **Tests Performed:**
+  - Automated test suite (`tests/test_replacement_damage_bugfix.py`): 15/15 passed (100%).
+  - Full repository regression suite: **173/173 tests passed (100% pass rate)**.
+
+---
+
+## Phase 10: Full System Integration & E2E Testing — Stage 1 Remediation
+- **Status:** CONDITIONALLY COMPLETE (Stage 1 Remediated / Pending Stage 2 Concurrency Load Testing)
+- **Date:** 2026-11-20
+- **Lead Role:** Senior QA Automation Engineer & Python Test Architect
+- **Files Created / Modified:**
+  - `tests/test_e2e.py`: Created permanent master reproducible integration test suite containing 13 deterministic tests:
+    - `test_01_auth_lifecycle_and_session`: Registration, login, profile `/api/auth/me`, logout, and unauthenticated boundary assertions.
+    - `test_02_policy_lookup_and_prevalidation`: Active policy query, expired policy query, non-existent policy rejection.
+    - `test_03_claim_intake_multipart_submission`: Multipart ingestion with metadata and 4 required evidentiary files (PDF policy, claim form, invoice, photo); verified ID generation and DB storage.
+    - `test_04_evidence_manifest_and_document_retrieval`: Ingested document metadata, original filenames, MIME types, and secure binary download.
+    - `test_05_vehicle_damage_detection_pipeline`: YOLOv8 damage detection execution, bounding box localization, category mapping, visual overlays, and history tracking.
+    - `test_06_document_ocr_entity_extraction`: Document intelligence OCR pipeline extracting policy windows, registrations, and invoice line items with provenance.
+    - `test_07_accident_narrative_nlp_analysis`: Deterministic NLP narrative parsing extracting component mentions, impact points, chronological event reconstruction, and temporal consistency.
+    - `test_08_cross_source_verification_execution`: Deterministic Phase 7 verification linking narrative, OCR, and vision evidence; verified consistency score and overall status (`REVIEW_REQUIRED`).
+    - `test_09_verification_findings_and_summary_endpoints`: Detailed comparison findings, severity ratings, evidence coverage, and assessor recommendations.
+    - `test_10_consolidated_pdf_audit_report_generation`: Full 8-page ReportLab PDF report generation, header validation, and page count verification.
+    - `test_11_replacement_vehicle_image_workflow`: Vehicle replacement image upload, re-analysis, history persistence, and multi-run retrieval.
+    - `test_12_assessor_rbac_and_cross_user_isolation`: Ownership isolation (User B receives 403 on User A claim; Assessor and Admin receive 200).
+    - `test_13_defensive_security_and_boundary_checks`: Invalid claim ID formats, nonexistent claims, empty files, path traversal attempts, and unauthenticated access.
+  - `README.md`: Updated test execution badge (186 passed), roadmap entry (`CONDITIONALLY COMPLETE`), repository test suite listing (14 modules, 186 tests), and execution instructions.
+  - `DEVELOPMENT_LOG.md`: Appended entries for Phase 8, Phase 9, Vehicle Replacement Bugfix, and Phase 10 Stage 1 Remediation.
+  - `runs/phase10/stage1_remediation_report.md`: Published formal Phase 10 Stage 1 Remediation Report.
+- **Key Audit Findings & Remediations:**
+  - *Investigation of Missing `scratch/test_e2e_system_validation.py`:* Traced root cause to `.gitignore` line 87 (`scratch/`). The script was created in the local `scratch/` directory during Phase 9.10 and executed on the author's workstation (`c:\Users\ydvan\...`), but was git-ignored and never committed to version control. Remediated permanently by implementing the formal, version-controlled master integration test suite at `tests/test_e2e.py`.
+  - *Disambiguation of ML Crack Retraining Workstream:* Clarified conflicting Phase 10 references in Phase 9 research notes (which informally called future crack retraining "Phase 10"). Decoupled ML model training from Systems Integration by formally designating future computer vision training as **Phase 9.12 / Workstream ML-Crack-Retraining**. Phase 10 is reserved strictly for Systems Integration, E2E verification, and performance load testing.
+  - *Unwired Report ORM Model Identified:* Discovered that `Report` model in `backend/database/models.py:648-665` is defined in SQLite schema but unwired to backend services or routes. Claim receipts and 8-page audit reports are dynamically synthesized and streamed on demand via `backend/services/receipt.py`. Documented as an architectural finding for Phase 10 Stage 2.
+  - *Missing Concurrency Testing:* Identified that 50+ concurrent user load testing (via Locust) was not executed. Phase 10 marked **CONDITIONALLY COMPLETE** pending completion of concurrency load testing.
+- **Test Execution & Quality Verification:**
+  - Master Integration Suite (`tests/test_e2e.py`): **13/13 passed in 17.31s (100% pass rate)**.
+  - Full Repository Regression Suite: **186/186 passed in 103.25s across all 14 test modules (100% pass rate, 0 failures, 0 errors, 0 skips)**.
+  - Test Suite Breakdown:
+    - `test_auth.py`: 11 tests
+    - `test_claims.py`: 12 tests
+    - `test_database.py`: 4 tests
+    - `test_document_processing.py`: 13 tests
+    - `test_e2e.py`: 13 tests (new master E2E integration suite)
+    - `test_health.py`: 4 tests
+    - `test_ownership_and_receipt.py`: 6 tests
+    - `test_phase5_vision.py`: 30 tests
+    - `test_phase6_nlp.py`: 14 tests
+    - `test_phase7_cross_source_failures.py`: 18 tests
+    - `test_phase7_verification.py`: 32 tests
+    - `test_replacement_damage_bugfix.py`: 15 tests
+    - `test_security.py`: 8 tests
+    - `test_ui_redesign.py`: 6 tests
+    - **Total: 186 passed / 0 failed / 0 skipped**.
+- **Safety Compliance:**
+  - Production model weights (`models/phase5/best.pt`) untouched.
+  - Production database (`data/claimsense.db`) untouched (0 writes).
+  - Isolated temporary databases and upload directories used throughout testing with automatic teardown.
+  - No existing API contracts or frontend functionality modified.
+
+---
+
+## Phase 10: Full System Integration & E2E Testing — Stage 2 Concurrency & Load Testing
+- **Status:** STAGE 2 EXECUTED & VERIFIED — CLASSIFIED AS CONDITIONAL PASS
+- **Date:** 2026-11-20
+- **Lead Role:** Senior Performance Engineer, QA Architect and Database Reliability Specialist
+- **Files Created / Modified:**
+  - `tests/load/config.py`: Load test configurations, SLA thresholds (<500ms mean latency, <0.1% error rate), user credentials generation (50 pre-seeded users + 1 assessor), deterministic claim payloads, and synthetic minimal binary fixtures (`MINIMAL_VALID_PDF_BYTES`, `MINIMAL_VALID_JPEG_BYTES`).
+  - `tests/load/locustfile.py`: Realistic user simulation with authentic think times (0.2s–0.8s), CSRF token extraction, session cookie handling, and weighted endpoint distribution (25% my-claims, 25% policy lookup, 20% claim details, 15% verification summary, 10% findings, 5% claim submission).
+  - `tests/load/server.py`: Isolated Flask test server harness with dynamic database initialization, shared pre-hashed password caching (sub-second user seeding), test claim fixtures, and runtime SQLite WAL mode configuration (`--wal`).
+  - `tests/load/run_load_test.py`: Master automated concurrency orchestration harness with process isolation, disk logging, continuous `psutil` CPU/memory sampling, Locust CSV/JSON telemetry collection, and automated SLA compliance evaluation.
+  - `tests/load/README.md`: Comprehensive engineering guide covering load testing architecture, isolated test execution, CLI usage, Locust UI mode, safety guardrails, and metric interpretations.
+  - `tests/test_load_validation.py`: Unit and integration test suite validating load configurations, synthetic binary fixtures, deterministic payload generators, and database seeding (5/5 passed).
+  - `runs/phase10/stage2_load_testing_report.md`: Formal performance engineering report documenting load test execution, SLA compliance, latency percentiles, SQLite contention forensics, and Stage 2 verdict.
+  - `runs/phase10/stage2_database_architecture_decision.md`: Architectural Decision Record (ADR) analyzing Report persistence (Option A vs Option B) and recommending a Hybrid Two-Tier model with full migration DDL and rollback plans.
+  - `runs/phase10/load_test_artifacts/`: Directory preserving raw test data, server logs (`server_delete.log`, `server_wal.log`), Locust CSV time-series, and `consolidated_load_test_results.json`.
+- **Pre-Test Architectural Audit & SQLite Concurrency Analysis:**
+  - Audited Flask backend architecture, connection pooling, and transaction boundaries. In production, SQLite operates in default `DELETE` journal mode, serializing all write transactions via a single exclusive lock (`sqlite3.OperationalError: database is locked`).
+  - Investigated write contention during `POST /api/claims`: multipart submission parses attachments, writes document records, runs OCR, and executes YOLOv8 vision detection within a single transaction scope.
+  - Validated that `PRAGMA busy_timeout = 5000` is active via SQLAlchemy engine events in `backend/database/db.py`, providing a 5-second queue cushion against lock contention.
+- **Empirical Load Test Results (6,901 Total Requests, 0 Failures):**
+  - **Scenario 1 (10 Users, DELETE Mode):**
+    - Requests: 508 total | 508 success | 0 failed (0.00% error rate)
+    - Throughput: 18.04 req/sec | Mean Latency: **34.09 ms** (Target: <500 ms &mdash; PASS)
+    - Percentiles: p50: 15.0 ms | p95: 150.0 ms | p99: 380.0 ms | Max: 570.68 ms
+    - Status: **FULL PASS**
+  - **Scenario 2 (25 Users, DELETE Mode):**
+    - Requests: 1,659 total | 1,659 success | 0 failed (0.00% error rate)
+    - Throughput: 38.30 req/sec | Mean Latency: **131.73 ms** (Target: <500 ms &mdash; PASS)
+    - Percentiles: p50: 45.0 ms | p95: 510.0 ms | p99: 1,200.0 ms | Max: 3,119.09 ms
+    - Status: **FULL PASS**
+  - **Scenario 3 (50 Users, DELETE Mode &mdash; Stress Profile):**
+    - Requests: 2,297 total | 2,297 success | 0 failed (0.00% error rate)
+    - Throughput: 39.13 req/sec | Mean Latency: **740.51 ms** (Target: <500 ms &mdash; EXCEEDED SLA)
+    - Percentiles: p50: 530.0 ms | p95: 2,000.0 ms | p99: 4,900.0 ms | Max: 9,764.80 ms
+    - Status: **SLA EXCEEDED** (Zero functional errors, but tail read queuing exceeded mean target)
+  - **Scenario 4 (50 Users, SQLite WAL Mode &mdash; Mitigation Profile):**
+    - Requests: 2,437 total | 2,437 success | 0 failed (0.00% error rate)
+    - Throughput: 40.78 req/sec | Mean Latency: **673.28 ms** (-9.1% vs DELETE)
+    - Percentiles: p50: 570.0 ms | p95: **1,400.0 ms** (-30.0% reduction) | p99: **3,400.0 ms** (-30.6% reduction) | Max: **4,502.80 ms** (-53.9% reduction)
+    - Status: **CONDITIONAL PASS** (Substantial tail latency improvement, 100% data integrity, 0 errors)
+- **Bottlenecks Identified:**
+  1. *Synchronous AI Pipeline in Intake Route:* `POST /api/claims` executes document OCR and YOLOv8 inference synchronously before returning an HTTP response, taking ~3.1 seconds per submission and keeping the DB connection active.
+  2. *Concurrent PBKDF2 Password Hashing:* User ramp-up triggers concurrent PBKDF2 iterations (600,000 per hash) competing for CPU cores with inference.
+  3. *Werkzeug Development Server Process Model:* Single-process multithreaded runtime bounded by Python GIL during heavy CPU operations.
+- **Report Persistence Architectural Decision (ADR Summary):**
+  - Analyzed `Report` ORM model (`backend/database/models.py:648-665`). Evaluated Option A (full DB persistence) vs Option B (stateless in-memory streaming).
+  - Adopted **Hybrid Two-Tier Lifecycle Recommendation**: Maintain stateless in-memory generation during fluid draft/review stages (`IN_REVIEW`), but trigger an immutable, SHA-256 hashed DB persistence record upon transition to terminal states (`VERIFIED` or `FLAGGED`). Full DDL migration and rollback scripts documented in `runs/phase10/stage2_database_architecture_decision.md`.
+- **Regression & Quality Verification:**
+  - Executed full test discovery across all 15 test modules:
+    `python -m unittest discover -s tests -p "test_*.py"`
+  - **Results: 191 tests executed in 102.5s &mdash; 190 passed, 1 skipped, 0 failures, 0 errors (100% pass rate)**.
+  - Confirmed 0 production files modified, 0 writes to `data/claimsense.db`, and model weights `models/phase5/best.pt` remained untouched.
+- **Stage 2 Verdict:** **CONDITIONAL PASS**
+  - 10 and 25 user workloads passed all strict criteria with zero errors and low latencies (34ms and 132ms).
+  - 50 user workload achieved perfect reliability (0.00% error rate across 4,734 requests) with zero database locks or transaction loss, but mean latency reached 673ms (WAL mode) against the strict <500ms SLA due to synchronous CPU-bound vision/OCR processing.
+
+---
+
+## Phase 10: Final System Integration, Concurrency Validation & Git Release Closure
+- **Status:** COMPLETED & VERIFIED — FINAL PHASE 10 VERDICT: CONDITIONAL PASS
+- **Date:** 2026-11-20
+- **Lead Roles:** Senior Software Architect, QA Lead, DevOps Auditor, Database Reliability Engineer, Git Release Manager
+- **Deliverables Finalized & Verified:**
+  - `tests/test_e2e.py`: Permanent master integration test suite (13 comprehensive tests covering all 10 multi-modal operational workflows).
+  - `tests/test_load_validation.py`: Unit validation suite for load testing fixtures and server harnesses (5 tests).
+  - `tests/load/`: Complete Locust load testing framework (`config.py`, `locustfile.py`, `server.py`, `run_load_test.py`, `README.md`).
+  - `runs/phase10/final_closure_audit_report.md`: Authoritative Phase 10 final closure audit report.
+  - `runs/phase10/stage1_remediation_report.md`: Stage 1 remediation governance record.
+  - `runs/phase10/stage2_load_testing_report.md`: Stage 2 empirical load testing benchmark report.
+  - `runs/phase10/stage2_database_architecture_decision.md`: Report persistence & SQLite journal mode ADR.
+  - `runs/phase10/phase11_readiness_checklist.md`: Phase 11 operational readiness checklist.
+  - `README.md` & `DEVELOPMENT_LOG.md`: Fully synchronized with verified metrics and test commands.
+- **E2E & Regression Test Verification Results:**
+  - `pytest tests/test_e2e.py -v`: **13 passed in 24.74s (100% pass rate)**.
+  - `pytest tests/test_load_validation.py -v`: **5 passed in 7.17s (100% pass rate)**.
+  - Full discovery (`python -m unittest discover -s tests -p "test_*.py" -v`): **191 tests verified &mdash; 190 passed, 1 skipped, 0 failures, 0 errors in 104.35s**.
+  - Full repository pytest (`python -m pytest -q`): **201 passed, 1 skipped, 0 failures, 0 errors in 191.91s** (including standalone redaction script unit tests).
+- **Concurrency & Load Testing Verification:**
+  - 10 Users (`DELETE`): 508 req, 0 failures, 18.04 req/s, mean latency **34.09 ms**, p95 **150.0 ms** &mdash; **FULL PASS**.
+  - 25 Users (`DELETE`): 1,659 req, 0 failures, 38.30 req/s, mean latency **131.73 ms**, p95 **510.0 ms** &mdash; **FULL PASS**.
+  - 50 Users (`DELETE`): 2,297 req, 0 failures, 39.13 req/s, mean latency **740.51 ms**, max **9,764.80 ms** &mdash; **SLA EXCEEDED**.
+  - 50 Users (`WAL`): 2,437 req, 0 failures, 40.78 req/s, mean latency **673.28 ms** (-9.1%), p95 **1,400.0 ms** (-30.0%), max **4,502.80 ms** (-53.9%) &mdash; **CONDITIONAL PASS**.
+  - Aggregated Load: **6,901 total HTTP requests, 0 failures (0.00% error rate), 0 SQLite lock errors, 0 data corruptions**.
+- **Database Safety & Integrity Verification:**
+  - Active runtime database (`backend/database/claimsense.db`, 659,456 B, SHA-256 `2b5bb0fa9dab5d37a02bb319a18517ad00994e1a6559cf9757742b5be0ae1752`): **0 writes, 100% unmodified**.
+  - Root default database (`data/claimsense.db`, 0 B, SHA-256 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`): **0 writes, 100% unmodified**.
+  - Dedicated shadow telemetry database (`backend/database/shadow_telemetry.db`, 94,208 B, SHA-256 `9d6b27e9eb7befea8705921eae2d7a9729f7451b6b60036962402288a463355c`): **0 writes, 100% unmodified**.
+  - Authoritative production model (`models/phase5/best.pt`, 6,472,234 B, SHA-256 `90d489e46ff8521edff88d522f0feffa164ac38a53b84700594c02a69e515565`): **100% unmodified**.
+  - Production evidence uploads (`uploads/`, 83 files): **0 changes, 100% unmodified**.
+- **Report Persistence Architecture Decision:**
+  - Approved **Hybrid Two-Tier Lifecycle**: In-memory dynamic streaming during review; immutable SHA-256 hashed PDF snapshot persisted upon terminal transition (`VERIFIED` / `FLAGGED`). Full forward DDL migration and rollback scripts prepared for Phase 11.
+- **Known Limitations & Phase 11 Scope:**
+  - 50-user mean latency SLA target exceeded due to CPU-bound synchronous YOLOv8 damage detection and OCR document extraction inside `POST /api/claims` (~3,100 ms execution time). Gated for asynchronous background worker queue (Celery/RQ) in Phase 11.
+  - CarDD hairline crack detection remains a model limitation; decoupled into Phase 9.12 ML retraining.
+  - Assistive decision support only; does not autonomously approve or deny claims.
+- **Git Commit & Push Metadata:**
+  - Commit Target: `main` branch.
+  - Staged Scope: Exactly 14 approved Phase 10 test, documentation, and governance files.
+  - Commit Message: `feat(phase10): close system integration and concurrency testing`.
