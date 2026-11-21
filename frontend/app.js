@@ -3238,135 +3238,66 @@ function initClaimSenseApp() {
                 if (verifFindingsRows) {
                     verifFindingsRows.innerHTML = "";
                     const findings = verif.findings || [];
-                    const countBadge = document.getElementById("verif-findings-count-badge");
-                    if (countBadge) {
-                        countBadge.textContent = `${findings.length} Finding${findings.length === 1 ? '' : 's'}`;
-                    }
-
                     if (findings.length === 0) {
                         verifFindingsRows.innerHTML = `<tr><td colspan="7" class="text-center text-muted p-4">No comparison findings generated.</td></tr>`;
                     } else {
-                        // Helper to format source names cleanly
-                        const formatSource = (s) => {
-                            if (!s) return "";
-                            const map = {
-                                "claim_narrative": "Claimant Prose",
-                                "narrative": "Claimant Prose",
-                                "vehicle_photo_cardd": "YOLOv8 Vision",
-                                "yolov8_cardd": "YOLOv8 Vision",
-                                "vision": "YOLOv8 Vision",
-                                "repair_estimate": "Repair Invoice",
-                                "repair_invoice": "Repair Invoice",
-                                "invoice": "Repair Invoice",
-                                "policy_schedule": "Policy Schedule",
-                                "policy_document": "Policy Schedule",
-                                "claim_form": "Claim Form",
-                            };
-                            const key = String(s).toLowerCase().trim();
-                            if (map[key]) return map[key];
-                            return String(s).replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-                        };
-
                         findings.forEach(f => {
                             const tr = document.createElement("tr");
 
-                            // Status badge class, icon, and human-readable label
-                            const stRaw = (f.comparison_status || "").toUpperCase();
+                            // Status badge class
                             let stClass = "badge-status-missing";
-                            let stIcon = "ℹ";
-                            let stLabel = stRaw;
-
-                            if (stRaw === "MATCH") {
+                            const st = (f.comparison_status || "").toUpperCase();
+                            if (st === "MATCH") {
                                 stClass = "badge-status-match";
-                                stIcon = "✓";
-                                stLabel = "Match";
-                            } else if (stRaw === "MISMATCH") {
+                            } else if (st === "MISMATCH") {
                                 stClass = "badge-status-mismatch";
-                                stIcon = "✕";
-                                stLabel = "Mismatch";
-                            } else if (stRaw === "VISUAL_ONLY_FINDING") {
-                                stClass = "badge-status-visual";
-                                stIcon = "👁";
-                                stLabel = "Visual Only";
-                            } else if (stRaw === "NOT_VISUALLY_CONFIRMED" || stRaw === "NOT_CONFIRMED") {
-                                stClass = "badge-status-unconfirmed";
-                                stIcon = "⚠";
-                                stLabel = "Unconfirmed";
-                            } else if (stRaw === "MISSING_IN_SOURCE" || stRaw === "NOT_PRESENT") {
+                            } else if (st === "MISSING_IN_SOURCE" || st === "NOT_PRESENT") {
                                 stClass = "badge-status-missing";
-                                stIcon = "∅";
-                                stLabel = "Missing";
-                            } else if (stRaw === "POTENTIAL_DISCREPANCY") {
+                            } else if (st === "INCONCLUSIVE" || st === "NEEDS_REVIEW" || st === "EXTRACTION_ERROR" || st === "POTENTIAL_DISCREPANCY") {
                                 stClass = "badge-status-inconclusive";
-                                stIcon = "⚡";
-                                stLabel = "Discrepancy";
-                            } else if (stRaw === "INCONCLUSIVE" || stRaw === "NEEDS_REVIEW" || stRaw === "EXTRACTION_ERROR") {
-                                stClass = "badge-status-inconclusive";
-                                stIcon = "🔍";
-                                stLabel = "Needs Review";
-                            } else if (stRaw === "NOT_APPLICABLE") {
+                            } else if (st === "NOT_APPLICABLE") {
                                 stClass = "badge-status-na";
-                                stIcon = "—";
-                                stLabel = "N/A";
-                            } else {
-                                stLabel = stRaw.replace(/_/g, " ");
+                            } else if (st === "VISUAL_ONLY" || st === "VISUAL_ONLY_FINDING") {
+                                stClass = "badge-status-visual";
+                            } else if (st === "NOT_CONFIRMED") {
+                                stClass = "badge-status-inconclusive";
                             }
 
-                            // Severity badge class and clean label
-                            const sevRaw = (f.severity || "LOW").toUpperCase();
+                            // Severity badge class
                             let sevClass = "badge-sev-low";
-                            let sevLabel = "Low";
-                            if (sevRaw === "CRITICAL") {
+                            const sev = (f.severity || "").toUpperCase();
+                            if (sev === "CRITICAL") {
                                 sevClass = "badge-sev-critical";
-                                sevLabel = "Critical";
-                            } else if (sevRaw === "HIGH") {
+                            } else if (sev === "HIGH") {
                                 sevClass = "badge-sev-high";
-                                sevLabel = "High";
-                            } else if (sevRaw === "MEDIUM") {
+                            } else if (sev === "MEDIUM") {
                                 sevClass = "badge-sev-medium";
-                                sevLabel = "Medium";
+                            } else if (sev === "LOW") {
+                                sevClass = "badge-sev-low";
                             }
 
-                            const valA = f.original_value_a != null && f.original_value_a !== "" ? escapeHtml(String(f.original_value_a)) : '<span class="val-token-empty">—</span>';
-                            const valB = f.original_value_b != null && f.original_value_b !== "" ? escapeHtml(String(f.original_value_b)) : '<span class="val-token-empty">—</span>';
+                            const valA = f.original_value_a != null && f.original_value_a !== "" ? escapeHtml(String(f.original_value_a)) : '<span class="val-token val-token-empty">—</span>';
+                            const valB = f.original_value_b != null && f.original_value_b !== "" ? escapeHtml(String(f.original_value_b)) : '<span class="val-token val-token-empty">—</span>';
 
-                            const tokenA = valA.includes("val-token-empty") ? valA : `<div class="val-token val-token-source-a">${valA}</div>`;
-                            const tokenB = valB.includes("val-token-empty") ? valB : `<div class="val-token val-token-source-b">${valB}</div>`;
-
-                            const rawField = String(f.field_name || '');
-                            const cleanField = escapeHtml(rawField.replace(/^damage_/i, '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
+                            const tokenA = valA.startsWith('<span') ? valA : `<span class="val-token">${valA}</span>`;
+                            const tokenB = valB.startsWith('<span') ? valB : `<span class="val-token">${valB}</span>`;
 
                             tr.innerHTML = `
-                                <td class="td-comparison">
+                                <td>
                                     <div class="cmp-container">
-                                        <span class="cmp-source-primary" title="${escapeHtml(f.source_a || '')}">${escapeHtml(formatSource(f.source_a))}</span>
-                                        <span class="cmp-vs-badge">VS</span>
-                                        <span class="cmp-source-secondary" title="${escapeHtml(f.source_b || '')}">${escapeHtml(formatSource(f.source_b))}</span>
+                                        <span class="cmp-source-primary">${escapeHtml(f.source_a || '')}</span>
+                                        <span class="cmp-source-secondary">vs ${escapeHtml(f.source_b || '')}</span>
                                     </div>
                                 </td>
-                                <td class="td-field">
-                                    <div class="field-title" title="${escapeHtml(rawField)}">${cleanField}</div>
+                                <td>
+                                    <div class="field-title">${escapeHtml(f.field_name || '')}</div>
                                     <span class="field-id-tag">${escapeHtml(f.comparison_id || '')}</span>
                                 </td>
-                                <td class="td-source-a">
-                                    <div class="val-cell-wrapper">
-                                        ${tokenA}
-                                    </div>
-                                </td>
-                                <td class="td-source-b">
-                                    <div class="val-cell-wrapper">
-                                        ${tokenB}
-                                    </div>
-                                </td>
-                                <td class="td-status">
-                                    <span class="status-badge ${stClass}"><span class="badge-icon">${stIcon}</span> ${stLabel}</span>
-                                </td>
-                                <td class="td-severity">
-                                    <span class="severity-badge ${sevClass}">${sevLabel}</span>
-                                </td>
-                                <td class="td-explanation">
-                                    <div class="expl-text">${escapeHtml(f.explanation || '')}</div>
-                                </td>
+                                <td>${tokenA}</td>
+                                <td>${tokenB}</td>
+                                <td class="td-status"><span class="status-badge ${stClass}">${escapeHtml(f.comparison_status || '')}</span></td>
+                                <td class="td-severity"><span class="severity-badge ${sevClass}">${escapeHtml(f.severity || '')}</span></td>
+                                <td><div class="expl-text">${escapeHtml(f.explanation || '')}</div></td>
                             `;
                             verifFindingsRows.appendChild(tr);
                         });
