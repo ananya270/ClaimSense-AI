@@ -17,7 +17,7 @@ from typing import Any, Dict, Optional
 from backend.config import Config
 from backend.database.db import get_db_session
 from backend.database.models import Claim, ProcessingTask, ClaimImage, Document
-from backend.services.ocr.document_service import ingest_extracted_claim_data
+from backend.services.ocr.document_service import ingest_extracted_claim_data, process_document
 from backend.services.vision import process_claim_damage_detection
 from backend.services.nlp import ClaimNLPService
 from backend.services.verification import ClaimVerificationService
@@ -120,11 +120,27 @@ def execute_claim_processing_pipeline(
             policy_number = claim.policy_number
             claim_desc = claim.claim_description
 
-            # Retrieve evidence documents
-            documents = db.query(Document).filter_by(claim_id=claim_id).all()
-            images = db.query(ClaimImage).filter_by(claim_id=claim_id).all()
+            # Retrieve evidence documents as plain dicts to prevent DetachedInstanceError outside session
+            doc_records = [
+                {
+                    "document_id": d.document_id,
+                    "document_type": d.document_type,
+                    "file_path": d.file_path,
+                    "original_filename": d.original_filename,
+                }
+                for d in db.query(Document).filter_by(claim_id=claim_id).all()
+            ]
+            img_records = [
+                {
+                    "image_id": img.image_id,
+                    "image_type": img.image_type,
+                    "file_path": img.file_path,
+                    "original_filename": img.original_filename,
+                }
+                for img in db.query(ClaimImage).filter_by(claim_id=claim_id).all()
+            ]
 
-        upload_root = Config.UPLOAD_FOLDER
+        upload_root = Path(Config.UPLOAD_FOLDER)
 
         # -------------------------------------------------------------
         # Stage 1: Document OCR Extraction
@@ -133,21 +149,23 @@ def execute_claim_processing_pipeline(
             update_task_stage(task_id, "PROCESSING", "OCR_PROCESSING", 25)
         logger.info(f"[{claim_id}] Stage 1: Executing Document OCR extraction...")
 
-        policy_doc = next((d for d in documents if d.document_type == "POLICY_DOCUMENT"), None)
-        invoice_doc = next((d for d in documents if d.document_type == "INVOICE"), None)
+        processed_documents = []
+        for doc in doc_records:
+            if doc.get("file_path"):
+                d_path = upload_root / doc["file_path"]
+                if d_path.exists():
+                    try:
+                        orig_name = doc.get("original_filename") or d_path.name
+                        proc = process_document(d_path, orig_name)
+                        processed_documents.append(proc)
+                    except Exception as p_err:
+                        logger.warning(f"[{claim_id}] Document extraction failed for {doc.get('file_path')}: {p_err}")
 
-        if policy_doc or invoice_doc:
-            p_path = (upload_root / policy_doc.file_path) if policy_doc else None
-            i_path = (upload_root / invoice_doc.file_path) if invoice_doc else None
+        if processed_documents:
             try:
-                ingest_extracted_claim_data(
-                    claim_id=claim_id,
-                    policy_pdf_path=p_path if (p_path and p_path.exists()) else None,
-                    invoice_pdf_path=i_path if (i_path and i_path.exists()) else None,
-                    upload_root=upload_root,
-                )
+                ingest_extracted_claim_data(claim_id, processed_documents)
                 results_summary["ocr_success"] = True
-                logger.info(f"[{claim_id}] Document OCR extraction succeeded.")
+                logger.info(f"[{claim_id}] Document OCR extraction succeeded for {len(processed_documents)} docs.")
             except Exception as ocr_err:
                 logger.warning(f"[{claim_id}] Document OCR encountered non-fatal error: {ocr_err}")
                 results_summary["ocr_error"] = str(ocr_err)
@@ -159,14 +177,19 @@ def execute_claim_processing_pipeline(
             update_task_stage(task_id, "PROCESSING", "DAMAGE_ANALYSIS", 55)
         logger.info(f"[{claim_id}] Stage 2: Executing YOLOv8 vehicle damage detection...")
 
-        primary_image = images[0] if images else None
+        # Prioritize replacement vehicle photograph if present
+        primary_image = next((img for img in img_records if img.get("image_type") == "REPLACEMENT_VEHICLE_ACCIDENT"), None)
+        if not primary_image and img_records:
+            primary_image = img_records[0]
+
         if primary_image:
             try:
                 cv_res = process_claim_damage_detection(
                     claim_id=claim_id,
-                    image_id=primary_image.image_id,
-                    conf=0.15,
+                    image_id=primary_image.get("image_id"),
+                    conf_threshold=0.15,
                     force_opencv=False,
+                    upload_base=upload_root,
                 )
                 results_summary["vision_success"] = bool(cv_res.get("success", False))
                 results_summary["damages_detected"] = cv_res.get("total_detections", 0)

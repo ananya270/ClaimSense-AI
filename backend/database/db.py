@@ -117,12 +117,12 @@ def _ensure_schema_migrations(engine: Engine) -> None:
                 "total_damages_detected": "INTEGER DEFAULT 0",
                 "damage_categories": "TEXT",
                 "detected_categories": "TEXT",
-                "highest_confidence": "FLOAT",
-                "max_confidence": "FLOAT",
-                "average_confidence": "FLOAT",
+                "highest_confidence": "FLOAT DEFAULT 0.0",
+                "max_confidence": "FLOAT DEFAULT 0.0",
+                "average_confidence": "FLOAT DEFAULT 0.0",
                 "analysis_status": "VARCHAR(32) DEFAULT 'completed'",
-                "processing_time_ms": "FLOAT",
-                "inference_time_ms": "FLOAT",
+                "processing_time_ms": "FLOAT DEFAULT 0.0",
+                "inference_time_ms": "FLOAT DEFAULT 0.0",
                 "device": "VARCHAR(32) DEFAULT 'cpu'",
             }
             for col_name, ddl in v_migrations.items():

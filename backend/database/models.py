@@ -311,27 +311,47 @@ class VehicleDamageAnalysis(Base):
     image_path = Column(String(512), nullable=True)
     original_image_path = Column(String(512), nullable=True, default="")
     annotated_image_path = Column(String(512), nullable=True)
-    model_name = Column(String(64), default="YOLOv8n-CarDD", nullable=False)
-    model_version = Column(String(32), default="v1.0", nullable=False)
-    total_detections = Column(Integer, default=0, nullable=False)
-    total_damages_detected = Column(Integer, default=0, nullable=True)
-    damage_categories = Column(Text, nullable=True, default="[]")
-    detected_categories = Column(Text, nullable=True, default="[]")
-    highest_confidence = Column(Float, nullable=True, default=0.0)
-    max_confidence = Column(Float, nullable=True, default=0.0)
-    average_confidence = Column(Float, nullable=True, default=0.0)
-    analysis_status = Column(String(32), default="completed", nullable=True)
+    model_name = Column(String(64), default="YOLOv8n-CarDD", server_default="YOLOv8n-CarDD", nullable=False)
+    model_version = Column(String(32), default="v1.0", server_default="v1.0", nullable=False)
+    total_detections = Column(Integer, default=0, server_default="0", nullable=False)
+    total_damages_detected = Column(Integer, default=0, server_default="0", nullable=False)
+    damage_categories = Column(Text, nullable=True, default="[]", server_default="[]")
+    detected_categories = Column(Text, nullable=True, default="[]", server_default="[]")
+    highest_confidence = Column(Float, nullable=False, default=0.0, server_default="0.0")
+    max_confidence = Column(Float, nullable=False, default=0.0, server_default="0.0")
+    average_confidence = Column(Float, nullable=False, default=0.0, server_default="0.0")
+    analysis_status = Column(String(32), default="completed", server_default="completed", nullable=False)
     detection_method = Column(String(64), default="YOLOv8", nullable=True)
     model_available = Column(Boolean, default=True, nullable=True)
     opencv_observations = Column(Text, nullable=True)
-    processing_time_ms = Column(Float, nullable=True, default=0.0)
-    inference_time_ms = Column(Float, nullable=True, default=0.0)
+    processing_time_ms = Column(Float, nullable=False, default=0.0, server_default="0.0")
+    inference_time_ms = Column(Float, nullable=False, default=0.0, server_default="0.0")
     device = Column(String(32), default="cpu", nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=True)
 
     claim = relationship("Claim", back_populates="vehicle_damage_analyses")
     detections = relationship("VehicleDamageDetection", back_populates="analysis", cascade="all, delete-orphan", lazy="select")
+
+    def __init__(self, **kwargs):
+        # Guarantee non-null fields for legacy SQLite schema compatibility
+        if "original_image_path" not in kwargs or kwargs["original_image_path"] is None:
+            kwargs["original_image_path"] = kwargs.get("image_path") or ""
+        if "total_damages_detected" not in kwargs or kwargs["total_damages_detected"] is None:
+            kwargs["total_damages_detected"] = kwargs.get("total_detections") or 0
+        if "max_confidence" not in kwargs or kwargs["max_confidence"] is None:
+            kwargs["max_confidence"] = kwargs.get("highest_confidence") if kwargs.get("highest_confidence") is not None else 0.0
+        if "highest_confidence" not in kwargs or kwargs["highest_confidence"] is None:
+            kwargs["highest_confidence"] = kwargs.get("max_confidence") if kwargs.get("max_confidence") is not None else 0.0
+        if "average_confidence" not in kwargs or kwargs["average_confidence"] is None:
+            kwargs["average_confidence"] = 0.0
+        if "inference_time_ms" not in kwargs or kwargs["inference_time_ms"] is None:
+            kwargs["inference_time_ms"] = kwargs.get("processing_time_ms") if kwargs.get("processing_time_ms") is not None else 0.0
+        if "processing_time_ms" not in kwargs or kwargs["processing_time_ms"] is None:
+            kwargs["processing_time_ms"] = kwargs.get("inference_time_ms") if kwargs.get("inference_time_ms") is not None else 0.0
+        if "analysis_status" not in kwargs or kwargs["analysis_status"] is None:
+            kwargs["analysis_status"] = "completed"
+        super().__init__(**kwargs)
 
     def to_dict(self) -> Dict[str, Any]:
         try:

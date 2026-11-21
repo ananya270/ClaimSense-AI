@@ -934,6 +934,9 @@ function initClaimSenseApp() {
     ].forEach((b) => {
         if (b) {
             b.addEventListener("click", () => {
+                if (typeof resetClaimSubmissionForm === "function") {
+                    resetClaimSubmissionForm();
+                }
                 switchView("submit");
                 if (typeof goToWizardStep === "function") goToWizardStep(1);
             });
@@ -1832,25 +1835,116 @@ function initClaimSenseApp() {
         });
     }
 
+    function resetClaimSubmissionForm() {
+        // 1. Abort any running polling intervals
+        if (asyncPollingInterval) {
+            clearInterval(asyncPollingInterval);
+            asyncPollingInterval = null;
+        }
+        currentActiveClaimId = null;
+
+        // 2. Reset the native HTML form
+        if (claimForm) {
+            claimForm.reset();
+        }
+
+        // 3. Explicitly wipe form field values (in case form.reset() missed dynamically populated inputs)
+        const fieldIds = [
+            "claimant_name",
+            "policy_number",
+            "vehicle_number",
+            "accident_date",
+            "incident_location",
+            "claim_description",
+            "policy_document",
+            "claim_form_file",
+            "invoice_document",
+            "vehicle_image"
+        ];
+        fieldIds.forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.value = "";
+        });
+
+        // 4. Reset checkboxes
+        const chkConfirm = document.getElementById("chk-confirm-submission");
+        if (chkConfirm) chkConfirm.checked = false;
+
+        // 5. Clear dropzone styling and file badges
+        refreshFileBadges();
+        ["dropzone-policy", "dropzone-form", "dropzone-invoice", "dropzone-image"].forEach((dzId) => {
+            const dz = document.getElementById(dzId);
+            if (dz) dz.classList.remove("has-file");
+        });
+
+        // 6. Reset review step (Step 4) UI elements
+        const setEl = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val;
+        };
+        setEl("rev-val-name", "-");
+        setEl("rev-val-policy", "-");
+        setEl("rev-val-vehicle", "-");
+        setEl("rev-val-date", "-");
+        setEl("rev-val-location", "-");
+        setEl("rev-val-narrative", "-");
+
+        const reviewFiles = [
+            { revId: "rev-file-policy", chkId: "rev-chk-policy", label: "Policy Schedule" },
+            { revId: "rev-file-form", chkId: "rev-chk-form", label: "Claim Form" },
+            { revId: "rev-file-invoice", chkId: "rev-chk-invoice", label: "Invoice / Estimate" },
+            { revId: "rev-file-image", chkId: "rev-chk-image", label: "Accident Photo" }
+        ];
+        reviewFiles.forEach((rf) => {
+            setEl(rf.revId, `${rf.label}: Not selected`);
+            const chkEl = document.getElementById(rf.chkId);
+            if (chkEl) chkEl.classList.remove("file-ready");
+        });
+
+        // 7. Reset results & async pipeline progress card
+        if (successCard) successCard.style.display = "none";
+        const asyncCard = document.getElementById("async-pipeline-status-card");
+        if (asyncCard) asyncCard.style.display = "none";
+
+        const pBar = document.getElementById("async-progress-bar");
+        if (pBar) {
+            pBar.style.width = "0%";
+            pBar.className = "progress-bar-fill progress-idle";
+        }
+        const oBadge = document.getElementById("async-overall-status-badge");
+        if (oBadge) {
+            oBadge.textContent = "IDLE";
+            oBadge.className = "status-badge status-idle";
+        }
+        const pPercent = document.getElementById("async-progress-percentage");
+        if (pPercent) pPercent.textContent = "0%";
+
+        const stageList = ["intake", "ocr", "cardd", "nlp", "verification"];
+        stageList.forEach((s) => {
+            const item = document.getElementById(`pipeline-stage-${s}`);
+            if (item) item.className = "pipeline-stage-item stage-pending";
+            const val = document.getElementById(`stage-val-${s}`);
+            if (val) val.textContent = "pending";
+        });
+
+        clearError();
+
+        // 8. Restore intake view to Step 1
+        if (submissionCard) {
+            submissionCard.style.display = "block";
+        }
+        currentWizardStep = 1;
+        if (typeof goToWizardStep === "function") {
+            goToWizardStep(1);
+        }
+        if (submissionCard) {
+            submissionCard.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+
     if (btnNewClaim) {
         btnNewClaim.addEventListener("click", () => {
-            if (claimForm) claimForm.reset();
-            clearError();
-            refreshFileBadges();
-            const chk = document.getElementById("chk-confirm-submission");
-            if (chk) chk.checked = false;
-            if (successCard) successCard.style.display = "none";
-            const asyncCard = document.getElementById("async-pipeline-status-card");
-            if (asyncCard) asyncCard.style.display = "none";
-            if (asyncPollingInterval) {
-                clearInterval(asyncPollingInterval);
-                asyncPollingInterval = null;
-            }
-            if (submissionCard) {
-                submissionCard.style.display = "block";
-                submissionCard.scrollIntoView({ behavior: "smooth" });
-            }
-            if (typeof goToWizardStep === "function") goToWizardStep(1);
+            resetClaimSubmissionForm();
         });
     }
 

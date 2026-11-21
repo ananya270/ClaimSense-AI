@@ -309,16 +309,18 @@ def process_claim_damage_detection(
             rec.detection_method = analysis_result.get("detection_method", "yolov8_cardd")
             rec.model_available = analysis_result.get("model_available", True)
             rec.opencv_observations = obs_json
-            rec.total_detections = analysis_result["total_detections"]
-            rec.total_damages_detected = analysis_result["total_detections"]
-            rec.damage_categories = json.dumps(analysis_result["damage_categories"])
-            rec.detected_categories = json.dumps(analysis_result["damage_categories"])
-            rec.highest_confidence = analysis_result["highest_confidence"]
-            rec.max_confidence = analysis_result["highest_confidence"]
-            rec.average_confidence = round(avg_conf, 4)
+            rec.total_detections = int(analysis_result.get("total_detections") or 0)
+            rec.total_damages_detected = int(analysis_result.get("total_detections") or 0)
+            rec.damage_categories = json.dumps(analysis_result.get("damage_categories") or [])
+            rec.detected_categories = json.dumps(analysis_result.get("damage_categories") or [])
+            h_conf = float(analysis_result.get("highest_confidence") if analysis_result.get("highest_confidence") is not None else 0.0)
+            rec.highest_confidence = h_conf
+            rec.max_confidence = h_conf
+            rec.average_confidence = round(float(avg_conf), 4) if avg_conf is not None else 0.0
             rec.analysis_status = "completed"
-            rec.processing_time_ms = analysis_result.get("processing_time_ms") or measured_latency_ms
-            rec.inference_time_ms = analysis_result.get("processing_time_ms") or measured_latency_ms
+            p_time = float(analysis_result.get("processing_time_ms") or measured_latency_ms or 0.0)
+            rec.processing_time_ms = p_time
+            rec.inference_time_ms = p_time
             rec.device = analysis_result["device"]
             rec.updated_at = now_done
 
