@@ -3259,7 +3259,7 @@ function initClaimSenseApp() {
                                 stClass = "badge-status-na";
                             } else if (st === "VISUAL_ONLY" || st === "VISUAL_ONLY_FINDING") {
                                 stClass = "badge-status-visual";
-                            } else if (st === "NOT_CONFIRMED") {
+                            } else if (st === "NOT_CONFIRMED" || st === "UNCONFIRMED") {
                                 stClass = "badge-status-inconclusive";
                             }
 
@@ -3295,7 +3295,7 @@ function initClaimSenseApp() {
                                 </td>
                                 <td>${tokenA}</td>
                                 <td>${tokenB}</td>
-                                <td class="td-status"><span class="status-badge ${stClass}">${escapeHtml(f.comparison_status || '')}</span></td>
+                                <td class="td-status"><span class="status-badge ${stClass}">${escapeHtml((f.comparison_status || '').replace(/_/g, ' '))}</span></td>
                                 <td class="td-severity"><span class="severity-badge ${sevClass}">${escapeHtml(f.severity || '')}</span></td>
                                 <td><div class="expl-text">${escapeHtml(f.explanation || '')}</div></td>
                             `;
