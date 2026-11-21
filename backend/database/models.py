@@ -646,20 +646,31 @@ class RiskAssessment(Base):
 
 
 class Report(Base):
-    """Future schema for Phase 10 (Assessor verification audit reports)."""
+    """Schema for Phase 10 & 11 (Assessor verification audit reports & immutable snapshots)."""
     __tablename__ = "reports"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     claim_id = Column(String(32), ForeignKey("claims.claim_id"), nullable=False, index=True)
+    report_type = Column(String(32), nullable=False, default="VERIFICATION_AUDIT")
     report_path = Column(String(512), nullable=False)
+    file_hash = Column(String(64), nullable=True)
+    file_size_bytes = Column(Integer, nullable=True)
+    generated_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    status = Column(String(32), nullable=False, default="ACTIVE")
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     claim = relationship("Claim", back_populates="reports")
+    generator = relationship("User", foreign_keys=[generated_by])
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
             "claim_id": self.claim_id,
+            "report_type": self.report_type,
             "report_path": self.report_path,
+            "file_hash": self.file_hash,
+            "file_size_bytes": self.file_size_bytes,
+            "generated_by": self.generated_by,
+            "status": self.status,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

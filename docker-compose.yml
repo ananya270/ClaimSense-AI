@@ -1,0 +1,68 @@
+# ClaimSense AI — Production Multi-Container Compose Configuration
+# Milestone: Phase 11 Production Hardening & Reverse Proxy Architecture
+
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: claimsense-app
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=0
+      - HOST=0.0.0.0
+      - PORT=5001
+      - SQLITE_WAL_MODE=true
+      - JSON_LOGGING=true
+      - SECRET_KEY=${SECRET_KEY:-claimsense_prod_secret_token_at_least_32_characters_long_entropy}
+      - CORS_ALLOWED_ORIGINS=http://localhost,http://127.0.0.1,http://localhost:5001
+    volumes:
+      - claimsense_data:/app/data
+      - claimsense_uploads:/app/uploads
+      - claimsense_reports:/app/reports
+      - claimsense_backups:/app/backups
+    expose:
+      - "5001"
+    networks:
+      - claimsense-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:5001/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: claimsense-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./frontend:/usr/share/nginx/html:ro
+      - claimsense_reports:/app/reports:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - claimsense-net
+
+volumes:
+  claimsense_data:
+    driver: local
+  claimsense_uploads:
+    driver: local
+  claimsense_reports:
+    driver: local
+  claimsense_backups:
+    driver: local
+
+networks:
+  claimsense-net:
+    driver: bridge

@@ -9,8 +9,8 @@
 [![Database](https://img.shields.io/badge/Database-SQLite%203%20%7C%20WAL%20Telemetry-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Computer Vision](https://img.shields.io/badge/Vision-Ultralytics%20YOLOv8-blueviolet)](https://github.com/ultralytics/ultralytics)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B%20%7C%20CPU%20%2F%20CUDA-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
-[![Tests](https://img.shields.io/badge/Tests-191%20Total%20%7C%20190%20Passed-brightgreen)](tests/)
-[![Roadmap](https://img.shields.io/badge/Roadmap-Phase%2010%20Stage%202%20Complete%20%7C%20Conditional%20Pass-yellow)](#-project-roadmap)
+[![Tests](https://img.shields.io/badge/Tests-203%20Total%20%7C%20202%20Passed%20(1%20Skipped)-brightgreen)](tests/)
+[![Roadmap](https://img.shields.io/badge/Roadmap-Phase%2011%20Complete%20%7C%20Production%20Hardened-brightgreen)](#-project-roadmap)
 
 ---
 
@@ -425,7 +425,7 @@ The formal project roadmap comprises 11 structured phases:
 | **Phase 8** | Dataset Preparation & Model Training | **Closed at Gate P** | Multi-tier datasets, dual-blind annotation, EXP01–03, Gate P safety hardening. |
 | **Phase 9** | Model Evaluation & Optimization | **Completed & Certified** | Controlled retraining (P9-T01/T02), independent CarDD benchmark (+35.8% mAP50, +85.2% precision), crack failure forensics, Category A production model retained, E2E system validation (10/10 workflows, 158 tests passed), closure package. |
 | **Phase 10** | Full System Integration, E2E & Concurrency Testing | **CONDITIONALLY COMPLETE** | Master E2E integration test suite in `tests/test_e2e.py` (13/13 passed, 191 total repository tests); 10/10 operational multi-modal workflows verified deterministically; Stage 2 multi-user concurrency testing executed across 10, 25, and 50 users (6,901 requests, 0.00% error rate, Conditional Pass at 50 users); Report persistence architecture decision completed (ADR Hybrid Model). (Future ML crack retraining decoupled into Phase 9.12). |
-| **Phase 11** | Deployment, Monitoring & Documentation | **Phase 9.11 Ready** | Production model re-certified, reproducibility guide, academic evidence summary, project owner sign-off. |
+| **Phase 11** | Production Hardening, Containerization & Operational Readiness | **Completed** | Multi-stage Docker containerization, Docker Compose with Nginx reverse proxy, standard WSGI entrypoint (`wsgi.py`), cross-platform launcher (`scripts/serve_production.py`), SQLite WAL mode, zero-downtime online backup automation (`scripts/backup_database.py`), structured JSON logging, correlation IDs, Report snapshot persistence, and deep health/metrics telemetry (`/api/health/*`). 203 tests verified (202 passed, 1 skipped). |
 
 > [!NOTE]
 > **Phase 10 Governance & Workstream Disambiguation:**
@@ -574,10 +574,28 @@ RISK_THRESHOLD_MEDIUM=60
 *(Default port is configured to `PORT=5001` to prevent collisions with existing Windows system services).*
 
 ### 3. Launching the Backend Application
+
+#### Option A: Local Development Server
 ```powershell
 python backend/app.py
 ```
 The Flask development server will boot on `http://127.0.0.1:5001`. Database tables and required upload directories are automatically initialized on startup.
+
+#### Option B: Production WSGI Server (Phase 11)
+```powershell
+# Cross-platform runner (auto-detects Waitress on Windows, Gunicorn on Linux/macOS)
+python scripts/serve_production.py --host 127.0.0.1 --port 5001 --threads 8
+```
+
+#### Option C: Production Docker Compose Deployment (Phase 11)
+```bash
+# Build and run multi-container stack with Nginx edge reverse proxy
+docker compose up -d --build
+
+# Verify container health probes
+docker compose ps
+curl http://localhost/api/health
+```
 
 ### 4. Accessing the Assessor Web Dashboard
 Open any modern web browser and navigate to:
@@ -644,6 +662,11 @@ locust -f tests/load/locustfile.py --host http://127.0.0.1:5002
 ## 📚 Key Governance Reports & Documentation
 
 Comprehensive engineering, audit, and benchmark records across all development phases are maintained directly in the repository:
+
+* **Phase 11 Production Hardening, Containerization & Operational Readiness:**
+  * [Phase 11 Final Closure & Engineering Report](runs/phase11/PHASE_11_FINAL_REPORT.md) &mdash; Master final report verifying containerization, WSGI architecture, SQLite WAL & online backup, report snapshot persistence, and 203 passing tests.
+  * [Production Deployment & Operational Runbook](runs/phase11/production_deployment_guide.md) &mdash; Production operations guide covering Docker Compose, Nginx reverse proxy, Gunicorn/Waitress, automated backups, and health probes.
+  * [Phase 11 Git Release Audit](runs/phase11/phase11_git_release_audit.md) &mdash; Release checklist, production asset hash verification, and repository staging audit.
 
 * **Phase 10 Full System Integration, Concurrency & Load Testing:**
   * [Phase 10 Final Closure Audit Report](runs/phase10/final_closure_audit_report.md) &mdash; Master final audit report verifying E2E integration, concurrency telemetry, database safety, and conditional completion.

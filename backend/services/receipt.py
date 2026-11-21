@@ -2066,3 +2066,92 @@ def generate_claim_receipt_pdf(claim_dict: Dict[str, Any]) -> bytes:
     pdf_bytes = buffer.getvalue()
     buffer.close()
     return pdf_bytes
+
+
+def freeze_report(
+    claim_id: str,
+    user_id: Optional[int] = None,
+    report_type: str = "VERIFICATION_AUDIT",
+    upload_root: str | os.PathLike[str] | None = None,
+) -> Optional[Dict[str, Any]]:
+    """Generates the official Consolidated Verification Report, calculates its SHA-256 hash,
+    saves the PDF to disk, and records an immutable snapshot in the reports table.
+
+    Conforms to Phase 10 Stage 2 ADR and Phase 11 Report Snapshot Persistence.
+    """
+    import hashlib
+    from backend.database.db import get_db_session
+    from backend.database.models import Claim, ExtractedInformation, Report
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim:
+            return None
+
+        claim_dict = claim.to_dict(include_evidence=True)
+        extracted_rows = [
+            row.to_dict() for row in db.query(ExtractedInformation)
+            .filter_by(claim_id=claim_id)
+            .order_by(ExtractedInformation.created_at.asc())
+            .all()
+        ]
+
+        pdf_bytes = generate_document_intelligence_report_pdf(
+            claim_dict,
+            extracted_rows,
+            upload_root=upload_root,
+        )
+
+        file_hash = hashlib.sha256(pdf_bytes).hexdigest()
+        file_size = len(pdf_bytes)
+
+        # Determine target persistence path
+        root = Path(upload_root or (Path(__file__).resolve().parent.parent.parent / "reports"))
+        claim_report_dir = root / claim_id
+        claim_report_dir.mkdir(parents=True, exist_ok=True)
+        timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        filename = f"{report_type.lower()}_{timestamp_str}_{file_hash[:8]}.pdf"
+        report_file_path = claim_report_dir / filename
+
+        report_file_path.write_bytes(pdf_bytes)
+
+        # Mark any previous active reports of this type as SUPERSEDED
+        prev_reports = db.query(Report).filter_by(claim_id=claim_id, report_type=report_type, status="ACTIVE").all()
+        for prev in prev_reports:
+            prev.status = "SUPERSEDED"
+
+        # Create new active report record
+        report_record = Report(
+            claim_id=claim_id,
+            report_type=report_type,
+            report_path=str(report_file_path),
+            file_hash=file_hash,
+            file_size_bytes=file_size,
+            generated_by=user_id,
+            status="ACTIVE",
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(report_record)
+        db.commit()
+        db.refresh(report_record)
+        return report_record.to_dict()
+
+
+def get_active_frozen_report(
+    claim_id: str,
+    report_type: str = "VERIFICATION_AUDIT",
+) -> Optional[Dict[str, Any]]:
+    """Retrieves metadata of active frozen report for a claim, if one exists on disk."""
+    from backend.database.db import get_db_session
+    from backend.database.models import Report
+
+    with get_db_session() as db:
+        record = (
+            db.query(Report)
+            .filter_by(claim_id=claim_id, report_type=report_type, status="ACTIVE")
+            .order_by(Report.created_at.desc())
+            .first()
+        )
+        if record and Path(record.report_path).exists():
+            return record.to_dict()
+    return None

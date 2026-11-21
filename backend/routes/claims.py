@@ -27,6 +27,8 @@ from backend.services.receipt import (
     generate_claim_receipt_pdf,
     generate_document_intelligence_report_pdf,
     validate_vehicle_image,
+    freeze_report,
+    get_active_frozen_report,
 )
 from backend.services.vision import (
     VehicleDamageDetector,
@@ -575,8 +577,13 @@ def get_my_claims():
 
 
 @claims_bp.route("/claims/<claim_id>/document-report", methods=["GET"])
+@claims_bp.route("/claims/<claim_id>/report", methods=["GET"])
 def get_claim_document_report(claim_id: str):
-    """Serves the Phase 4 document intelligence report PDF for an eligible claim."""
+    """Serves the Phase 4/10/11 document intelligence report PDF for an eligible claim.
+
+    If an immutable frozen snapshot exists (Phase 11 Hybrid Two-Tier model), serves the
+    persisted static file. Otherwise, generates the report dynamically in-memory.
+    """
     if not is_valid_claim_id_format(claim_id):
         return jsonify({
             "success": False,
@@ -609,6 +616,20 @@ def get_claim_document_report(claim_id: str):
                 "message": "You are not authorized to access this document intelligence report.",
             }), 403
 
+        # Check for active frozen report snapshot first (Phase 11 Hybrid Two-Tier model)
+        frozen = get_active_frozen_report(claim_id, report_type="VERIFICATION_AUDIT")
+        if frozen and Path(frozen["report_path"]).exists():
+            resp = send_file(
+                frozen["report_path"],
+                mimetype="application/pdf",
+                as_attachment=True,
+                download_name=f"document_report_{claim_id}.pdf",
+            )
+            if frozen.get("file_hash"):
+                resp.headers["ETag"] = f'"{frozen["file_hash"]}"'
+            resp.headers["X-Report-Source"] = "persisted-snapshot"
+            return resp
+
         claim_dict = claim.to_dict(include_evidence=True)
         extracted_rows = [
             row.to_dict() for row in db.query(ExtractedInformation)
@@ -623,18 +644,83 @@ def get_claim_document_report(claim_id: str):
             extracted_rows,
             upload_root=current_app.config.get("UPLOAD_FOLDER"),
         )
-        return send_file(
+        resp = send_file(
             io.BytesIO(pdf_bytes),
             mimetype="application/pdf",
             as_attachment=True,
             download_name=f"document_report_{claim_id}.pdf",
         )
+        resp.headers["X-Report-Source"] = "dynamic-stream"
+        return resp
     except Exception as e:
         logger.error(f"Error generating document intelligence report for claim {claim_id}: {e}", exc_info=True)
         return jsonify({
             "success": False,
             "error": "Report Generation Error",
             "message": "Failed to generate the document intelligence report.",
+        }), 500
+
+
+@claims_bp.route("/claims/<claim_id>/freeze-report", methods=["POST"])
+def freeze_claim_report(claim_id: str):
+    """Generates and freezes an immutable audit report snapshot for a claim (Phase 11)."""
+    if not is_valid_claim_id_format(claim_id):
+        return jsonify({
+            "success": False,
+            "error": "Invalid Claim ID format",
+            "message": "Claim ID must follow format CLM-YYYYMMDD-XXXX.",
+        }), 400
+
+    user_id = session.get("user_id")
+    user_role = session.get("role")
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim:
+            return jsonify({
+                "success": False,
+                "error": "Not Found",
+                "message": f"Claim with ID '{claim_id}' was not found.",
+            }), 404
+
+        if not can_user_access_claim(claim, user_id, user_role):
+            if not user_id:
+                return jsonify({
+                    "success": False,
+                    "error": "Unauthorized",
+                    "message": "Authentication required to freeze audit reports.",
+                }), 401
+            return jsonify({
+                "success": False,
+                "error": "Forbidden",
+                "message": "You are not authorized to freeze audit reports for this claim.",
+            }), 403
+
+    try:
+        report_meta = freeze_report(
+            claim_id=claim_id,
+            user_id=user_id,
+            report_type="VERIFICATION_AUDIT",
+            upload_root=current_app.config.get("REPORTS_FOLDER"),
+        )
+        if not report_meta:
+            return jsonify({
+                "success": False,
+                "error": "Freeze Report Failed",
+                "message": "Unable to generate or persist audit report snapshot.",
+            }), 500
+
+        return jsonify({
+            "success": True,
+            "message": f"Immutable audit report snapshot created for claim '{claim_id}'.",
+            "report": report_meta,
+        }), 201
+    except Exception as e:
+        logger.error(f"Error freezing audit report for claim {claim_id}: {e}", exc_info=True)
+        return jsonify({
+            "success": False,
+            "error": "Freeze Report Error",
+            "message": str(e),
         }), 500
 
 

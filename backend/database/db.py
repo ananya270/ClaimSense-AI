@@ -1,6 +1,7 @@
 """Database connection, session management, and schema initialization for ClaimSense AI."""
 
 import json
+import os
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -32,10 +33,18 @@ _scoped_session: Optional[scoped_session] = None
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
-    """Enable foreign key constraints on SQLite connections."""
+    """Enable foreign key constraints, busy timeout, and optional WAL mode on SQLite connections."""
     cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
+    try:
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.execute("PRAGMA busy_timeout=5000")
+        if os.getenv("SQLITE_WAL_MODE", "false").strip().lower() in ("true", "1", "yes"):
+            cursor.execute("PRAGMA journal_mode=WAL")
+            cursor.execute("PRAGMA synchronous=NORMAL")
+    except Exception:
+        pass
+    finally:
+        cursor.close()
 
 
 def init_database(db_uri: str) -> Engine:
@@ -197,6 +206,20 @@ def _ensure_schema_migrations(engine: Engine) -> None:
                     if col_name not in cvr_cols:
                         with engine.begin() as conn:
                             conn.execute(text(f"ALTER TABLE claim_verification_runs ADD COLUMN {col_name} {ddl}"))
+
+        if "reports" in table_names:
+            reports_cols = {col["name"] for col in inspector.get_columns("reports")}
+            reports_migrations = {
+                "report_type": "VARCHAR(32) DEFAULT 'VERIFICATION_AUDIT'",
+                "file_hash": "VARCHAR(64)",
+                "file_size_bytes": "INTEGER",
+                "generated_by": "INTEGER REFERENCES users(id)",
+                "status": "VARCHAR(32) DEFAULT 'ACTIVE'",
+            }
+            for col_name, ddl in reports_migrations.items():
+                if col_name not in reports_cols:
+                    with engine.begin() as conn:
+                        conn.execute(text(f"ALTER TABLE reports ADD COLUMN {col_name} {ddl}"))
 
     except Exception as exc:
         logger.warning(f"Schema migration check skipped or failed: {exc}")

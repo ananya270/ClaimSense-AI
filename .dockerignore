@@ -1,0 +1,32 @@
+# Docker build context exclusions for ClaimSense AI
+.git
+.gitignore
+.env
+.env.*
+*.pyc
+__pycache__
+.pytest_cache
+.venv
+venv/
+env/
+*.swp
+*.bak
+*.tmp
+*~
+
+# Isolated research datasets and models
+datasets/
+models/runs/
+models/vehicle_damage/
+runs/detect/
+runs/bugfix/
+scratch/
+tests/load/load_test_artifacts/
+
+# Local databases and uploads (mounted via docker-compose volumes)
+data/*.db
+data/*.db-wal
+data/*.db-shm
+uploads/*
+reports/*
+backups/*

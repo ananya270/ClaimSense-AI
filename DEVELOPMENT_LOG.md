@@ -600,3 +600,45 @@
   - **Workstream 9.19.2 (SAHI Inference Tiling):** Implement Slicing Aided Hyper Inference to process raw mobile camera uploads ($4000\times 3000\text{ px}$) in overlapping $640\times 640$ patches, preserving hairline crack resolution.
   - **Workstream 9.19.3 (Polygon Instance Segmentation):** Transition annotation and architecture from rectangular bounding boxes to polygon masks (YOLOv8-seg), eliminating rectangular IoU penalties along diagonal crack paths.
   - **Workstream 9.19.4 (Dual-Stage Ensemble):** Prototype a multi-stage pipeline utilizing YOLOv8n for fast macroscopic damage triage combined with a patch-specialist classifier for ambiguous hairline surface anomalies.
+
+---
+
+## [Phase 11] Production Hardening, Containerization & Operational Readiness
+
+**Date:** November 21, 2026
+**Roles:** Principal Software Architect, Senior Full-Stack Engineer, QA Lead, DevOps Engineer, Release Manager
+**Branch:** `feature/phase11-deployment-hardening`
+**Milestone Verdict:** **FULL PASS (100% Implemented, Validated & Release-Ready)**
+
+### 1. Architectural Overview & Deliverables
+Following the Phase 10 master integration and multi-user concurrency testing, Phase 11 implemented the full operational hardening and production deployment architecture:
+1. **Containerization & Edge Routing:**
+   - Authored multi-stage, production-hardened `Dockerfile` (Python 3.11-slim, Tesseract OCR, OpenCV dependencies, unprivileged user `claimsense` UID 10001, healthcheck instruction).
+   - Authored `docker-compose.yml` with `claimsense-app` and `claimsense-nginx` reverse proxy, bridge network, and persistent named volumes (`claimsense_data`, `claimsense_uploads`, `claimsense_reports`, `claimsense_backups`).
+   - Configured Nginx edge reverse proxy (`deploy/nginx/nginx.conf` and `deploy/nginx/conf.d/claimsense.conf`) with 16 MB client request buffering, gzip compression, static asset caching, and security headers.
+2. **Production WSGI Server Architecture:**
+   - Implemented standard root WSGI entrypoint `wsgi.py` exporting `application = create_app()`.
+   - Built cross-platform production launcher `scripts/serve_production.py` supporting multithreaded Waitress (Windows) and Gunicorn with gthread workers (Linux/macOS).
+3. **Database Reliability & Zero-Downtime Backup Automation:**
+   - Enhanced SQLite connection hooks in `backend/database/db.py` with 5000 ms busy timeout (`PRAGMA busy_timeout=5000;`) and configurable Write-Ahead Logging (`SQLITE_WAL_MODE=true` -> `PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;`).
+   - Built standalone zero-downtime backup script `scripts/backup_database.py` using SQLite online backup API with SHA-256 verification, SQLite quick-check integrity verification, and 30-day automated retention pruning.
+4. **Report Snapshot Persistence (Hybrid Two-Tier Lifecycle):**
+   - Upgraded `Report` ORM entity in `backend/database/models.py` with audit fields (`report_type`, `file_hash`, `file_size_bytes`, `generated_by`, `status`).
+   - Implemented `freeze_report()` and `get_active_frozen_report()` in `backend/services/receipt.py`.
+   - Enhanced `GET /api/claims/<id>/document-report` (and alias `/api/claims/<id>/report`) to serve persisted static snapshots with ETag caching when frozen, seamlessly falling back to in-memory streaming for draft claims.
+   - Added `POST /api/claims/<id>/freeze-report` endpoint for assessor report freezing.
+   - Provided automated schema migration in `backend/database/db.py` and dedicated CLI `scripts/migrations/migrate_reports_table.py`.
+5. **Structured JSON Logging & Correlation IDs:**
+   - Added `JsonFormatter` in `backend/utils/logger.py` producing JSON lines (JSONL) with timestamps, levels, loggers, request IDs, and user IDs.
+   - Built Flask request correlation middleware in `backend/app.py` injecting `X-Request-ID` (UUID4) into request contexts and response headers.
+6. **Health, Liveness, Readiness & Metrics Telemetry:**
+   - Implemented `GET /api/health/live` (lightweight liveness probe).
+   - Implemented `GET /api/health/ready` (deep readiness probe verifying database connectivity, storage writeability, and YOLOv8 checkpoint availability).
+   - Implemented `GET /api/health/metrics` (system operational metrics reporting uptime, claim/user counts, and memory RSS).
+7. **Defense-in-Depth Security Response Headers:**
+   - Enforced `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, and `Referrer-Policy: strict-origin-when-cross-origin`.
+
+### 2. Verification & Test Evidence
+- **Dedicated Phase 11 Test Suite (`tests/test_phase11_production.py`):** 12/12 passed (100% pass rate in 1.10s).
+- **Full Repository Regression Suite (`pytest tests/ -v`):** 203 collected items across 16 test modules: **202 passed, 1 skipped, 0 failures, 0 errors in 127.11s (100% pass rate)**.
+- **Production Asset Integrity:** `models/phase5/best.pt` SHA-256 (`49630ae8...09390`), `data/claimsense.db` SHA-256 (`945e59bc...5cd13`), and customer uploads (151 files) verified 100% invariant.

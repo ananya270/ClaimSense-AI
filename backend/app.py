@@ -1,5 +1,6 @@
 """Application factory and main entry point for ClaimSense AI backend (Hardened)."""
 import sys
+import uuid
 from pathlib import Path
 
 # Ensure project root is in sys.path
@@ -7,7 +8,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from flask import Flask, jsonify, send_from_directory, request, make_response, session
+from flask import Flask, jsonify, send_from_directory, request, make_response, session, g
 from flask_cors import CORS
 from flask_wtf.csrf import CSRFError, generate_csrf
 
@@ -53,6 +54,12 @@ def create_app(config_class=Config) -> Flask:
             app.config["WTF_CSRF_CHECK_DEFAULT"] = False
         if not getattr(config_class, "ENABLE_RATELIMIT_FOR_TESTS", False):
             app.config["RATELIMIT_ENABLED"] = False
+
+    @app.before_request
+    def assign_correlation_id():
+        """Assign or propagate a unique request correlation ID."""
+        req_id = request.headers.get("X-Request-ID") or f"req-{uuid.uuid4().hex[:12]}"
+        g.request_id = req_id
 
     @app.before_request
     def extract_csrf_from_json():
@@ -118,8 +125,16 @@ def create_app(config_class=Config) -> Flask:
         return send_from_directory(app.static_folder, "index.html")
 
     @app.after_request
-    def set_csrf_cookie(response):
-        """Ensures the readable CSRF cookie is synchronized whenever CSRF session exists."""
+    def apply_security_headers_and_correlation(response):
+        """Attaches request correlation ID, CSRF cookie, and defensive security headers."""
+        if hasattr(g, "request_id"):
+            response.headers["X-Request-ID"] = g.request_id
+
+        # Defense-in-depth HTTP security headers (Phase 11 Production Hardening)
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+
         if "csrf_token" in session:
             try:
                 token = generate_csrf()
