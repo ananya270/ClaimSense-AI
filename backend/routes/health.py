@@ -11,6 +11,7 @@ from sqlalchemy import text
 
 from backend.database.db import get_engine, get_db_session
 from backend.database.models import Claim, User
+from backend.services.queue.manager import queue_manager
 
 health_bp = Blueprint("health", __name__)
 _START_TIME = time.time()
@@ -24,7 +25,7 @@ def health_check():
         "project": "ClaimSense AI",
         "description": "AI-Powered Insurance Claim Verification Decision-Support Prototype",
         "version": "1.0.0",
-        "phase": "Phase 11 - Production Hardening & Operational Deployment",
+        "phase": "Phase 12 - Asynchronous Processing & Production Reliability",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "environment": current_app.config.get("FLASK_ENV", "development"),
     }), 200
@@ -47,6 +48,7 @@ def readiness_probe():
         "database": False,
         "storage_uploads": False,
         "ml_model_present": False,
+        "task_queue": False,
     }
     details = {}
 
@@ -80,6 +82,19 @@ def readiness_probe():
     checks["ml_model_present"] = model_path.exists()
     details["model_checkpoint"] = "verified" if model_path.exists() else "missing"
 
+    # 4. Asynchronous Task Broker Availability
+    try:
+        broker_name = queue_manager.get_active_broker_name()
+        broker_healthy = True
+        if broker_name == "redis" and queue_manager.redis_broker:
+            broker_healthy = queue_manager.redis_broker.is_healthy()
+        elif queue_manager.threaded_broker:
+            broker_healthy = queue_manager.threaded_broker.is_healthy()
+        checks["task_queue"] = broker_healthy
+        details["task_broker"] = broker_name
+    except Exception as exc:
+        details["task_queue_error"] = str(exc)
+
     all_ready = all(checks.values())
     status_code = 200 if all_ready else 503
 
@@ -94,7 +109,7 @@ def readiness_probe():
 
 @health_bp.route("/health/metrics", methods=["GET"])
 def system_metrics():
-    """Operational telemetry endpoint exposing uptime, entity counts, and system profile."""
+    """Operational telemetry endpoint exposing uptime, entity counts, task queue metrics, and system profile."""
     uptime = round(time.time() - _START_TIME, 2)
     counts = {"claims": 0, "users": 0}
 
@@ -113,10 +128,14 @@ def system_metrics():
     except Exception:
         pass
 
+    # Phase 12 Queue Telemetry
+    queue_telemetry = queue_manager.get_queue_metrics()
+
     return jsonify({
         "status": "ok",
         "uptime_seconds": uptime,
         "entity_counts": counts,
+        "queue": queue_telemetry,
         "memory_rss_mb": memory_mb,
         "python_version": platform.python_version(),
         "platform": platform.platform(),

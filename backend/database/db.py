@@ -21,6 +21,8 @@ from backend.database.models import (
     VehicleDamageDetection,
     ClaimVerificationRun,
     VerificationFinding,
+    Report,
+    ProcessingTask,
 )
 from backend.utils.logger import setup_logger
 
@@ -220,6 +222,31 @@ def _ensure_schema_migrations(engine: Engine) -> None:
                 if col_name not in reports_cols:
                     with engine.begin() as conn:
                         conn.execute(text(f"ALTER TABLE reports ADD COLUMN {col_name} {ddl}"))
+
+        if "processing_tasks" not in table_names:
+            ProcessingTask.__table__.create(bind=engine, checkfirst=True)
+            logger.info("Created 'processing_tasks' table via schema migration.")
+        else:
+            pt_cols = {col["name"] for col in inspector.get_columns("processing_tasks")}
+            pt_migrations = {
+                "user_id": "INTEGER REFERENCES users(id)",
+                "task_type": "VARCHAR(64) DEFAULT 'CLAIM_PIPELINE'",
+                "current_stage": "VARCHAR(64) DEFAULT 'INTAKE'",
+                "progress_percent": "INTEGER DEFAULT 0",
+                "retry_count": "INTEGER DEFAULT 0",
+                "max_retries": "INTEGER DEFAULT 3",
+                "error_code": "VARCHAR(64)",
+                "error_message": "TEXT",
+                "result_metadata": "TEXT",
+                "worker_id": "VARCHAR(64)",
+                "started_at": "DATETIME",
+                "completed_at": "DATETIME",
+                "updated_at": "DATETIME",
+            }
+            for col_name, ddl in pt_migrations.items():
+                if col_name not in pt_cols:
+                    with engine.begin() as conn:
+                        conn.execute(text(f"ALTER TABLE processing_tasks ADD COLUMN {col_name} {ddl}"))
 
     except Exception as exc:
         logger.warning(f"Schema migration check skipped or failed: {exc}")

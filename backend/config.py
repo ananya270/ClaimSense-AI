@@ -110,6 +110,19 @@ class Config:
     LLM_PROVIDER = os.getenv("LLM_PROVIDER", "mock")
     LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 
+    # Phase 12: Asynchronous Task Queue & Worker Configuration
+    REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0").strip()
+    ASYNC_PROCESSING_ENABLED = os.getenv("ASYNC_PROCESSING_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+    QUEUE_BROKER_TYPE = os.getenv("QUEUE_BROKER_TYPE", "auto").strip().lower()  # auto, redis, threaded
+    try:
+        TASK_MAX_RETRIES = int(os.getenv("TASK_MAX_RETRIES", "3"))
+    except (ValueError, TypeError):
+        TASK_MAX_RETRIES = 3
+    try:
+        TASK_TIMEOUT_SECONDS = int(os.getenv("TASK_TIMEOUT_SECONDS", "300"))
+    except (ValueError, TypeError):
+        TASK_TIMEOUT_SECONDS = 300
+
     @classmethod
     def ensure_directories(cls):
         """Ensure necessary runtime directories exist."""

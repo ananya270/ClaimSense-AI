@@ -1620,7 +1620,7 @@ function initClaimSenseApp() {
             }
 
             try {
-                const response = await fetch("/api/claims", {
+                const response = await fetch("/api/claims?async=true", {
                     method: "POST",
                     credentials: "same-origin",
                     headers,
@@ -1672,7 +1672,15 @@ function initClaimSenseApp() {
                     successCard.style.display = "block";
                     successCard.scrollIntoView({ behavior: "smooth" });
                 }
-                showToast("Claim successfully registered and verified!", "success");
+
+                // Phase 12 Asynchronous Polling Integration
+                const isAsync = (response.status === 202) || (result.status === "queued") || Boolean(result.task_id);
+                if (isAsync) {
+                    showToast("Claim accepted! Background multi-stage AI verification running.", "info");
+                    startAsyncPipelinePolling(result.claim_id, result.task_id);
+                } else {
+                    showToast("Claim successfully registered and verified!", "success");
+                }
                 if (typeof loadMyClaims === "function") loadMyClaims();
 
             } catch (err) {
@@ -1681,6 +1689,139 @@ function initClaimSenseApp() {
                 setSubmittingState(false);
             }
         });
+    }
+
+    let asyncPollingInterval = null;
+
+    function startAsyncPipelinePolling(claimId, taskId) {
+        if (asyncPollingInterval) {
+            clearInterval(asyncPollingInterval);
+            asyncPollingInterval = null;
+        }
+
+        const widget = document.getElementById("async-pipeline-status-card");
+        const titleEl = document.getElementById("async-pipeline-title");
+        const badgeEl = document.getElementById("async-pipeline-badge");
+        const barEl = document.getElementById("async-progress-bar");
+        const metaEl = document.getElementById("async-pipeline-meta");
+        const spinner = document.getElementById("async-spinner");
+
+        const stageMap = {
+            "INTAKE": "stage-intake",
+            "OCR_PROCESSING": "stage-ocr",
+            "DAMAGE_ANALYSIS": "stage-damage",
+            "NLP_CHRONOLOGY": "stage-nlp",
+            "CROSS_SOURCE_VERIFICATION": "stage-verif",
+            "REPORT_PERSISTENCE": "stage-verif",
+            "COMPLETED": "stage-verif",
+        };
+
+        const stageOrder = [
+            "INTAKE",
+            "OCR_PROCESSING",
+            "DAMAGE_ANALYSIS",
+            "NLP_CHRONOLOGY",
+            "CROSS_SOURCE_VERIFICATION",
+        ];
+
+        if (widget) widget.style.display = "block";
+        if (spinner) spinner.style.display = "inline-block";
+        if (titleEl) {
+            titleEl.textContent = "AI Verification Pipeline: In Progress...";
+            titleEl.style.color = "#e2e8f0";
+        }
+        if (barEl) {
+            barEl.style.width = "10%";
+            barEl.style.background = "linear-gradient(90deg, #6366f1, #38bdf8)";
+        }
+
+        function updateStageHighlight(currentStage) {
+            const curIdx = stageOrder.indexOf(currentStage);
+            stageOrder.forEach((stg, idx) => {
+                const elId = stageMap[stg];
+                const el = document.getElementById(elId);
+                if (!el) return;
+                if (idx < curIdx || currentStage === "COMPLETED") {
+                    el.style.background = "rgba(34, 197, 94, 0.2)";
+                    el.style.color = "#86efac";
+                    el.style.fontWeight = "600";
+                } else if (idx === curIdx) {
+                    el.style.background = "rgba(99, 102, 241, 0.35)";
+                    el.style.color = "#c7d2fe";
+                    el.style.fontWeight = "700";
+                } else {
+                    el.style.background = "transparent";
+                    el.style.color = "#94a3b8";
+                    el.style.fontWeight = "400";
+                }
+            });
+        }
+
+        async function pollStatus() {
+            try {
+                const res = await fetch(`/api/claims/${claimId}/status`);
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!data || !data.success) return;
+
+                const status = (data.status || "queued").toLowerCase();
+                const stage = data.stage || "INTAKE";
+                const progress = data.progress_percent || 10;
+
+                if (barEl) barEl.style.width = `${progress}%`;
+                if (badgeEl) {
+                    badgeEl.textContent = `${stage.replace(/_/g, " ")} (${progress}%)`;
+                }
+
+                updateStageHighlight(stage);
+
+                if (metaEl) {
+                    metaEl.textContent = `Task: ${data.task_id || taskId || "active"} | Broker: Active`;
+                }
+
+                if (status === "completed") {
+                    clearInterval(asyncPollingInterval);
+                    asyncPollingInterval = null;
+                    if (barEl) {
+                        barEl.style.width = "100%";
+                        barEl.style.background = "#22c55e";
+                    }
+                    if (titleEl) {
+                        titleEl.textContent = "AI Multi-Source Verification Completed ✓";
+                        titleEl.style.color = "#86efac";
+                    }
+                    if (spinner) spinner.style.display = "none";
+                    if (badgeEl) {
+                        badgeEl.textContent = "COMPLETED (100%)";
+                        badgeEl.style.background = "rgba(34, 197, 94, 0.2)";
+                        badgeEl.style.color = "#86efac";
+                        badgeEl.style.border = "1px solid rgba(34, 197, 94, 0.4)";
+                    }
+                    updateStageHighlight("COMPLETED");
+                    showToast("AI Verification & Claim Report Ready!", "success");
+                    if (typeof loadMyClaims === "function") loadMyClaims();
+                } else if (status === "failed") {
+                    clearInterval(asyncPollingInterval);
+                    asyncPollingInterval = null;
+                    if (titleEl) {
+                        titleEl.textContent = "Processing Pipeline Alert";
+                        titleEl.style.color = "#f87171";
+                    }
+                    if (spinner) spinner.style.display = "none";
+                    if (badgeEl) {
+                        badgeEl.textContent = "FAILED";
+                        badgeEl.style.background = "rgba(239, 68, 68, 0.2)";
+                        badgeEl.style.color = "#fca5a5";
+                    }
+                    showToast(`Pipeline paused: ${data.error_message || "Processing exception"}`, "error");
+                }
+            } catch (err) {
+                console.warn("Async polling transient check:", err);
+            }
+        }
+
+        pollStatus();
+        asyncPollingInterval = setInterval(pollStatus, 1500);
     }
 
     if (btnViewClaimModal) {
@@ -1699,6 +1840,12 @@ function initClaimSenseApp() {
             const chk = document.getElementById("chk-confirm-submission");
             if (chk) chk.checked = false;
             if (successCard) successCard.style.display = "none";
+            const asyncCard = document.getElementById("async-pipeline-status-card");
+            if (asyncCard) asyncCard.style.display = "none";
+            if (asyncPollingInterval) {
+                clearInterval(asyncPollingInterval);
+                asyncPollingInterval = null;
+            }
             if (submissionCard) {
                 submissionCard.style.display = "block";
                 submissionCard.scrollIntoView({ behavior: "smooth" });

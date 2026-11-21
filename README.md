@@ -9,8 +9,8 @@
 [![Database](https://img.shields.io/badge/Database-SQLite%203%20%7C%20WAL%20Telemetry-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Computer Vision](https://img.shields.io/badge/Vision-Ultralytics%20YOLOv8-blueviolet)](https://github.com/ultralytics/ultralytics)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B%20%7C%20CPU%20%2F%20CUDA-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
-[![Tests](https://img.shields.io/badge/Tests-203%20Total%20%7C%20202%20Passed%20(1%20Skipped)-brightgreen)](tests/)
-[![Roadmap](https://img.shields.io/badge/Roadmap-Phase%2011%20Complete%20%7C%20Production%20Hardened-brightgreen)](#-project-roadmap)
+[![Tests](https://img.shields.io/badge/Tests-214%20Total%20%7C%20213%20Passed%20(1%20Skipped)-brightgreen)](tests/)
+[![Roadmap](https://img.shields.io/badge/Roadmap-Phase%2012%20Complete%20%7C%20Async%20Reliability%20%26%20Defense%20Ready-brightgreen)](#-project-roadmap)
 
 ---
 
@@ -426,6 +426,7 @@ The formal project roadmap comprises 11 structured phases:
 | **Phase 9** | Model Evaluation & Optimization | **Completed & Certified** | Controlled retraining (P9-T01/T02), independent CarDD benchmark (+35.8% mAP50, +85.2% precision), crack failure forensics, Category A production model retained, E2E system validation (10/10 workflows, 158 tests passed), closure package. |
 | **Phase 10** | Full System Integration, E2E & Concurrency Testing | **CONDITIONALLY COMPLETE** | Master E2E integration test suite in `tests/test_e2e.py` (13/13 passed, 191 total repository tests); 10/10 operational multi-modal workflows verified deterministically; Stage 2 multi-user concurrency testing executed across 10, 25, and 50 users (6,901 requests, 0.00% error rate, Conditional Pass at 50 users); Report persistence architecture decision completed (ADR Hybrid Model). (Future ML crack retraining decoupled into Phase 9.12). |
 | **Phase 11** | Production Hardening, Containerization & Operational Readiness | **Completed** | Multi-stage Docker containerization, Docker Compose with Nginx reverse proxy, standard WSGI entrypoint (`wsgi.py`), cross-platform launcher (`scripts/serve_production.py`), SQLite WAL mode, zero-downtime online backup automation (`scripts/backup_database.py`), structured JSON logging, correlation IDs, Report snapshot persistence, and deep health/metrics telemetry (`/api/health/*`). 203 tests verified (202 passed, 1 skipped). |
+| **Phase 12** | Asynchronous Processing, Production Reliability & Academic Defense Readiness | **Completed & Certified** | Decoupled asynchronous intake (`HTTP 202 Accepted`, 78.4 ms intake, 97.5% latency reduction), pluggable dual-engine task queue (Redis 7 + ThreadPoolExecutor), `ProcessingTask` ORM model & auto-migration, idempotency & stale auto-recovery, real-time client polling UX with stage progress widgets, readiness & operational queue telemetry (`/api/health/*`), and complete Academic Defense Readiness package (85 viva Q&As, 12-min demo runbook, two-tier architecture explanation, limitations disclosure, 16-slide presentation deck). 214 tests verified (213 passed, 1 skipped). |
 
 > [!NOTE]
 > **Phase 10 Governance & Workstream Disambiguation:**
@@ -662,6 +663,18 @@ locust -f tests/load/locustfile.py --host http://127.0.0.1:5002
 ## 📚 Key Governance Reports & Documentation
 
 Comprehensive engineering, audit, and benchmark records across all development phases are maintained directly in the repository:
+
+* **Phase 12 Asynchronous Processing, Production Reliability & Academic Defense Readiness:**
+  * [Phase 12 Final Audit & Release Report](runs/phase12/phase12_final_audit_report.md) &mdash; Master final report documenting asynchronous intake, dual-broker architecture, 214 test executions, and academic sign-off.
+  * [Academic System Architecture](runs/phase12/academic_defense/system_architecture.md) &mdash; Multi-tier distributed architecture diagrams and component specifications.
+  * [Academic Viva & Defense Question Bank](runs/phase12/academic_defense/viva_question_bank.md) &mdash; 85 deep-dive technical questions and answers across 23 core academic categories.
+  * [Academic Presentation & Live Demonstration Runbook](runs/phase12/academic_defense/demo_runbook.md) &mdash; Minute-by-minute reproducible examiner presentation script.
+  * [Two-Tier Architecture Explanation](runs/phase12/academic_defense/architecture_explanation.md) &mdash; Intuitive non-technical perspective and rigorous technical specification.
+  * [Authentic Limitations & Future Work Roadmap](runs/phase12/academic_defense/limitations_and_future_work.md) &mdash; Known constraints, edge cases, and future scaling milestones.
+  * [Project Defense Presentation Deck](runs/phase12/academic_defense/presentation_outline.md) &mdash; 16-slide major project defense structure.
+  * [Phase 12 Performance & Throughput Benchmark](runs/phase12/benchmark/phase12_performance_benchmark.md) &mdash; Empirical 78.4 ms intake latency benchmark and 97.5% reduction analysis.
+  * [Phase 12 Security Review & Threat Mitigation Audit](runs/phase12/security/security_review.md) &mdash; IDOR protection, task idempotency, and defense-in-depth verification.
+  * [Phase 12 Observability & Queue Monitoring Audit](runs/phase12/observability/observability_report.md) &mdash; Probing, telemetry, and client UX synchronization specs.
 
 * **Phase 11 Production Hardening, Containerization & Operational Readiness:**
   * [Phase 11 Final Closure & Engineering Report](runs/phase11/PHASE_11_FINAL_REPORT.md) &mdash; Master final report verifying containerization, WSGI architecture, SQLite WAL & online backup, report snapshot persistence, and 203 passing tests.

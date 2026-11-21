@@ -1,9 +1,26 @@
 # ClaimSense AI — Production Multi-Container Compose Configuration
-# Milestone: Phase 11 Production Hardening & Reverse Proxy Architecture
+# Milestone: Phase 12 Asynchronous Task Queue & Scalable Micro-Worker Architecture
 
 version: "3.8"
 
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: claimsense-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - claimsense_redis:/data
+    expose:
+      - "6379"
+    networks:
+      - claimsense-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
   app:
     build:
       context: .
@@ -19,6 +36,9 @@ services:
       - JSON_LOGGING=true
       - SECRET_KEY=${SECRET_KEY:-claimsense_prod_secret_token_at_least_32_characters_long_entropy}
       - CORS_ALLOWED_ORIGINS=http://localhost,http://127.0.0.1,http://localhost:5001
+      - REDIS_URL=redis://redis:6379/0
+      - QUEUE_BROKER_TYPE=redis
+      - ASYNC_PROCESSING_ENABLED=true
     volumes:
       - claimsense_data:/app/data
       - claimsense_uploads:/app/uploads
@@ -26,6 +46,9 @@ services:
       - claimsense_backups:/app/backups
     expose:
       - "5001"
+    depends_on:
+      redis:
+        condition: service_healthy
     networks:
       - claimsense-net
     healthcheck:
@@ -34,6 +57,31 @@ services:
       timeout: 5s
       retries: 3
       start_period: 15s
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: claimsense-worker
+    restart: unless-stopped
+    command: ["python", "scripts/run_worker.py", "--broker", "redis"]
+    environment:
+      - FLASK_ENV=production
+      - REDIS_URL=redis://redis:6379/0
+      - QUEUE_BROKER_TYPE=redis
+      - ASYNC_PROCESSING_ENABLED=true
+      - SQLITE_WAL_MODE=true
+      - JSON_LOGGING=true
+    volumes:
+      - claimsense_data:/app/data
+      - claimsense_uploads:/app/uploads
+      - claimsense_reports:/app/reports
+      - claimsense_backups:/app/backups
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - claimsense-net
 
   nginx:
     image: nginx:1.25-alpine
@@ -61,6 +109,8 @@ volumes:
   claimsense_reports:
     driver: local
   claimsense_backups:
+    driver: local
+  claimsense_redis:
     driver: local
 
 networks:

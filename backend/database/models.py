@@ -97,6 +97,7 @@ class Claim(Base):
     verification_findings = relationship("VerificationFinding", back_populates="claim", cascade="all, delete-orphan", lazy="select")
     risk_assessments = relationship("RiskAssessment", back_populates="claim", cascade="all, delete-orphan", lazy="select")
     reports = relationship("Report", back_populates="claim", cascade="all, delete-orphan", lazy="select")
+    processing_tasks = relationship("ProcessingTask", back_populates="claim", cascade="all, delete-orphan", lazy="select")
 
     def to_dict(self, include_evidence: bool = True) -> Dict[str, Any]:
         """Serializes claim entity to dictionary representation."""
@@ -673,4 +674,58 @@ class Report(Base):
             "generated_by": self.generated_by,
             "status": self.status,
             "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class ProcessingTask(Base):
+    """Asynchronous background processing task record for ClaimSense AI (Phase 12)."""
+    __tablename__ = "processing_tasks"
+
+    task_id = Column(String(64), primary_key=True, unique=True, index=True)
+    claim_id = Column(String(32), ForeignKey("claims.claim_id"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    task_type = Column(String(64), nullable=False, default="CLAIM_PIPELINE")
+    status = Column(String(32), nullable=False, default="QUEUED", index=True)
+    current_stage = Column(String(64), nullable=False, default="INTAKE")
+    progress_percent = Column(Integer, nullable=False, default=0)
+    retry_count = Column(Integer, nullable=False, default=0)
+    max_retries = Column(Integer, nullable=False, default=3)
+    error_code = Column(String(64), nullable=True)
+    error_message = Column(Text, nullable=True)
+    result_metadata = Column(Text, nullable=True)
+    worker_id = Column(String(64), nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    started_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+
+    claim = relationship("Claim", back_populates="processing_tasks")
+    user = relationship("User", foreign_keys=[user_id])
+
+    def to_dict(self) -> Dict[str, Any]:
+        res_meta = None
+        if self.result_metadata:
+            try:
+                res_meta = json.loads(self.result_metadata)
+            except Exception:
+                res_meta = self.result_metadata
+        return {
+            "task_id": self.task_id,
+            "claim_id": self.claim_id,
+            "user_id": self.user_id,
+            "task_type": self.task_type,
+            "status": self.status.lower(),
+            "stage": self.current_stage.lower(),
+            "current_stage": self.current_stage,
+            "progress_percent": self.progress_percent,
+            "retry_count": self.retry_count,
+            "max_retries": self.max_retries,
+            "error_code": self.error_code,
+            "error_message": self.error_message,
+            "result_metadata": res_meta,
+            "worker_id": self.worker_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "started_at": self.started_at.isoformat() if self.started_at else None,
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

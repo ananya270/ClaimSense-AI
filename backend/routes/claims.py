@@ -30,6 +30,7 @@ from backend.services.receipt import (
     freeze_report,
     get_active_frozen_report,
 )
+from backend.services.queue.manager import queue_manager
 from backend.services.vision import (
     VehicleDamageDetector,
     create_annotated_image,
@@ -244,7 +245,44 @@ def submit_claim():
             db.flush()
             image_record_id = img_record.image_id
 
-        # 8. Phase 4 document intelligence pipeline (best-effort extraction)
+        # Phase 12: Dual-Mode Asynchronous Intake vs Synchronous Fallback
+        async_requested = request.args.get("async", "").lower() in ("true", "1")
+        sync_requested = request.args.get("sync", "").lower() in ("true", "1")
+        async_config = current_app.config.get("ASYNC_PROCESSING_ENABLED", False)
+
+        is_async = (async_requested or async_config) and not sync_requested
+
+        if is_async:
+            task, is_new = queue_manager.enqueue_claim_task(
+                claim_id=claim_id,
+                user_id=current_user_id,
+                sync=False,
+            )
+            logger.info(f"Claim {claim_id} accepted for async processing (task_id: {task.task_id})")
+
+            return jsonify({
+                "success": True,
+                "claim_id": claim_id,
+                "task_id": task.task_id,
+                "status": task.status.lower() if hasattr(task, "status") else "queued",
+                "status_url": f"/api/claims/{claim_id}/status",
+                "receipt_url": f"/api/claims/{claim_id}/receipt",
+                "message": "Claim accepted for asynchronous processing",
+                "data": {
+                    "claim_id": claim_id,
+                    "user_id": current_user_id,
+                    "claimant_name": metadata["claimant_name"],
+                    "policy_number": metadata["policy_number"],
+                    "vehicle_number": metadata["vehicle_number"],
+                    "accident_date": metadata["accident_date"],
+                    "claim_description": metadata["claim_description"],
+                    "status": "QUEUED",
+                    "files_count": len(saved_files),
+                    "created_at": metadata["created_at"],
+                },
+            }), 202
+
+        # 8. Phase 4 document intelligence pipeline (best-effort extraction - synchronous fallback)
         processed_documents = []
         for field in doc_fields:
             file_obj = files_dict[field]
@@ -1996,4 +2034,85 @@ def get_claim_verification_summary(claim_id: str):
         }), 200
 
 
+@claims_bp.route("/claims/<claim_id>/status", methods=["GET"])
+def get_claim_task_status(claim_id: str):
+    """Retrieves asynchronous processing status and stage progression for a claim."""
+    if not is_valid_claim_id_format(claim_id):
+        return jsonify({"success": False, "error": "Invalid Claim ID format"}), 400
 
+    user_id = session.get("user_id")
+    user_role = session.get("role")
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim:
+            return jsonify({"success": False, "error": "Not Found", "message": "Claim not found"}), 404
+
+        if not can_user_access_claim(claim, user_id, user_role):
+            return jsonify({"success": False, "error": "Unauthorized" if not user_id else "Forbidden"}), 401 if not user_id else 403
+
+    task_data = queue_manager.get_task_status(claim_id)
+    if not task_data:
+        # Fallback synthetic status for legacy claims or completed claims without explicit task record
+        return jsonify({
+            "success": True,
+            "claim_id": claim_id,
+            "task_id": f"synthetic-{claim_id}",
+            "status": "completed" if claim.status in ("PROCESSED", "VERIFIED", "SUBMITTED") else claim.status.lower(),
+            "stage": "COMPLETED" if claim.status in ("PROCESSED", "VERIFIED") else "INTAKE",
+            "progress_percent": 100 if claim.status in ("PROCESSED", "VERIFIED") else 100,
+            "error_message": None,
+            "error_code": None,
+            "result_metadata": None,
+            "retry_count": 0,
+            "max_retries": 3,
+            "worker_id": "legacy_handler",
+            "created_at": claim.created_at.isoformat() if claim.created_at else None,
+            "updated_at": claim.updated_at.isoformat() if claim.updated_at else None,
+            "completed_at": claim.updated_at.isoformat() if claim.updated_at else None,
+        }), 200
+
+    return jsonify({
+        "success": True,
+        "claim_id": claim_id,
+        "task_id": task_data["task_id"],
+        "status": task_data["status"].lower(),
+        "stage": task_data["current_stage"],
+        "progress_percent": task_data["progress_percent"],
+        "error_message": task_data["error_message"],
+        "error_code": task_data["error_code"],
+        "result_metadata": task_data["result_metadata"],
+        "retry_count": task_data["retry_count"],
+        "max_retries": task_data["max_retries"],
+        "worker_id": task_data["worker_id"],
+        "created_at": task_data["created_at"],
+        "updated_at": task_data["updated_at"],
+        "completed_at": task_data["completed_at"],
+    }), 200
+
+
+@claims_bp.route("/claims/<claim_id>/retry-task", methods=["POST"])
+def retry_claim_task(claim_id: str):
+    """Manually re-enqueues a failed or stuck claim processing task."""
+    if not is_valid_claim_id_format(claim_id):
+        return jsonify({"success": False, "error": "Invalid Claim ID format"}), 400
+
+    user_id = session.get("user_id")
+    user_role = session.get("role")
+
+    with get_db_session() as db:
+        claim = db.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim:
+            return jsonify({"success": False, "error": "Not Found", "message": "Claim not found"}), 404
+
+        if not can_user_access_claim(claim, user_id, user_role):
+            return jsonify({"success": False, "error": "Unauthorized" if not user_id else "Forbidden"}), 401 if not user_id else 403
+
+    task, is_new = queue_manager.enqueue_claim_task(claim_id=claim_id, user_id=user_id, sync=False)
+    return jsonify({
+        "success": True,
+        "claim_id": claim_id,
+        "task_id": task.task_id if hasattr(task, "task_id") else task.get("task_id"),
+        "status": task.status.lower() if hasattr(task, "status") else "queued",
+        "message": "Task re-enqueued successfully",
+    }), 202
