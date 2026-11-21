@@ -3244,23 +3244,35 @@ function initClaimSenseApp() {
                         findings.forEach(f => {
                             const tr = document.createElement("tr");
 
-                            // Status badge class
+                            // Status badge class and concise label
                             let stClass = "badge-status-missing";
                             const st = (f.comparison_status || "").toUpperCase();
+                            let stDisplay = (f.comparison_status || "").replace(/_/g, " ");
+
                             if (st === "MATCH") {
                                 stClass = "badge-status-match";
+                                stDisplay = "MATCH";
                             } else if (st === "MISMATCH") {
                                 stClass = "badge-status-mismatch";
+                                stDisplay = "MISMATCH";
                             } else if (st === "MISSING_IN_SOURCE" || st === "NOT_PRESENT") {
                                 stClass = "badge-status-missing";
-                            } else if (st === "INCONCLUSIVE" || st === "NEEDS_REVIEW" || st === "EXTRACTION_ERROR" || st === "POTENTIAL_DISCREPANCY") {
+                                stDisplay = "MISSING";
+                            } else if (st === "INCONCLUSIVE" || st === "NEEDS_REVIEW" || st === "EXTRACTION_ERROR") {
                                 stClass = "badge-status-inconclusive";
-                            } else if (st === "NOT_APPLICABLE") {
+                                stDisplay = "INCONCLUSIVE";
+                            } else if (st === "POTENTIAL_DISCREPANCY") {
+                                stClass = "badge-status-inconclusive";
+                                stDisplay = "DISCREPANCY";
+                            } else if (st === "NOT_APPLICABLE" || st === "NA") {
                                 stClass = "badge-status-na";
+                                stDisplay = "N/A";
                             } else if (st === "VISUAL_ONLY" || st === "VISUAL_ONLY_FINDING") {
                                 stClass = "badge-status-visual";
-                            } else if (st === "NOT_CONFIRMED" || st === "UNCONFIRMED") {
+                                stDisplay = "VISUAL ONLY";
+                            } else if (st === "NOT_CONFIRMED" || st === "UNCONFIRMED" || st === "NOT_VISUALLY_CONFIRMED") {
                                 stClass = "badge-status-inconclusive";
+                                stDisplay = "NOT CONFIRMED";
                             }
 
                             // Severity badge class
@@ -3283,21 +3295,21 @@ function initClaimSenseApp() {
                             const tokenB = valB.startsWith('<span') ? valB : `<span class="val-token">${valB}</span>`;
 
                             tr.innerHTML = `
-                                <td>
+                                <td class="td-cmp">
                                     <div class="cmp-container">
-                                        <span class="cmp-source-primary">${escapeHtml(f.source_a || '')}</span>
-                                        <span class="cmp-source-secondary">vs ${escapeHtml(f.source_b || '')}</span>
+                                        <span class="cmp-source-primary" title="${escapeHtml(f.source_a || '')}">${escapeHtml(f.source_a || '')}</span>
+                                        <span class="cmp-source-secondary" title="vs ${escapeHtml(f.source_b || '')}">vs ${escapeHtml(f.source_b || '')}</span>
                                     </div>
                                 </td>
-                                <td>
-                                    <div class="field-title">${escapeHtml(f.field_name || '')}</div>
+                                <td class="td-field">
+                                    <div class="field-title" title="${escapeHtml(f.field_name || '')}">${escapeHtml(f.field_name || '')}</div>
                                     <span class="field-id-tag">${escapeHtml(f.comparison_id || '')}</span>
                                 </td>
-                                <td>${tokenA}</td>
-                                <td>${tokenB}</td>
-                                <td class="td-status"><span class="status-badge ${stClass}">${escapeHtml((f.comparison_status || '').replace(/_/g, ' '))}</span></td>
+                                <td class="td-source-a">${tokenA}</td>
+                                <td class="td-source-b">${tokenB}</td>
+                                <td class="td-status"><span class="status-badge ${stClass}">${escapeHtml(stDisplay)}</span></td>
                                 <td class="td-severity"><span class="severity-badge ${sevClass}">${escapeHtml(f.severity || '')}</span></td>
-                                <td><div class="expl-text">${escapeHtml(f.explanation || '')}</div></td>
+                                <td class="td-explanation"><div class="expl-text">${escapeHtml(f.explanation || '')}</div></td>
                             `;
                             verifFindingsRows.appendChild(tr);
                         });
