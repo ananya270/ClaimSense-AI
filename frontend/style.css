@@ -2913,7 +2913,7 @@ body.modal-open {
 
 .findings-table {
     width: 100% !important;
-    min-width: 1150px !important;
+    min-width: 1250px !important;
     table-layout: fixed !important;
     border-collapse: separate !important;
     border-spacing: 0 !important;
@@ -2926,7 +2926,7 @@ body.modal-open {
 }
 
 .findings-table th {
-    padding: 12px 10px !important;
+    padding: 12px 8px !important;
     font-size: 0.74rem !important;
     font-weight: 700 !important;
     text-transform: uppercase !important;
@@ -2960,10 +2960,10 @@ body.modal-open {
 }
 
 .findings-table td {
-    padding: 12px 10px !important;
+    padding: 10px 8px !important;
     vertical-align: middle !important;
     border-bottom: 1px solid rgba(51, 65, 85, 0.45) !important;
-    font-size: 0.84rem !important;
+    font-size: 0.82rem !important;
     color: #e2e8f0 !important;
     word-break: break-word !important;
     overflow-wrap: break-word !important;
@@ -2976,6 +2976,7 @@ body.modal-open {
 .findings-table td.td-severity {
     text-align: center !important;
     white-space: nowrap !important;
+    padding: 10px 4px !important;
 }
 
 /* 5. Cell Content Helpers (Prevents mid-word splitting) */
@@ -3027,14 +3028,15 @@ body.modal-open {
     word-break: break-word !important;
     overflow-wrap: anywhere !important;
     font-family: 'SF Mono', Consolas, Monaco, monospace;
-    font-size: 0.80rem;
-    line-height: 1.45;
+    font-size: 0.78rem !important;
+    line-height: 1.4 !important;
     background: rgba(30, 41, 59, 0.75);
-    padding: 6px 9px;
+    padding: 5px 8px !important;
     border-radius: 6px;
     border: 1px solid rgba(71, 85, 105, 0.45);
     color: #f1f5f9;
     box-sizing: border-box !important;
+    overflow: hidden !important;
 }
 
 .val-token-empty {
@@ -3062,11 +3064,11 @@ body.modal-open {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 4px 9px !important;
+    padding: 3px 8px !important;
     border-radius: 9999px !important;
-    font-size: 0.68rem !important;
+    font-size: 0.67rem !important;
     font-weight: 700 !important;
-    letter-spacing: 0.4px !important;
+    letter-spacing: 0.3px !important;
     text-transform: uppercase !important;
     white-space: nowrap !important;
     word-break: normal !important;
